@@ -1,0 +1,878 @@
+/* ==========================================================
+   TRANSLOGIX REGISTER EXPERIENCE
+========================================================== */
+
+.register-shell{
+    min-height:100vh;
+
+    display:grid;
+
+    grid-template-columns:
+        1.08fr
+        .92fr;
+
+    background:#f5f3f7;
+}
+
+
+/* ==========================================================
+   SHOWCASE
+========================================================== */
+
+.register-showcase{
+    position:relative;
+
+    min-height:100vh;
+
+    overflow:hidden;
+
+    color:#fff;
+
+    background:#08060c;
+}
+
+
+.register-showcase-image{
+    position:absolute;
+
+    inset:0;
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    object-position:center;
+}
+
+
+.register-showcase-overlay{
+    position:absolute;
+
+    inset:0;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(4,3,7,.94),
+            rgba(12,7,17,.64),
+            rgba(8,5,13,.28)
+        ),
+        linear-gradient(
+            0deg,
+            rgba(5,3,8,.84),
+            transparent 55%
+        );
+}
+
+
+.register-showcase::after{
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    opacity:.08;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,.15) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,.15) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        75px 75px;
+
+    pointer-events:none;
+}
+
+
+/* ==========================================================
+   BRAND
+========================================================== */
+
+.register-brand{
+    position:absolute;
+
+    top:34px;
+    left:6%;
+
+    z-index:5;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:11px;
+
+    color:#fff;
+
+    text-decoration:none;
+}
+
+
+.register-brand>span{
+    width:46px;
+    height:46px;
+
+    display:grid;
+
+    place-items:center;
+
+    border-radius:13px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #b99bed,
+            #7051aa
+        );
+
+    color:#fff;
+
+    font-size:19px;
+
+    font-weight:950;
+}
+
+
+.register-brand strong,
+.register-brand small{
+    display:block;
+}
+
+
+.register-brand strong{
+    font-size:15px;
+}
+
+
+.register-brand small{
+    margin-top:4px;
+
+    color:#a39aaa;
+
+    font-size:7px;
+
+    letter-spacing:1.4px;
+}
+
+
+/* ==========================================================
+   CONTENT
+========================================================== */
+
+.register-showcase-content{
+    position:relative;
+
+    z-index:5;
+
+    width:min(670px,82%);
+
+    margin:
+        18vh auto 0;
+}
+
+
+.register-showcase-content>span{
+    color:#c1a5e8;
+
+    font-size:9px;
+
+    font-weight:900;
+
+    letter-spacing:1.5px;
+}
+
+
+.register-showcase-content h1{
+    max-width:650px;
+
+    margin:
+        19px 0 17px;
+
+    font-family:
+        Manrope,
+        Inter,
+        sans-serif;
+
+    font-size:
+        clamp(
+            48px,
+            5.5vw,
+            75px
+        );
+
+    line-height:.98;
+
+    letter-spacing:-3.7px;
+}
+
+
+.register-showcase-content h1 em{
+    display:block;
+
+    color:#c2a5ee;
+
+    font-style:normal;
+}
+
+
+.register-showcase-content>p{
+    max-width:540px;
+
+    margin:0;
+
+    color:#c2b8c9;
+
+    font-size:13px;
+
+    line-height:1.85;
+}
+
+
+/* ==========================================================
+   FEATURES
+========================================================== */
+
+.register-feature-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(2,190px);
+
+    gap:8px;
+
+    margin-top:34px;
+}
+
+
+.register-feature-grid>div{
+    min-height:88px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:space-between;
+
+    padding:13px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.10);
+
+    border-radius:10px;
+
+    background:
+        rgba(13,9,18,.58);
+
+    backdrop-filter:
+        blur(10px);
+}
+
+
+.register-feature-grid strong{
+    color:#867993;
+
+    font-size:7px;
+}
+
+
+.register-feature-grid span{
+    max-width:120px;
+
+    color:#ddd5e3;
+
+    font-size:9px;
+
+    line-height:1.4;
+}
+
+
+/* ==========================================================
+   RIGHT CONTENT
+========================================================== */
+
+.register-content{
+    min-height:100vh;
+
+    display:grid;
+
+    place-items:center;
+
+    padding:50px;
+}
+
+
+.register-content-inner{
+    width:min(500px,100%);
+}
+
+
+.register-mobile-brand{
+    display:none;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin-bottom:32px;
+
+    color:#201a26;
+
+    text-decoration:none;
+
+    font-size:15px;
+
+    font-weight:950;
+}
+
+
+.register-mobile-brand>span{
+    width:40px;
+    height:40px;
+
+    display:grid;
+
+    place-items:center;
+
+    border-radius:11px;
+
+    color:#fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #b99bed,
+            #7052aa
+        );
+}
+
+
+/* ==========================================================
+   HEADING
+========================================================== */
+
+.register-heading>span{
+    color:#7355ad;
+
+    font-size:9px;
+
+    font-weight:950;
+
+    letter-spacing:1.4px;
+}
+
+
+.register-heading h2{
+    margin:
+        10px 0 7px;
+
+    font-family:
+        Manrope,
+        Inter,
+        sans-serif;
+
+    font-size:
+        clamp(
+            35px,
+            4vw,
+            50px
+        );
+
+    line-height:1;
+
+    letter-spacing:-2px;
+}
+
+
+.register-heading p{
+    margin:0;
+
+    color:#89818f;
+
+    font-size:13px;
+
+    line-height:1.7;
+}
+
+
+/* ==========================================================
+   CARD
+========================================================== */
+
+.register-card{
+    margin-top:27px;
+
+    padding:27px;
+
+    border:
+        1px solid
+        #e2dde6;
+
+    border-radius:16px;
+
+    background:#fff;
+
+    box-shadow:
+        0 25px 65px
+        rgba(31,21,43,.075);
+}
+
+
+.register-card-header{
+    display:flex;
+
+    align-items:flex-start;
+
+    justify-content:space-between;
+
+    gap:15px;
+
+    padding-bottom:20px;
+
+    border-bottom:
+        1px solid
+        #ece8ef;
+}
+
+
+.register-card-header small{
+    color:#9a929e;
+
+    font-size:7px;
+
+    font-weight:900;
+
+    letter-spacing:1px;
+}
+
+
+.register-card-header h3{
+    margin:
+        6px 0 0;
+
+    font-size:20px;
+}
+
+
+.register-step{
+    padding:
+        6px 8px;
+
+    border-radius:7px;
+
+    color:#7052aa;
+
+    background:#f0eafd;
+
+    font-size:7px;
+
+    font-weight:900;
+}
+
+
+/* ==========================================================
+   FORM
+========================================================== */
+
+.register-form{
+    display:grid;
+
+    gap:18px;
+
+    margin-top:22px;
+}
+
+
+.register-form label>span{
+    display:block;
+
+    margin-bottom:7px;
+
+    color:#4e4756;
+
+    font-size:9px;
+
+    font-weight:800;
+}
+
+
+.register-input{
+    height:52px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:
+        0 13px;
+
+    border:
+        1px solid
+        #e0dbe4;
+
+    border-radius:9px;
+
+    background:#fff;
+
+    transition:.2s ease;
+}
+
+
+.register-input:focus-within{
+    border-color:#9472cb;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(116,82,174,.07);
+}
+
+
+.register-input i{
+    color:#928998;
+
+    font-size:11px;
+
+    font-style:normal;
+}
+
+
+.register-input input{
+    width:100%;
+    height:100%;
+
+    border:0;
+
+    outline:0;
+
+    background:transparent;
+
+    color:#211c26;
+
+    font-size:13px;
+}
+
+
+.register-input input::placeholder{
+    color:#aaa2ae;
+}
+
+
+.register-select-wrap{
+    position:relative;
+}
+
+
+.register-select-wrap::after{
+    content:"⌄";
+
+    position:absolute;
+
+    top:50%;
+    right:14px;
+
+    transform:
+        translateY(-50%);
+
+    color:#807788;
+
+    pointer-events:none;
+
+    font-size:12px;
+}
+
+
+.register-select-wrap select{
+    width:100%;
+    height:52px;
+
+    padding:
+        0 40px
+        0 13px;
+
+    border:
+        1px solid
+        #e0dbe4;
+
+    border-radius:9px;
+
+    outline:0;
+
+    appearance:none;
+
+    color:#332d38;
+
+    background:#fff;
+
+    font-size:13px;
+}
+
+
+.register-select-wrap select:focus{
+    border-color:#9472cb;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(116,82,174,.07);
+}
+
+
+.register-message{
+    min-height:18px;
+
+    margin-top:-4px;
+
+    font-size:9px;
+
+    font-weight:800;
+}
+
+
+.register-message.error{
+    color:#d95762;
+}
+
+
+.register-message.success{
+    color:#279f68;
+}
+
+
+/* ==========================================================
+   SUBMIT
+========================================================== */
+
+.register-submit{
+    min-height:53px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:
+        0 17px;
+
+    border:0;
+
+    border-radius:9px;
+
+    color:#fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ad8be7,
+            #6e50a7
+        );
+
+    box-shadow:
+        0 12px 28px
+        rgba(108,78,167,.17);
+
+    font-size:11px;
+
+    font-weight:900;
+
+    transition:.22s ease;
+}
+
+
+.register-submit:hover{
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 18px 34px
+        rgba(108,78,167,.25);
+}
+
+
+.register-submit strong{
+    font-size:16px;
+}
+
+
+.register-submit:disabled{
+    opacity:.6;
+
+    cursor:wait;
+}
+
+
+/* ==========================================================
+   PROTECTION
+========================================================== */
+
+.register-protection{
+    display:flex;
+
+    align-items:flex-start;
+
+    gap:10px;
+
+    margin-top:18px;
+
+    padding:12px;
+
+    border-radius:9px;
+
+    background:#faf9fc;
+}
+
+
+.register-protection>span{
+    width:25px;
+    height:25px;
+
+    display:grid;
+
+    place-items:center;
+
+    flex-shrink:0;
+
+    border-radius:50%;
+
+    color:#2ba66d;
+
+    background:#eaf8f1;
+
+    font-size:7px;
+}
+
+
+.register-protection strong,
+.register-protection small{
+    display:block;
+}
+
+
+.register-protection strong{
+    color:#4c4553;
+
+    font-size:8px;
+}
+
+
+.register-protection small{
+    margin-top:3px;
+
+    color:#958c9c;
+
+    font-size:6px;
+
+    line-height:1.5;
+}
+
+
+/* ==========================================================
+   LOGIN LINK
+========================================================== */
+
+.register-login{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:6px;
+
+    margin-top:22px;
+
+    color:#8e8694;
+
+    font-size:9px;
+}
+
+
+.register-login a{
+    color:#7052aa;
+
+    text-decoration:none;
+
+    font-weight:900;
+}
+
+
+/* ==========================================================
+   BACK
+========================================================== */
+
+.register-back{
+    display:block;
+
+    margin-top:16px;
+
+    color:#99919f;
+
+    text-align:center;
+
+    text-decoration:none;
+
+    font-size:8px;
+}
+
+
+.register-back:hover{
+    color:#7052aa;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media(max-width:1050px){
+
+    .register-shell{
+        grid-template-columns:1fr;
+    }
+
+
+    .register-showcase{
+        display:none;
+    }
+
+
+    .register-content{
+        padding:40px 25px;
+    }
+
+
+    .register-mobile-brand{
+        display:flex;
+    }
+
+}
+
+
+@media(max-width:600px){
+
+    .register-content{
+        padding:
+            25px 16px;
+    }
+
+
+    .register-card{
+        padding:21px;
+    }
+
+
+    .register-heading h2{
+        font-size:36px;
+    }
+
+}

@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <meta
+        name="theme-color"
+        content="#08060c">
+
+    <title>TRANSLOGIX | Customer Workspace</title>
+
+
+    <!-- =====================================================
+         GLOBAL CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="./Css/style.css">
+
+    <link
+        rel="stylesheet"
+        href="./Css/user-dashboard.css">
+
+
+    <!-- =====================================================
+         ANDROID / MOBILE SCROLL FIX
+    ====================================================== -->
+
+    <style>
+
+        /* =================================================
+           GLOBAL SCROLL
+        ================================================= */
+
+        html {
+            width: 100%;
+            min-height: 100%;
+            height: auto !important;
+
+            margin: 0;
+            padding: 0;
+
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: auto;
+        }
+
+
+        body {
+            width: 100%;
+            min-height: 100%;
+            height: auto !important;
+
+            margin: 0;
+            padding: 0;
+
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+
+            -webkit-overflow-scrolling: touch;
+
+            touch-action: pan-y;
+            overscroll-behavior-y: auto;
+        }
+
+
+        /* =================================================
+           MAIN APP
+        ================================================= */
+
+        .user-app {
+            width: 100%;
+            min-height: 100vh;
+
+            height: auto !important;
+
+            overflow: visible !important;
+
+            display: block;
+        }
+
+
+        .user-main {
+            width: 100%;
+            min-height: 100vh;
+
+            height: auto !important;
+
+            overflow: visible !important;
+
+            box-sizing: border-box;
+        }
+
+
+        .user-page {
+            width: 100%;
+
+            min-height: 0 !important;
+            height: auto !important;
+
+            overflow: visible !important;
+
+            box-sizing: border-box;
+        }
+
+
+        /* =================================================
+           PREVENT INTERNAL SCROLL CONTAINERS
+        ================================================= */
+
+        .user-app,
+        .user-main,
+        .user-page,
+        .user-page > section,
+        .user-page > article,
+        .user-work-grid,
+        .user-panel,
+        .user-kpis,
+        .profile-layout {
+            max-height: none !important;
+        }
+
+
+        /* =================================================
+           MOBILE LOGOUT DEFAULT
+        ================================================= */
+
+        .mobile-logout-btn {
+            display: none;
+        }
+
+
+        /* =================================================
+           MOBILE
+        ================================================= */
+
+        @media (max-width: 1000px) {
+
+            /* -------------------------------
+               SIDEBAR HIDDEN
+            ------------------------------- */
+
+            .user-sidebar {
+                display: none !important;
+            }
+
+
+            /* -------------------------------
+               MAIN
+            ------------------------------- */
+
+            .user-main {
+
+                width: 100%;
+
+                margin-left: 0 !important;
+
+                min-height: 100vh;
+
+                height: auto !important;
+
+                padding:
+                    18px
+                    18px
+                    190px !important;
+
+                overflow: visible !important;
+
+                touch-action: pan-y;
+
+                box-sizing: border-box;
+            }
+
+
+            /* -------------------------------
+               PAGES
+            ------------------------------- */
+
+            .user-page {
+
+                width: 100%;
+
+                min-height: 0 !important;
+
+                height: auto !important;
+
+                overflow: visible !important;
+
+                padding-bottom: 10px;
+            }
+
+
+            /* -------------------------------
+               ALL CONTENT
+            ------------------------------- */
+
+            .user-page,
+            .user-page > section,
+            .user-page > article,
+            .user-panel,
+            .user-work-grid,
+            .user-kpis,
+            .profile-layout {
+
+                max-height: none !important;
+
+                overflow: visible !important;
+            }
+
+
+            /* =================================================
+               MOBILE LOGOUT
+            ================================================= */
+
+            .mobile-logout-btn {
+
+                width: 100%;
+
+                min-height: 56px;
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                margin-top: 30px;
+
+                margin-bottom: 35px;
+
+                padding: 14px 18px;
+
+                border: 1px solid rgba(
+                    255,
+                    255,
+                    255,
+                    0.12
+                );
+
+                border-radius: 14px;
+
+                background: #08060c;
+
+                color: #ffffff;
+
+                font-family: inherit;
+
+                font-size: 14px;
+
+                font-weight: 700;
+
+                cursor: pointer;
+
+                touch-action: manipulation;
+
+                -webkit-tap-highlight-color: transparent;
+
+                box-shadow:
+                    0 10px 30px
+                    rgba(0, 0, 0, 0.15);
+
+                transition:
+                    transform .2s ease,
+                    opacity .2s ease,
+                    background .2s ease;
+
+                position: relative;
+
+                z-index: 5;
+            }
+
+
+            .mobile-logout-btn:active {
+
+                transform: scale(.98);
+
+                opacity: .85;
+            }
+
+
+            .mobile-logout-btn:hover {
+
+                background: #111019;
+            }
+
+
+            /* =================================================
+               MOBILE BOTTOM NAV
+            ================================================= */
+
+            .mobile-bottom-nav {
+
+                position: fixed !important;
+
+                left: 10px !important;
+
+                right: 10px !important;
+
+                bottom: 10px !important;
+
+                width: auto !important;
+
+                z-index: 99999 !important;
+
+                display: grid !important;
+
+                box-sizing: border-box;
+
+                touch-action: manipulation;
+
+                padding-bottom:
+                    env(safe-area-inset-bottom);
+            }
+
+
+            /* =================================================
+               IMPORTANT:
+               BOTTOM NAV MUST NOT CREATE SCROLL LOCK
+            ================================================= */
+
+            .mobile-bottom-nav,
+            .mobile-bottom-nav * {
+
+                max-height: none !important;
+            }
+
+        }
+
+
+        /* =================================================
+           SMALL MOBILE
+        ================================================= */
+
+        @media (max-width: 600px) {
+
+            .user-main {
+
+                padding:
+                    15px
+                    15px
+                    200px !important;
+            }
+
+
+            .user-page {
+
+                padding-bottom: 5px;
+            }
+
+
+            .mobile-logout-btn {
+
+                min-height: 54px;
+
+                margin-top: 28px;
+
+                margin-bottom:
+                    calc(
+                        35px +
+                        env(safe-area-inset-bottom)
+                    );
+
+                border-radius: 13px;
+
+                font-size: 13px;
+            }
+
+        }
+
+
+        /* =================================================
+           VERY SMALL MOBILE
+        ================================================= */
+
+        @media (max-width: 380px) {
+
+            .user-main {
+
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+                padding-bottom: 205px !important;
+            }
+
+
+            .mobile-logout-btn {
+
+                min-height: 52px;
+
+                font-size: 13px;
+            }
+
+        }
+
+
+        /* =================================================
+           DRAWER OPEN
+        ================================================= */
+
+        body.drawer-open {
+
+            overflow: hidden !important;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="user-app">
+
+
+    <!-- =====================================================
+         DESKTOP SIDEBAR
+    ====================================================== -->
+
+    <aside class="user-sidebar">
+
+
+        <!-- BRAND -->
+
+        <a
+            href="./index.html"
+            class="user-brand">
+
+            <span>T</span>
+
+            <div>
+
+                <strong>TRANSLOGIX</strong>
+
+                <small>
+                    CUSTOMER WORKSPACE
+                </small>
+
+            </div>
+
+        </a>
+
+
+        <!-- ACCOUNT -->
+
+        <div class="user-account">
+
+            <div
+                id="userAvatar"
+                class="user-avatar">
+
+                V
+
+            </div>
+
+            <div>
+
+                <strong id="username">
+                    vijay
+                </strong>
+
+                <small>
+                    Customer Account
+                </small>
+
+            </div>
+
+            <i></i>
+
+        </div>
+
+
+        <!-- NAV TITLE -->
+
+        <div class="user-nav-title">
+            MY WORKSPACE
+        </div>
+
+
+        <!-- NAVIGATION -->
+
+        <nav class="user-nav">
+
+
+            <button
+                class="user-nav-item active"
+                data-page="dashboard"
+                type="button">
+
+                <span>⌂</span>
+
+                Dashboard
+
+            </button>
+
+
+            <button
+                class="user-nav-item"
+                data-page="shipments"
+                type="button">
+
+                <span>▦</span>
+
+                My Shipments
+
+                <b id="userShipmentCount">
+                    0
+                </b>
+
+            </button>
+
+
+            <button
+                class="user-nav-item"
+                data-page="tracking"
+                type="button">
+
+                <span>⌖</span>
+
+                Track Shipment
+
+            </button>
+
+
+            <button
+                class="user-nav-item"
+                data-page="notifications"
+                type="button">
+
+                <span>♢</span>
+
+                Notifications
+
+                <b id="desktopNotificationCount">
+                    2
+                </b>
+
+            </button>
+
+
+            <button
+                class="user-nav-item"
+                data-page="profile"
+                type="button">
+
+                <span>◉</span>
+
+                Profile
+
+            </button>
+
+
+        </nav>
+
+
+        <!-- SUPPORT -->
+
+        <div class="user-nav-title">
+            SUPPORT
+        </div>
+
+
+        <div class="user-support-card">
+
+            <span>?</span>
+
+            <div>
+
+                <strong>
+                    Need help?
+                </strong>
+
+                <small>
+                    Contact Translogix support
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- SECURITY -->
+
+        <div class="user-security-card">
+
+            <span>✓</span>
+
+            <div>
+
+                <strong>
+                    Account secure
+                </strong>
+
+                <small>
+                    JWT protected
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- DESKTOP LOGOUT -->
+
+        <button
+            id="logoutBtn"
+            class="user-logout"
+            type="button">
+
+            ↪ Sign Out
+
+        </button>
+
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="user-main">
+
+
+        <!-- =================================================
+             TOPBAR
+        ================================================== -->
+
+        <header class="user-topbar">
+
+
+            <div class="user-title-area">
+
+
+                <span class="user-breadcrumb">
+                    TRANSLOGIX / CUSTOMER
+                </span>
+
+
+                <h1 id="pageTitle">
+                    Dashboard
+                </h1>
+
+
+                <p id="pageSubtitle">
+                    Your logistics workspace
+                </p>
+
+
+            </div>
+
+
+            <!-- TOP ACTIONS -->
+
+            <div class="user-top-actions">
+
+
+                <div class="user-search">
+
+                    <span>⌕</span>
+
+                    <input
+                        id="userGlobalSearch"
+                        type="search"
+                        autocomplete="off"
+                        placeholder="Search tracking number...">
+
+                </div>
+
+
+                <button
+                    id="userRefreshBtn"
+                    class="user-icon-btn"
+                    type="button"
+                    aria-label="Refresh">
+
+                    ↻
+
+                </button>
+
+
+                <button
+                    id="notificationTopBtn"
+                    class="user-icon-btn"
+                    type="button"
+                    aria-label="Notifications">
+
+                    ♢
+
+                    <em id="topNotificationCount">
+                        2
+                    </em>
+
+                </button>
+
+
+                <div class="user-top-account">
+
+
+                    <div id="topAvatar">
+                        V
+                    </div>
+
+
+                    <div>
+
+                        <strong id="topUsername">
+                            vijay
+                        </strong>
+
+                        <small>
+                            CUSTOMER
+                        </small>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+        </header>
+
+
+
+        <!-- =================================================
+             DASHBOARD
+        ================================================== -->
+
+        <section
+            id="page-dashboard"
+            class="user-page">
+
+
+            <!-- HERO -->
+
+            <section class="user-hero">
+
+
+                <div class="user-hero-copy">
+
+
+                    <span>
+                        CUSTOMER WORKSPACE
+                    </span>
+
+
+                    <h2>
+
+                        Welcome back,
+
+                        <strong id="welcomeUser">
+                            vijay
+                        </strong>
+
+                    </h2>
+
+
+                    <p>
+
+                        Track your logistics journey,
+                        review delivery activity and
+                        stay informed about every shipment.
+
+                    </p>
+
+
+                    <div class="user-hero-actions">
+
+
+                        <button
+                            class="user-primary-action"
+                            data-go-user="tracking"
+                            type="button">
+
+                            ⌖ Track Shipment
+
+                            <b>→</b>
+
+                        </button>
+
+
+                        <button
+                            class="user-secondary-action"
+                            data-go-user="shipments"
+                            type="button">
+
+                            ▦ Shipment History
+
+                            <b>→</b>
+
+                        </button>
+
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="user-hero-visual">
+
+
+                    <img
+                        src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=1500&q=92"
+                        alt="Delivery logistics"
+                        loading="lazy">
+
+
+                    <div>
+
+                        <small>
+                            YOUR LOGISTICS
+                        </small>
+
+                        <strong>
+                            Every journey matters.
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+
+            <!-- KPI -->
+
+            <section class="user-kpis">
+
+
+                <article class="user-kpi dark">
+
+                    <span>
+                        TOTAL
+                    </span>
+
+                    <strong id="userTotal">
+                        0
+                    </strong>
+
+                    <small>
+                        Your shipments
+                    </small>
+
+                </article>
+
+
+                <article class="user-kpi">
+
+                    <span>
+                        DELIVERED
+                    </span>
+
+                    <strong id="userDelivered">
+                        0
+                    </strong>
+
+                    <small>
+                        Completed
+                    </small>
+
+                </article>
+
+
+                <article class="user-kpi">
+
+                    <span>
+                        IN TRANSIT
+                    </span>
+
+                    <strong id="userTransit">
+                        0
+                    </strong>
+
+                    <small>
+                        Currently moving
+                    </small>
+
+                </article>
+
+
+                <article class="user-kpi">
+
+                    <span>
+                        FINAL MILE
+                    </span>
+
+                    <strong id="userFinal">
+                        0
+                    </strong>
+
+                    <small>
+                        Out for delivery
+                    </small>
+
+                </article>
+
+
+            </section>
+
+
+
+            <!-- ACTIVE + JOURNEY -->
+
+            <section class="user-work-grid">
+
+
+                <!-- ACTIVE SHIPMENT -->
+
+                <article class="user-panel active-delivery">
+
+
+                    <div class="user-panel-head">
+
+
+                        <div>
+
+                            <span>
+                                ACTIVE DELIVERY
+                            </span>
+
+                            <h3>
+                                Current shipment
+                            </h3>
+
+                        </div>
+
+
+                        <span
+                            id="activeStatus"
+                            class="user-status transit">
+
+                            In Transit
+
+                        </span>
+
+
+                    </div>
+
+
+                    <div class="user-active-body">
+
+
+                        <strong
+                            id="activeTracking"
+                            class="active-tracking">
+
+                            TRX10001
+
+                        </strong>
+
+
+                        <div class="active-route">
+
+
+                            <div>
+
+                                <small>
+                                    FROM
+                                </small>
+
+                                <strong id="activeOrigin">
+                                    Pune
+                                </strong>
+
+                            </div>
+
+
+                            <div class="active-route-line"></div>
+
+
+                            <div>
+
+                                <small>
+                                    TO
+                                </small>
+
+                                <strong id="activeDestination">
+                                    Delhi
+                                </strong>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <div class="active-meta">
+
+
+                            <div>
+
+                                <span>
+                                    SENDER
+                                </span>
+
+                                <strong id="activeSender">
+                                    -
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    RECEIVER
+                                </span>
+
+                                <strong id="activeReceiver">
+                                    -
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    TYPE
+                                </span>
+
+                                <strong id="activeType">
+                                    -
+                                </strong>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    LOAD
+                                </span>
+
+                                <strong id="activeWeight">
+                                    -
+                                </strong>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <button
+                            class="user-primary-action wide"
+                            data-go-user="tracking"
+                            type="button">
+
+                            Follow Journey
+
+                            <b>→</b>
+
+                        </button>
+
+
+                    </div>
+
+
+                </article>
+
+
+
+                <!-- JOURNEY -->
+
+                <article class="user-panel">
+
+
+                    <div class="user-panel-head">
+
+
+                        <div>
+
+                            <span>
+                                JOURNEY
+                            </span>
+
+                            <h3>
+                                Delivery progress
+                            </h3>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="user-journey">
+
+
+                        <div class="user-journey-step completed">
+
+                            <i>✓</i>
+
+                            <div>
+
+                                <strong>
+                                    Shipment Created
+                                </strong>
+
+                                <small>
+                                    Shipment registered
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="user-journey-step completed">
+
+                            <i>✓</i>
+
+                            <div>
+
+                                <strong>
+                                    Picked Up
+                                </strong>
+
+                                <small>
+                                    Cargo collected
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="user-journey-step current active">
+
+                            <i>→</i>
+
+                            <div>
+
+                                <strong>
+                                    In Transit
+                                </strong>
+
+                                <small>
+                                    Shipment is moving
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="user-journey-step">
+
+                            <i>○</i>
+
+                            <div>
+
+                                <strong>
+                                    Final Mile
+                                </strong>
+
+                                <small>
+                                    Delivery preparation
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="user-journey-step">
+
+                            <i>○</i>
+
+                            <div>
+
+                                <strong>
+                                    Delivered
+                                </strong>
+
+                                <small>
+                                    Destination reached
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+                </article>
+
+
+            </section>
+
+
+
+            <!-- RECENT SHIPMENTS -->
+
+            <section class="user-panel">
+
+
+                <div class="user-panel-head">
+
+
+                    <div>
+
+                        <span>
+                            RECENT ACTIVITY
+                        </span>
+
+                        <h3>
+                            Your shipments
+                        </h3>
+
+                    </div>
+
+
+                    <button
+                        class="user-link-btn"
+                        data-go-user="shipments"
+                        type="button">
+
+                        View all →
+
+                    </button>
+
+
+                </div>
+
+
+                <div
+                    id="recentShipmentList"
+                    class="user-shipment-grid">
+
+                </div>
+
+
+            </section>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             SHIPMENTS
+        ================================================== -->
+
+        <section
+            id="page-shipments"
+            class="user-page hidden">
+
+
+            <div class="user-page-heading">
+
+
+                <div>
+
+                    <span>
+                        MY LOGISTICS
+                    </span>
+
+                    <h2>
+                        My Shipments
+                    </h2>
+
+                    <p>
+                        Your complete shipment history.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="user-shipment-tools">
+
+
+                <div class="user-search">
+
+                    <span>⌕</span>
+
+                    <input
+                        id="userShipmentSearch"
+                        type="search"
+                        placeholder="Search tracking or route...">
+
+                </div>
+
+
+                <select id="userStatusFilter">
+
+                    <option value="">
+                        All Status
+                    </option>
+
+                    <option value="Pending">
+                        Pending
+                    </option>
+
+                    <option value="In Transit">
+                        In Transit
+                    </option>
+
+                    <option value="Out for Delivery">
+                        Out for Delivery
+                    </option>
+
+                    <option value="Delivered">
+                        Delivered
+                    </option>
+
+                    <option value="Delayed">
+                        Delayed
+                    </option>
+
+                    <option value="Exception">
+                        Exception
+                    </option>
+
+                </select>
+
+
+                <button
+                    id="clearUserFilters"
+                    class="user-filter-btn"
+                    type="button">
+
+                    ↺
+
+                </button>
+
+
+            </div>
+
+
+            <div
+                id="userShipmentGrid"
+                class="user-shipment-grid full">
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             TRACKING
+        ================================================== -->
+
+        <section
+            id="page-tracking"
+            class="user-page hidden">
+
+
+            <div class="user-page-heading">
+
+
+                <div>
+
+                    <span>
+                        TRACK & TRACE
+                    </span>
+
+                    <h2>
+                        Where is your shipment?
+                    </h2>
+
+                    <p>
+                        Enter your tracking number to follow the journey.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <section class="user-track-layout">
+
+
+                <div class="user-track-box">
+
+
+                    <span>
+                        TRACKING NUMBER
+                    </span>
+
+
+                    <form id="userTrackingForm">
+
+
+                        <div class="user-search-large">
+
+                            <span>⌕</span>
+
+                            <input
+                                id="userTrackingInput"
+                                type="text"
+                                autocomplete="off"
+                                placeholder="TRX10001"
+                                required>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="user-primary-action">
+
+                            Track →
+
+                        </button>
+
+
+                    </form>
+
+
+                    <div
+                        id="userTrackingMessage"
+                        class="user-message">
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="user-track-image">
+
+
+                    <img
+                        src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=1400&q=92"
+                        alt="Shipping containers"
+                        loading="lazy">
+
+
+                    <div>
+
+                        <small>
+                            LIVE VISIBILITY
+                        </small>
+
+                        <strong>
+                            Every mile matters.
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+
+            <!-- TRACKING RESULT -->
+
+            <section
+                id="userTrackingResult"
+                class="user-panel user-track-result hidden">
+
+
+                <div class="user-result-head">
+
+
+                    <div>
+
+                        <span>
+                            SHIPMENT
+                        </span>
+
+                        <h3 id="userResultTracking">
+                            -
+                        </h3>
+
+                    </div>
+
+
+                    <span
+                        id="userResultStatus"
+                        class="user-status transit">
+
+                        -
+
+                    </span>
+
+
+                </div>
+
+
+                <div class="user-result-route">
+
+
+                    <div>
+
+                        <small>
+                            FROM
+                        </small>
+
+                        <strong id="userResultOrigin">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <b>
+                        →
+                    </b>
+
+
+                    <div>
+
+                        <small>
+                            TO
+                        </small>
+
+                        <strong id="userResultDestination">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="user-result-data">
+
+
+                    <div>
+
+                        <span>
+                            SENDER
+                        </span>
+
+                        <strong id="userResultSender">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            RECEIVER
+                        </span>
+
+                        <strong id="userResultReceiver">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            TYPE
+                        </span>
+
+                        <strong id="userResultType">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            WEIGHT
+                        </span>
+
+                        <strong id="userResultWeight">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             NOTIFICATIONS
+        ================================================== -->
+
+        <section
+            id="page-notifications"
+            class="user-page hidden">
+
+
+            <div class="user-page-heading">
+
+
+                <div>
+
+                    <span>
+                        NOTIFICATIONS
+                    </span>
+
+                    <h2>
+                        Shipment updates
+                    </h2>
+
+                    <p>
+                        Stay informed about your logistics activity.
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="markNotificationsRead"
+                    class="user-secondary-action"
+                    type="button">
+
+                    Mark all read
+
+                </button>
+
+
+            </div>
+
+
+            <section class="notification-list">
+
+
+                <article class="notification-card unread">
+
+
+                    <span class="notification-icon">
+                        →
+                    </span>
+
+
+                    <div>
+
+                        <strong>
+                            Shipment TRX10001 is in transit
+                        </strong>
+
+                        <small>
+                            Your shipment is moving from Pune to Delhi.
+                        </small>
+
+                    </div>
+
+
+                    <time>
+                        Just now
+                    </time>
+
+
+                </article>
+
+
+                <article class="notification-card unread">
+
+
+                    <span class="notification-icon">
+                        ✓
+                    </span>
+
+
+                    <div>
+
+                        <strong>
+                            Shipment delivered
+                        </strong>
+
+                        <small>
+                            Your previous shipment has been delivered successfully.
+                        </small>
+
+                    </div>
+
+
+                    <time>
+                        2h ago
+                    </time>
+
+
+                </article>
+
+
+                <article class="notification-card">
+
+
+                    <span class="notification-icon">
+                        ◈
+                    </span>
+
+
+                    <div>
+
+                        <strong>
+                            TRANSLOGIX network operational
+                        </strong>
+
+                        <small>
+                            All logistics services are currently available.
+                        </small>
+
+                    </div>
+
+
+                    <time>
+                        Today
+                    </time>
+
+
+                </article>
+
+
+            </section>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             PROFILE
+        ================================================== -->
+
+        <section
+            id="page-profile"
+            class="user-page hidden">
+
+
+            <div class="user-page-heading">
+
+
+                <div>
+
+                    <span>
+                        ACCOUNT
+                    </span>
+
+                    <h2>
+                        My Profile
+                    </h2>
+
+                    <p>
+                        Your TRANSLOGIX account information.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <section class="profile-layout">
+
+
+                <!-- PROFILE CARD -->
+
+                <article class="user-panel profile-card">
+
+
+                    <div
+                        id="profileAvatar"
+                        class="profile-avatar">
+
+                        V
+
+                    </div>
+
+
+                    <h3 id="profileUsername">
+                        vijay
+                    </h3>
+
+
+                    <span>
+                        Customer Account
+                    </span>
+
+
+                    <div class="profile-status">
+                        ● Account secure
+                    </div>
+
+
+                </article>
+
+
+
+                <!-- PROFILE DETAILS -->
+
+                <article class="user-panel profile-details">
+
+
+                    <span>
+                        ACCOUNT INFORMATION
+                    </span>
+
+
+                    <div>
+
+                        <small>
+                            Username
+                        </small>
+
+                        <strong id="profileName">
+                            vijay
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <small>
+                            Account Type
+                        </small>
+
+                        <strong>
+                            Customer
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <small>
+                            Security
+                        </small>
+
+                        <strong>
+                            JWT Protected
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <small>
+                            Platform
+                        </small>
+
+                        <strong>
+                            TRANSLOGIX
+                        </strong>
+
+                    </div>
+
+
+                </article>
+
+
+            </section>
+
+
+
+            <!-- =================================================
+                 MOBILE SIGN OUT
+            ================================================== -->
+
+            <button
+                id="mobileLogoutBtn"
+                class="mobile-logout-btn"
+                type="button">
+
+                ↪ Sign Out
+
+            </button>
+
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =====================================================
+         MOBILE BOTTOM NAVIGATION
+    ====================================================== -->
+
+    <nav class="mobile-bottom-nav">
+
+
+        <button
+            class="mobile-nav-item active"
+            data-page="dashboard"
+            type="button">
+
+            <span>
+                ⌂
+            </span>
+
+            <small>
+                Home
+            </small>
+
+        </button>
+
+
+        <button
+            class="mobile-nav-item"
+            data-page="shipments"
+            type="button">
+
+            <span>
+                ▦
+            </span>
+
+            <small>
+                Shipments
+            </small>
+
+        </button>
+
+
+        <button
+            class="mobile-nav-item"
+            data-page="tracking"
+            type="button">
+
+            <span>
+                ⌖
+            </span>
+
+            <small>
+                Track
+            </small>
+
+        </button>
+
+
+        <button
+            class="mobile-nav-item"
+            data-page="notifications"
+            type="button">
+
+            <span>
+                ♢
+            </span>
+
+            <small>
+                Alerts
+            </small>
+
+            <b id="mobileNotificationCount">
+                2
+            </b>
+
+        </button>
+
+
+        <button
+            class="mobile-nav-item"
+            data-page="profile"
+            type="button">
+
+            <span>
+                ◉
+            </span>
+
+            <small>
+                Profile
+            </small>
+
+        </button>
+
+
+    </nav>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     SHIPMENT DRAWER
+====================================================== -->
+
+<div
+    id="userDrawer"
+    class="user-drawer-overlay hidden">
+
+
+    <aside class="user-drawer">
+
+
+        <button
+            id="drawerClose"
+            class="user-drawer-close"
+            type="button">
+
+            ×
+
+        </button>
+
+
+        <span>
+            SHIPMENT DETAILS
+        </span>
+
+
+        <h2 id="drawerTracking">
+            -
+        </h2>
+
+
+        <span
+            id="drawerStatus"
+            class="user-status transit">
+
+            -
+
+        </span>
+
+
+        <div class="drawer-route">
+
+
+            <div>
+
+                <small>
+                    FROM
+                </small>
+
+                <strong id="drawerOrigin">
+                    -
+                </strong>
+
+            </div>
+
+
+            <b>
+                →
+            </b>
+
+
+            <div>
+
+                <small>
+                    TO
+                </small>
+
+                <strong id="drawerDestination">
+                    -
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="drawer-info">
+
+
+            <div>
+
+                <span>
+                    Sender
+                </span>
+
+                <strong id="drawerSender">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Receiver
+                </span>
+
+                <strong id="drawerReceiver">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Type
+                </span>
+
+                <strong id="drawerType">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Weight
+                </span>
+
+                <strong id="drawerWeight">
+                    -
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+    </aside>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     USER JAVASCRIPT
+====================================================== -->
+
+<script
+    src="./Js/user.js"
+    defer>
+</script>
+
+
+
+<!-- =====================================================
+     MOBILE LOGOUT HANDLER
+====================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const mobileLogout =
+            document.getElementById(
+                "mobileLogoutBtn"
+            );
+
+
+        if (mobileLogout) {
+
+            mobileLogout.addEventListener(
+                "click",
+                function () {
+
+                    localStorage.clear();
+
+                    window.location.href =
+                        "./login.html";
+
+                }
+            );
+
+        }
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>

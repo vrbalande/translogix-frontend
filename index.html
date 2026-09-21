@@ -1,0 +1,6445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="TRANSLOGIX — Intelligent logistics platform for freight, express delivery, courier, shipping, eCommerce, cross-border and cold-chain operations.">
+
+    <meta
+        name="theme-color"
+        content="#0b1220">
+
+    <title>
+        TRANSLOGIX | Intelligent Logistics Platform
+    </title>
+
+
+    <!-- =====================================================
+         FONTS
+    ====================================================== -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+
+    <!-- =====================================================
+         EXISTING CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="./Css/style.css">
+
+    <link
+        rel="stylesheet"
+        href="./Css/landing.css">
+
+
+    <!-- =====================================================
+         ADVANCED INDEX CSS
+    ====================================================== -->
+
+    <style>
+
+        :root{
+
+            --tx-bg:#f4f7fa;
+            --tx-white:#ffffff;
+            --tx-ink:#172338;
+            --tx-muted:#748195;
+
+            --tx-purple:#7657c7;
+            --tx-purple-dark:#5e439e;
+
+            --tx-green:#19a878;
+            --tx-cyan:#16a9c7;
+            --tx-blue:#4d7edb;
+            --tx-red:#da5365;
+
+            --tx-line:#dce4eb;
+
+            --tx-shadow:
+                0 20px 55px
+                rgba(27,42,62,.08);
+        }
+
+
+        /* =================================================
+           BASE
+        ================================================= */
+
+        body{
+
+            margin:0;
+
+            color:var(--tx-ink);
+
+            background:
+
+                radial-gradient(
+                    circle at 90% 0%,
+                    rgba(118,87,199,.08),
+                    transparent 25%
+                ),
+
+                linear-gradient(
+                    180deg,
+                    #f7f9fb 0%,
+                    #eef3f7 100%
+                );
+
+            font-family:
+                "DM Sans",
+                Inter,
+                Arial,
+                sans-serif;
+        }
+
+
+        body::-webkit-scrollbar{
+            width:10px;
+        }
+
+        body::-webkit-scrollbar-track{
+            background:#edf1f5;
+        }
+
+        body::-webkit-scrollbar-thumb{
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #9c84d9,
+                    #6e55b0
+                );
+
+            border-radius:999px;
+        }
+
+
+        /* =================================================
+           HEADER
+        ================================================= */
+
+        .tx-header-shell{
+
+            position:fixed;
+
+            top:14px;
+            left:50%;
+
+            transform:translateX(-50%);
+
+            z-index:5000;
+
+            width:
+                min(
+                    1180px,
+                    calc(100% - 30px)
+                );
+
+            padding:
+                9px 11px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.75);
+
+            border-radius:16px;
+
+            background:
+                rgba(255,255,255,.78);
+
+            box-shadow:
+                0 12px 35px
+                rgba(30,45,65,.08);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+        }
+
+
+        .tx-header-inner{
+
+            min-height:58px;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:space-between;
+
+            gap:18px;
+        }
+
+
+        .tx-brand{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:10px;
+
+            color:var(--tx-ink);
+
+            text-decoration:none;
+
+            flex-shrink:0;
+        }
+
+
+        .tx-brand-mark{
+
+            width:42px;
+            height:42px;
+
+            display:grid;
+
+            place-items:center;
+
+            border-radius:12px;
+
+            color:#fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #b89ff0,
+                    #6848aa
+                );
+
+            box-shadow:
+                0 10px 20px
+                rgba(101,71,170,.18);
+
+            font-family:Manrope,sans-serif;
+
+            font-size:11px;
+
+            font-weight:800;
+        }
+
+
+        .tx-brand-copy strong,
+        .tx-brand-copy small{
+
+            display:block;
+        }
+
+
+        .tx-brand-copy strong{
+
+            font-family:Manrope,sans-serif;
+
+            font-size:14px;
+
+            letter-spacing:.3px;
+        }
+
+
+        .tx-brand-copy small{
+
+            margin-top:2px;
+
+            color:#8b95a5;
+
+            font-size:6px;
+
+            font-weight:800;
+
+            letter-spacing:1.1px;
+        }
+
+
+        .tx-nav{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:6px;
+        }
+
+
+        .tx-nav a{
+
+            padding:
+                9px 11px;
+
+            border-radius:9px;
+
+            color:#58677a;
+
+            text-decoration:none;
+
+            font-size:9px;
+
+            font-weight:800;
+
+            transition:.2s ease;
+        }
+
+
+        .tx-nav a:hover{
+
+            color:#60479e;
+
+            background:#f3effb;
+        }
+
+
+        .tx-header-actions{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:7px;
+        }
+
+
+        .tx-signin{
+
+            color:#58677a;
+
+            text-decoration:none;
+
+            font-size:9px;
+
+            font-weight:800;
+        }
+
+
+        .tx-get-started{
+
+            min-height:38px;
+
+            display:inline-flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+            gap:8px;
+
+            padding:
+                0 13px;
+
+            border-radius:9px;
+
+            color:#fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8e6cdc,
+                    #6548a8
+                );
+
+            text-decoration:none;
+
+            font-size:8px;
+
+            font-weight:900;
+
+            box-shadow:
+                0 8px 18px
+                rgba(92,65,155,.16);
+        }
+
+
+        .tx-mobile-menu{
+
+            display:none;
+
+            width:40px;
+            height:40px;
+
+            border:
+                1px solid
+                #dce3ea;
+
+            border-radius:9px;
+
+            color:#5e6d80;
+
+            background:#fff;
+        }
+
+
+        /* =================================================
+           MOBILE NAV
+        ================================================= */
+
+        .tx-mobile-nav{
+
+            position:fixed;
+
+            top:85px;
+            left:15px;
+            right:15px;
+
+            z-index:4999;
+
+            display:none;
+
+            padding:10px;
+
+            border:
+                1px solid
+                #dbe3eb;
+
+            border-radius:14px;
+
+            background:
+                rgba(255,255,255,.96);
+
+            box-shadow:
+                0 18px 45px
+                rgba(25,40,60,.12);
+
+            backdrop-filter:blur(18px);
+        }
+
+
+        .tx-mobile-nav.open{
+            display:grid;
+        }
+
+
+        .tx-mobile-nav a{
+
+            padding:
+                13px;
+
+            color:#4f5d70;
+
+            text-decoration:none;
+
+            border-radius:9px;
+
+            font-size:10px;
+
+            font-weight:800;
+        }
+
+
+        .tx-mobile-nav a:hover{
+            background:#f5f1fc;
+            color:#60449f;
+        }
+
+
+        /* =================================================
+           HERO
+        ================================================= */
+
+        .tx-home{
+
+            position:relative;
+
+            padding-top:120px;
+
+            overflow:hidden;
+        }
+
+
+        .tx-container{
+
+            width:
+                min(
+                    1180px,
+                    calc(100% - 36px)
+                );
+
+            margin:0 auto;
+        }
+
+
+        .tx-hero{
+
+            position:relative;
+
+            display:grid;
+
+            grid-template-columns:
+                minmax(0,1.02fr)
+                minmax(0,.98fr);
+
+            gap:30px;
+
+            min-height:680px;
+
+            align-items:center;
+
+            padding:
+                52px;
+
+            overflow:hidden;
+
+            border:
+                1px solid
+                rgba(130,149,173,.14);
+
+            border-radius:30px;
+
+            background:
+
+                radial-gradient(
+                    circle at 5% 5%,
+                    rgba(126,95,204,.16),
+                    transparent 26%
+                ),
+
+                linear-gradient(
+                    135deg,
+                    #101a29,
+                    #182537 58%,
+                    #24213a
+                );
+
+            box-shadow:
+                0 26px 70px
+                rgba(26,41,61,.17);
+        }
+
+
+        .tx-hero::before{
+
+            content:"";
+
+            position:absolute;
+
+            inset:0;
+
+            opacity:.18;
+
+            background-image:
+
+                linear-gradient(
+                    rgba(151,169,195,.08) 1px,
+                    transparent 1px
+                ),
+
+                linear-gradient(
+                    90deg,
+                    rgba(151,169,195,.08) 1px,
+                    transparent 1px
+                );
+
+            background-size:
+                38px 38px;
+
+            pointer-events:none;
+        }
+
+
+        .tx-hero-copy{
+
+            position:relative;
+
+            z-index:5;
+        }
+
+
+        .tx-hero-chip{
+
+            width:max-content;
+
+            display:inline-flex;
+
+            align-items:center;
+
+            gap:8px;
+
+            padding:
+                8px 11px;
+
+            border:
+                1px solid
+                rgba(53,210,152,.18);
+
+            border-radius:999px;
+
+            color:#9de3c7;
+
+            background:
+                rgba(53,210,152,.06);
+
+            font-size:8px;
+
+            font-weight:900;
+
+            letter-spacing:.4px;
+        }
+
+
+        .tx-hero-chip i{
+
+            width:7px;
+
+            height:7px;
+
+            border-radius:50%;
+
+            background:#35d298;
+
+            box-shadow:
+                0 0 0 5px
+                rgba(53,210,152,.08);
+        }
+
+
+        .tx-hero-overline{
+
+            margin-top:22px;
+
+            color:#b19bd7;
+
+            font-size:8px;
+
+            font-weight:900;
+
+            letter-spacing:1.5px;
+        }
+
+
+        .tx-hero h1{
+
+            max-width:650px;
+
+            margin:
+                12px 0 18px;
+
+            color:#fff;
+
+            font-family:
+                Manrope,
+                sans-serif;
+
+            font-size:
+                clamp(
+                    48px,
+                    5.8vw,
+                    79px
+                );
+
+            line-height:.95;
+
+            letter-spacing:-4px;
+        }
+
+
+        .tx-hero h1 span{
+
+            display:block;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #cabdf0,
+                    #9b7de1,
+                    #6fd0dc
+                );
+
+            -webkit-background-clip:text;
+
+            background-clip:text;
+
+            -webkit-text-fill-color:transparent;
+        }
+
+
+        .tx-hero p{
+
+            max-width:570px;
+
+            margin:0;
+
+            color:#bbc5d2;
+
+            font-size:12px;
+
+            line-height:1.9;
+        }
+
+
+        .tx-hero-actions{
+
+            display:flex;
+
+            flex-wrap:wrap;
+
+            gap:9px;
+
+            margin-top:24px;
+        }
+
+
+        .tx-primary{
+
+            min-height:48px;
+
+            display:inline-flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+            gap:8px;
+
+            padding:
+                0 17px;
+
+            border-radius:10px;
+
+            color:#fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #936fe2,
+                    #6648aa
+                );
+
+            text-decoration:none;
+
+            font-size:9px;
+
+            font-weight:900;
+
+            box-shadow:
+                0 12px 24px
+                rgba(82,58,143,.24);
+
+            transition:.22s ease;
+        }
+
+
+        .tx-primary:hover{
+
+            transform:translateY(-2px);
+
+            box-shadow:
+                0 17px 30px
+                rgba(82,58,143,.30);
+        }
+
+
+        .tx-secondary{
+
+            min-height:48px;
+
+            display:inline-flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+            gap:8px;
+
+            padding:
+                0 17px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.14);
+
+            border-radius:10px;
+
+            color:#edf1f6;
+
+            background:
+                rgba(255,255,255,.07);
+
+            text-decoration:none;
+
+            font-size:9px;
+
+            font-weight:900;
+
+            transition:.22s ease;
+        }
+
+
+        .tx-secondary:hover{
+
+            background:
+                rgba(255,255,255,.12);
+
+            transform:translateY(-2px);
+        }
+
+
+        /* TRACK */
+
+        .tx-track{
+
+            max-width:600px;
+
+            margin-top:22px;
+
+            padding:8px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.11);
+
+            border-radius:13px;
+
+            background:
+                rgba(255,255,255,.055);
+
+            backdrop-filter:blur(12px);
+        }
+
+
+        .tx-track-label{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:7px;
+
+            padding:
+                6px 8px 8px;
+
+            color:#98a5b6;
+
+            font-size:7px;
+
+            font-weight:900;
+
+            letter-spacing:.8px;
+        }
+
+
+        .tx-track-label i{
+
+            width:20px;
+            height:20px;
+
+            display:grid;
+
+            place-items:center;
+
+            border-radius:6px;
+
+            color:#9e86d8;
+
+            background:
+                rgba(153,121,223,.11);
+        }
+
+
+        .tx-track-row{
+
+            display:flex;
+
+            gap:7px;
+        }
+
+
+        .tx-track-row input{
+
+            flex:1;
+
+            min-width:0;
+
+            height:43px;
+
+            padding:
+                0 12px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            border-radius:8px;
+
+            outline:none;
+
+            color:#fff;
+
+            background:
+                rgba(6,11,18,.38);
+
+            font-size:9px;
+        }
+
+
+        .tx-track-row input::placeholder{
+            color:#778497;
+        }
+
+
+        .tx-track-row button{
+
+            min-height:43px;
+
+            padding:
+                0 13px;
+
+            border:0;
+
+            border-radius:8px;
+
+            color:#fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8b6bdd,
+                    #6547a8
+                );
+
+            font-size:8px;
+
+            font-weight:900;
+        }
+
+
+        /* METRICS */
+
+        .tx-hero-metrics{
+
+            display:grid;
+
+            grid-template-columns:
+                repeat(3,1fr);
+
+            gap:7px;
+
+            max-width:620px;
+
+            margin-top:18px;
+        }
+
+
+        .tx-hero-metrics div{
+
+            padding:
+                11px 12px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            border-radius:9px;
+
+            background:
+                rgba(255,255,255,.035);
+        }
+
+
+        .tx-hero-metrics strong{
+
+            display:block;
+
+            color:#fff;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:19px;
+        }
+
+
+        .tx-hero-metrics span{
+
+            display:block;
+
+            margin-top:3px;
+
+            color:#8f9caf;
+
+            font-size:6px;
+
+            font-weight:800;
+        }
+
+
+        /* =================================================
+           HERO VISUAL
+        ================================================= */
+
+        .tx-hero-visual{
+
+            position:relative;
+
+            min-height:550px;
+
+            overflow:hidden;
+
+            border-radius:24px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.12);
+
+            background:#0c1420;
+        }
+
+
+        .tx-hero-image{
+
+            position:absolute;
+
+            inset:0;
+
+            width:100%;
+            height:100%;
+
+            object-fit:cover;
+
+            object-position:center;
+        }
+
+
+        .tx-hero-image-overlay{
+
+            position:absolute;
+
+            inset:0;
+
+            background:
+
+                linear-gradient(
+                    90deg,
+                    rgba(8,13,21,.87),
+                    rgba(8,13,21,.30)
+                ),
+
+                linear-gradient(
+                    0deg,
+                    rgba(6,10,17,.80),
+                    transparent 65%
+                );
+        }
+
+
+        .tx-route-network{
+
+            position:absolute;
+
+            inset:0;
+
+            z-index:3;
+        }
+
+
+        .tx-route-line{
+
+            position:absolute;
+
+            height:3px;
+
+            border-radius:999px;
+
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(147,112,229,.92) 0 8px,
+                    transparent 8px 15px
+                );
+
+            box-shadow:
+                0 0 12px
+                rgba(138,107,221,.30);
+        }
+
+
+        .tx-route-line.l1{
+
+            left:8%;
+            top:64%;
+            width:82%;
+
+            transform:rotate(-22deg);
+        }
+
+
+        .tx-route-line.l2{
+
+            left:17%;
+            top:30%;
+            width:67%;
+
+            transform:rotate(24deg);
+        }
+
+
+        .tx-route-line.l3{
+
+            left:35%;
+            top:56%;
+            width:46%;
+
+            transform:rotate(-12deg);
+        }
+
+
+        .tx-location{
+
+            position:absolute;
+
+            z-index:7;
+
+            display:flex;
+
+            align-items:center;
+
+            gap:6px;
+
+            color:#fff;
+        }
+
+
+        .tx-location i{
+
+            width:10px;
+            height:10px;
+
+            border-radius:50%;
+
+            background:#47d9ee;
+
+            box-shadow:
+                0 0 0 6px
+                rgba(71,217,238,.09),
+                0 0 18px
+                rgba(71,217,238,.55);
+        }
+
+
+        .tx-location div{
+
+            padding:
+                7px 9px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.10);
+
+            border-radius:8px;
+
+            background:
+                rgba(5,9,15,.74);
+
+            backdrop-filter:blur(10px);
+        }
+
+
+        .tx-location strong{
+
+            display:block;
+
+            font-size:8px;
+        }
+
+
+        .tx-location small{
+
+            display:block;
+
+            margin-top:2px;
+
+            color:#8793a5;
+
+            font-size:5px;
+        }
+
+
+        .tx-pune{
+            left:8%;
+            bottom:22%;
+        }
+
+
+        .tx-mumbai{
+            left:11%;
+            top:27%;
+        }
+
+
+        .tx-nagpur{
+            right:9%;
+            bottom:17%;
+        }
+
+
+        .tx-delhi{
+            right:9%;
+            top:22%;
+        }
+
+
+        /* REALISTIC VEHICLE STYLE */
+
+        .tx-moving-vehicle{
+
+            position:absolute;
+
+            z-index:8;
+
+            width:52px;
+            height:34px;
+
+            filter:
+                drop-shadow(
+                    0 8px 14px
+                    rgba(0,0,0,.35)
+                );
+        }
+
+
+        .tx-moving-vehicle::before{
+
+            content:"";
+
+            position:absolute;
+
+            left:2px;
+
+            top:4px;
+
+            width:34px;
+            height:22px;
+
+            border-radius:
+                5px 3px 3px 5px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #d9e1ea,
+                    #718195
+                );
+
+            box-shadow:
+                inset 0 -2px 0
+                rgba(0,0,0,.12);
+        }
+
+
+        .tx-moving-vehicle::after{
+
+            content:"";
+
+            position:absolute;
+
+            right:3px;
+            top:8px;
+
+            width:15px;
+            height:18px;
+
+            border-radius:
+                2px 5px 4px 2px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #cdd6df,
+                    #607286
+                );
+        }
+
+
+        .tx-moving-vehicle span{
+
+            position:absolute;
+
+            left:8px;
+
+            bottom:-3px;
+
+            width:7px;
+            height:7px;
+
+            border-radius:50%;
+
+            background:#152234;
+
+            box-shadow:
+                26px 0 0 #152234;
+        }
+
+
+        .tx-moving-vehicle i{
+
+            position:absolute;
+
+            right:-1px;
+            top:4px;
+
+            width:6px;
+            height:6px;
+
+            border-radius:50%;
+
+            background:#36d299;
+
+            box-shadow:
+                0 0 10px
+                rgba(54,210,153,.60);
+        }
+
+
+        .vehicle-a{
+
+            left:40%;
+            top:51%;
+
+            animation:
+                txTruckA
+                5.5s
+                ease-in-out
+                infinite;
+        }
+
+
+        .vehicle-b{
+
+            left:58%;
+            top:42%;
+
+            animation:
+                txTruckB
+                6.3s
+                ease-in-out
+                infinite;
+        }
+
+
+        @keyframes txTruckA{
+
+            50%{
+                transform:
+                    translate(
+                        52px,
+                        -16px
+                    );
+            }
+        }
+
+
+        @keyframes txTruckB{
+
+            50%{
+                transform:
+                    translate(
+                        -24px,
+                        27px
+                    );
+            }
+        }
+
+
+        .tx-live-card{
+
+            position:absolute;
+
+            left:16px;
+            bottom:16px;
+
+            z-index:20;
+
+            width:210px;
+
+            padding:15px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.12);
+
+            border-radius:13px;
+
+            background:
+                rgba(6,11,17,.79);
+
+            backdrop-filter:blur(15px);
+        }
+
+
+        .tx-live-card span,
+        .tx-live-card strong,
+        .tx-live-card small{
+            display:block;
+        }
+
+
+        .tx-live-card span{
+
+            color:#79879a;
+
+            font-size:6px;
+
+            font-weight:900;
+
+            letter-spacing:.9px;
+        }
+
+
+        .tx-live-card strong{
+
+            margin-top:4px;
+
+            color:#fff;
+
+            font-size:22px;
+        }
+
+
+        .tx-live-card small{
+
+            margin-top:3px;
+
+            color:#79d9b5;
+
+            font-size:7px;
+        }
+
+
+        .tx-progress{
+
+            height:5px;
+
+            margin-top:10px;
+
+            overflow:hidden;
+
+            border-radius:999px;
+
+            background:#202b38;
+        }
+
+
+        .tx-progress span{
+
+            display:block;
+
+            width:94%;
+
+            height:100%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #38d19b,
+                    #1c8f63
+                );
+        }
+
+
+        /* =================================================
+           SERVICE STRIP
+        ================================================= */
+
+        .tx-service-strip{
+
+            display:grid;
+
+            grid-template-columns:
+                repeat(7,1fr);
+
+            gap:8px;
+
+            padding:
+                12px 0 0;
+        }
+
+
+        .tx-service-item{
+
+            min-height:58px;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+            border:
+                1px solid
+                #dbe3eb;
+
+            border-radius:10px;
+
+            color:#68778a;
+
+            background:#fff;
+
+            font-size:7px;
+
+            font-weight:900;
+
+            box-shadow:
+                0 5px 15px
+                rgba(30,45,65,.025);
+        }
+
+
+        /* =================================================
+           SECTION
+        ================================================= */
+
+        .tx-section{
+
+            padding:
+                100px 0;
+        }
+
+
+        .tx-section-heading{
+
+            max-width:700px;
+
+            margin-bottom:34px;
+        }
+
+
+        .tx-section-heading.centered{
+
+            margin-left:auto;
+
+            margin-right:auto;
+
+            text-align:center;
+        }
+
+
+        .tx-section-heading>span{
+
+            color:#7658b7;
+
+            font-size:8px;
+
+            font-weight:950;
+
+            letter-spacing:1.5px;
+        }
+
+
+        .tx-section-heading h2{
+
+            margin:
+                10px 0 12px;
+
+            color:#1a283c;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:
+                clamp(
+                    34px,
+                    4vw,
+                    56px
+                );
+
+            line-height:1.02;
+
+            letter-spacing:-2.2px;
+        }
+
+
+        .tx-section-heading p{
+
+            margin:0;
+
+            color:#748195;
+
+            font-size:11px;
+
+            line-height:1.85;
+        }
+
+
+        /* =================================================
+           HOW IT WORKS
+        ================================================= */
+
+        .tx-flow-grid{
+
+            display:grid;
+
+            grid-template-columns:
+                repeat(4,1fr);
+
+            gap:10px;
+        }
+
+
+        .tx-flow-card{
+
+            min-height:240px;
+
+            padding:23px;
+
+            border:
+                1px solid
+                #dce4eb;
+
+            border-radius:16px;
+
+            background:#fff;
+
+            box-shadow:
+                0 10px 28px
+                rgba(27,41,61,.045);
+
+            transition:.23s ease;
+        }
+
+
+        .tx-flow-card:hover{
+
+            transform:translateY(-5px);
+
+            box-shadow:
+                0 18px 38px
+                rgba(27,41,61,.08);
+        }
+
+
+        .tx-flow-number{
+
+            width:37px;
+            height:37px;
+
+            display:grid;
+
+            place-items:center;
+
+            border-radius:10px;
+
+            color:#7253af;
+
+            background:#f0ebfb;
+
+            font-size:8px;
+
+            font-weight:950;
+        }
+
+
+        .tx-flow-card h3{
+
+            margin:
+                30px 0 8px;
+
+            color:#1e2c3f;
+
+            font-size:20px;
+        }
+
+
+        .tx-flow-card p{
+
+            margin:0;
+
+            color:#738096;
+
+            font-size:9px;
+
+            line-height:1.8;
+        }
+
+
+        /* =================================================
+           NETWORK SECTION
+        ================================================= */
+
+        .tx-network-section{
+
+            padding:
+                95px 0;
+
+            background:
+                #eef3f7;
+        }
+
+
+        .tx-network-layout{
+
+            display:grid;
+
+            grid-template-columns:
+                minmax(0,1.48fr)
+                minmax(300px,.52fr);
+
+            gap:11px;
+        }
+
+
+        .tx-network-map{
+
+            position:relative;
+
+            min-height:570px;
+
+            overflow:hidden;
+
+            border:
+                1px solid
+                #d7e0e8;
+
+            border-radius:21px;
+
+            background:
+
+                radial-gradient(
+                    circle at 50% 45%,
+                    rgba(118,87,199,.10),
+                    transparent 29%
+                ),
+
+                linear-gradient(
+                    145deg,
+                    #eef3f7,
+                    #e2e9ef
+                );
+
+            box-shadow:
+                var(--tx-shadow);
+        }
+
+
+        .tx-network-map::before{
+
+            content:"";
+
+            position:absolute;
+
+            inset:0;
+
+            opacity:.48;
+
+            background-image:
+
+                linear-gradient(
+                    rgba(81,103,132,.075) 1px,
+                    transparent 1px
+                ),
+
+                linear-gradient(
+                    90deg,
+                    rgba(81,103,132,.075) 1px,
+                    transparent 1px
+                );
+
+            background-size:32px 32px;
+        }
+
+
+        .tx-network-map-header{
+
+            position:absolute;
+
+            top:15px;
+            left:15px;
+            right:15px;
+
+            z-index:20;
+
+            display:flex;
+
+            justify-content:space-between;
+
+            align-items:center;
+
+            padding:
+                11px 13px;
+
+            border:
+                1px solid
+                rgba(83,103,130,.12);
+
+            border-radius:10px;
+
+            background:
+                rgba(255,255,255,.84);
+
+            backdrop-filter:blur(12px);
+        }
+
+
+        .tx-network-map-header span{
+
+            color:#657489;
+
+            font-size:7px;
+
+            font-weight:950;
+
+            letter-spacing:.9px;
+        }
+
+
+        .tx-network-live{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:6px;
+
+            color:#15966a;
+
+            font-size:7px;
+
+            font-weight:950;
+        }
+
+
+        .tx-network-live i{
+
+            width:6px;
+            height:6px;
+
+            border-radius:50%;
+
+            background:#15966a;
+
+            box-shadow:
+                0 0 0 5px
+                rgba(21,150,106,.07);
+        }
+
+
+        .tx-network-svg{
+
+            position:absolute;
+
+            inset:0;
+
+            z-index:4;
+
+            width:100%;
+
+            height:100%;
+        }
+
+
+        .tx-network-svg path{
+
+            fill:none;
+
+            stroke-linecap:round;
+        }
+
+
+        .tx-network-svg .route-main{
+
+            stroke:#7657c7;
+
+            stroke-width:5;
+
+            stroke-dasharray:10 12;
+
+            opacity:.70;
+
+            animation:
+                routeDash
+                12s
+                linear
+                infinite;
+        }
+
+
+        .tx-network-svg .route-green{
+
+            stroke:#1aa579;
+
+            stroke-width:4;
+
+            stroke-dasharray:8 13;
+
+            opacity:.50;
+
+            animation:
+                routeDash
+                14s
+                linear
+                infinite reverse;
+        }
+
+
+        .tx-network-svg .route-blue{
+
+            stroke:#4d7edb;
+
+            stroke-width:3;
+
+            stroke-dasharray:5 10;
+
+            opacity:.42;
+        }
+
+
+        @keyframes routeDash{
+
+            to{
+                stroke-dashoffset:-500;
+            }
+        }
+
+
+        .tx-network-hub{
+
+            position:absolute;
+
+            z-index:10;
+
+            display:flex;
+
+            align-items:center;
+
+            gap:7px;
+        }
+
+
+        .tx-network-hub>i{
+
+            width:18px;
+            height:18px;
+
+            display:block;
+
+            border:
+                2px solid
+                #fff;
+
+            border-radius:50%;
+
+            background:#7657c7;
+
+            box-shadow:
+                0 0 0 6px
+                rgba(118,87,199,.10);
+        }
+
+
+        .tx-network-hub>div{
+
+            padding:
+                7px 9px;
+
+            border:
+                1px solid
+                rgba(74,96,123,.14);
+
+            border-radius:8px;
+
+            background:
+                rgba(255,255,255,.90);
+
+            box-shadow:
+                0 7px 18px
+                rgba(31,48,68,.07);
+
+            backdrop-filter:blur(10px);
+        }
+
+
+        .tx-network-hub strong{
+
+            display:block;
+
+            color:#253348;
+
+            font-size:8px;
+        }
+
+
+        .tx-network-hub small{
+
+            display:block;
+
+            margin-top:2px;
+
+            color:#768397;
+
+            font-size:5px;
+        }
+
+
+        .hub-pune{
+            left:7%;
+            bottom:25%;
+        }
+
+
+        .hub-mumbai{
+            left:18%;
+            top:24%;
+        }
+
+
+        .hub-nagpur{
+            right:8%;
+            bottom:19%;
+        }
+
+
+        .hub-delhi{
+            right:8%;
+            top:29%;
+        }
+
+
+        .tx-network-point{
+
+            position:absolute;
+
+            z-index:12;
+
+            display:flex;
+
+            align-items:center;
+
+            gap:6px;
+        }
+
+
+        .tx-network-point i{
+
+            width:9px;
+            height:9px;
+
+            border-radius:50%;
+
+            background:#19b6d1;
+
+            box-shadow:
+                0 0 0 5px
+                rgba(25,182,209,.09);
+        }
+
+
+        .tx-network-point span{
+
+            padding:
+                6px 8px;
+
+            border:
+                1px solid
+                rgba(74,96,123,.12);
+
+            border-radius:7px;
+
+            color:#5d6c7f;
+
+            background:
+                rgba(255,255,255,.91);
+
+            font-size:6px;
+
+            font-weight:900;
+        }
+
+
+        .point-1{
+            left:35%;
+            top:52%;
+            animation:
+                networkPoint1
+                6s
+                ease-in-out
+                infinite;
+        }
+
+
+        .point-2{
+            left:51%;
+            top:40%;
+            animation:
+                networkPoint2
+                7s
+                ease-in-out
+                infinite;
+        }
+
+
+        .point-3{
+            left:59%;
+            top:60%;
+            animation:
+                networkPoint3
+                6.5s
+                ease-in-out
+                infinite;
+        }
+
+
+        @keyframes networkPoint1{
+
+            50%{
+                transform:
+                    translate(75px,-30px);
+            }
+        }
+
+
+        @keyframes networkPoint2{
+
+            50%{
+                transform:
+                    translate(-35px,42px);
+            }
+        }
+
+
+        @keyframes networkPoint3{
+
+            50%{
+                transform:
+                    translate(54px,-20px);
+            }
+        }
+
+
+        .tx-network-map-card{
+
+            position:absolute;
+
+            left:15px;
+            bottom:15px;
+
+            z-index:20;
+
+            width:225px;
+
+            padding:15px;
+
+            border:
+                1px solid
+                rgba(74,95,122,.13);
+
+            border-radius:13px;
+
+            background:
+                rgba(255,255,255,.92);
+
+            box-shadow:
+                0 15px 32px
+                rgba(32,48,68,.11);
+
+            backdrop-filter:blur(12px);
+        }
+
+
+        .tx-network-map-card span{
+
+            display:block;
+
+            color:#7658b7;
+
+            font-size:6px;
+
+            font-weight:950;
+
+            letter-spacing:.9px;
+        }
+
+
+        .tx-network-map-card strong{
+
+            display:block;
+
+            margin-top:4px;
+
+            color:#1d2b3f;
+
+            font-size:23px;
+        }
+
+
+        .tx-network-map-card small{
+
+            display:block;
+
+            margin-top:3px;
+
+            color:#758195;
+
+            font-size:7px;
+        }
+
+
+        /* NETWORK SIDEBAR */
+
+        .tx-network-side{
+
+            display:grid;
+
+            gap:11px;
+        }
+
+
+        .tx-network-card{
+
+            padding:23px;
+
+            border:
+                1px solid
+                #dce4eb;
+
+            border-radius:16px;
+
+            background:#fff;
+
+            box-shadow:
+                0 11px 30px
+                rgba(25,39,59,.05);
+        }
+
+
+        .tx-network-card.accent{
+
+            color:#fff;
+
+            background:
+                linear-gradient(
+                    140deg,
+                    #141f2e,
+                    #24213a
+                );
+        }
+
+
+        .tx-network-card>span{
+
+            color:#7658b7;
+
+            font-size:7px;
+
+            font-weight:950;
+
+            letter-spacing:1px;
+        }
+
+
+        .tx-network-card.accent>span{
+            color:#b59ce7;
+        }
+
+
+        .tx-network-card h3{
+
+            margin:
+                9px 0 8px;
+
+            color:#1d2b3f;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:24px;
+
+            line-height:1.05;
+        }
+
+
+        .tx-network-card.accent h3{
+            color:#fff;
+        }
+
+
+        .tx-network-card p{
+
+            margin:0;
+
+            color:#758195;
+
+            font-size:9px;
+
+            line-height:1.8;
+        }
+
+
+        .tx-network-card.accent p{
+            color:#b7c1ce;
+        }
+
+
+        .tx-network-stat-grid{
+
+            display:grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap:7px;
+
+            margin-top:18px;
+        }
+
+
+        .tx-network-stat{
+
+            padding:10px;
+
+            border:
+                1px solid
+                #e1e7ed;
+
+            border-radius:9px;
+
+            background:#f8fafc;
+        }
+
+
+        .tx-network-stat span{
+
+            color:#788497;
+
+            font-size:5px;
+
+            font-weight:900;
+        }
+
+
+        .tx-network-stat strong{
+
+            display:block;
+
+            margin-top:4px;
+
+            color:#263448;
+
+            font-size:19px;
+        }
+
+
+        .tx-network-card.accent .tx-network-stat{
+
+            border-color:
+                rgba(255,255,255,.08);
+
+            background:
+                rgba(255,255,255,.05);
+        }
+
+
+        .tx-network-card.accent .tx-network-stat span{
+            color:#8996a8;
+        }
+
+
+        .tx-network-card.accent .tx-network-stat strong{
+            color:#fff;
+        }
+
+
+        .tx-card-link{
+
+            display:inline-flex;
+
+            align-items:center;
+
+            gap:7px;
+
+            margin-top:17px;
+
+            padding:
+                10px 12px;
+
+            border-radius:8px;
+
+            color:#fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8b6bdd,
+                    #6547a8
+                );
+
+            text-decoration:none;
+
+            font-size:7px;
+
+            font-weight:900;
+        }
+
+
+        /* =================================================
+           SOLUTIONS
+        ================================================= */
+
+        .tx-solutions-grid{
+
+            display:grid;
+
+            grid-template-columns:
+                1.28fr
+                .72fr
+                .72fr;
+
+            gap:10px;
+        }
+
+
+        .tx-solution-feature{
+
+            position:relative;
+
+            min-height:460px;
+
+            overflow:hidden;
+
+            border-radius:18px;
+
+            border:
+                1px solid
+                #d8e1e9;
+
+            grid-row:
+                span 2;
+        }
+
+
+        .tx-solution-feature img{
+
+            width:100%;
+            height:100%;
+
+            position:absolute;
+
+            inset:0;
+
+            object-fit:cover;
+        }
+
+
+        .tx-solution-feature::after{
+
+            content:"";
+
+            position:absolute;
+
+            inset:0;
+
+            background:
+
+                linear-gradient(
+                    180deg,
+                    rgba(8,13,20,.18),
+                    rgba(8,13,20,.92)
+                );
+        }
+
+
+        .tx-solution-overlay{
+
+            position:absolute;
+
+            left:25px;
+            right:25px;
+            bottom:25px;
+
+            z-index:4;
+        }
+
+
+        .tx-solution-overlay span{
+
+            color:#c9b9ed;
+
+            font-size:7px;
+
+            font-weight:950;
+
+            letter-spacing:1px;
+        }
+
+
+        .tx-solution-overlay h3{
+
+            margin:
+                9px 0 8px;
+
+            color:#fff;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:30px;
+        }
+
+
+        .tx-solution-overlay p{
+
+            max-width:450px;
+
+            margin:0;
+
+            color:#c6ced8;
+
+            font-size:8px;
+
+            line-height:1.7;
+        }
+
+
+        .tx-solution-overlay a{
+
+            display:inline-flex;
+
+            margin-top:15px;
+
+            color:#fff;
+
+            text-decoration:none;
+
+            font-size:8px;
+
+            font-weight:900;
+        }
+
+
+        .tx-solution-card{
+
+            position:relative;
+
+            min-height:225px;
+
+            padding:22px;
+
+            overflow:hidden;
+
+            border:
+                1px solid
+                #dce4eb;
+
+            border-radius:16px;
+
+            background:#fff;
+
+            box-shadow:
+                0 9px 26px
+                rgba(27,41,61,.045);
+
+            transition:.22s ease;
+        }
+
+
+        .tx-solution-card:hover{
+
+            transform:translateY(-4px);
+
+            box-shadow:
+                0 17px 34px
+                rgba(27,41,61,.08);
+        }
+
+
+        .tx-solution-card.dark{
+
+            color:#fff;
+
+            border-color:
+                rgba(255,255,255,.08);
+
+            background:
+                linear-gradient(
+                    140deg,
+                    #131f2f,
+                    #28213d
+                );
+        }
+
+
+        .tx-solution-card>span{
+
+            color:#788497;
+
+            font-size:7px;
+
+            font-weight:950;
+        }
+
+
+        .tx-solution-card.dark>span{
+            color:#a998d0;
+        }
+
+
+        .tx-solution-icon{
+
+            width:36px;
+            height:36px;
+
+            display:grid;
+
+            place-items:center;
+
+            margin-top:25px;
+
+            border-radius:10px;
+
+            color:#7657b8;
+
+            background:#f0ebfb;
+
+            font-size:12px;
+
+            font-weight:950;
+        }
+
+
+        .tx-solution-card h3{
+
+            margin:
+                17px 0 7px;
+
+            color:#1e2d40;
+
+            font-size:18px;
+        }
+
+
+        .tx-solution-card.dark h3{
+            color:#fff;
+        }
+
+
+        .tx-solution-card p{
+
+            margin:0;
+
+            color:#748195;
+
+            font-size:8px;
+
+            line-height:1.7;
+        }
+
+
+        .tx-solution-card.dark p{
+            color:#b6c0cc;
+        }
+
+
+        .tx-solution-card a{
+
+            position:absolute;
+
+            bottom:20px;
+            left:22px;
+
+            color:#7053ad;
+
+            text-decoration:none;
+
+            font-size:7px;
+
+            font-weight:950;
+        }
+
+
+        .tx-solution-card.dark a{
+            color:#bba8e8;
+        }
+
+
+        /* =================================================
+           PLATFORM
+        ================================================= */
+
+        .tx-platform{
+
+            padding:
+                105px 0;
+
+            background:#fff;
+        }
+
+
+        .tx-platform-grid{
+
+            display:grid;
+
+            grid-template-columns:
+                .82fr
+                1.18fr;
+
+            gap:40px;
+
+            align-items:center;
+        }
+
+
+        .tx-platform-copy>span{
+
+            color:#7658b7;
+
+            font-size:8px;
+
+            font-weight:950;
+
+            letter-spacing:1.3px;
+        }
+
+
+        .tx-platform-copy h2{
+
+            margin:
+                10px 0 12px;
+
+            color:#1a283c;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:
+                clamp(
+                    35px,
+                    4vw,
+                    55px
+                );
+
+            line-height:1.0;
+
+            letter-spacing:-2px;
+        }
+
+
+        .tx-platform-copy p{
+
+            max-width:480px;
+
+            margin:0;
+
+            color:#748195;
+
+            font-size:10px;
+
+            line-height:1.9;
+        }
+
+
+        .tx-platform-list{
+
+            display:grid;
+
+            gap:9px;
+
+            margin-top:22px;
+        }
+
+
+        .tx-platform-item{
+
+            display:flex;
+
+            align-items:flex-start;
+
+            gap:10px;
+
+            padding:11px;
+
+            border:
+                1px solid
+                #dce4eb;
+
+            border-radius:10px;
+
+            background:#fafbfd;
+        }
+
+
+        .tx-platform-item i{
+
+            width:27px;
+            height:27px;
+
+            display:grid;
+
+            place-items:center;
+
+            border-radius:8px;
+
+            color:#684ca6;
+
+            background:#eee9fb;
+
+            font-size:7px;
+
+            font-style:normal;
+
+            font-weight:950;
+        }
+
+
+        .tx-platform-item strong{
+
+            display:block;
+
+            color:#283548;
+
+            font-size:8px;
+        }
+
+
+        .tx-platform-item small{
+
+            display:block;
+
+            margin-top:3px;
+
+            color:#778397;
+
+            font-size:6px;
+
+            line-height:1.5;
+        }
+
+
+        .tx-dark-button{
+
+            display:inline-flex;
+
+            align-items:center;
+
+            gap:8px;
+
+            margin-top:21px;
+
+            padding:
+                11px 14px;
+
+            border-radius:9px;
+
+            color:#fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8e6ddd,
+                    #6447a5
+                );
+
+            text-decoration:none;
+
+            font-size:8px;
+
+            font-weight:900;
+
+            box-shadow:
+                0 10px 22px
+                rgba(87,63,146,.16);
+        }
+
+
+        /* =================================================
+           PRODUCT WINDOW
+        ================================================= */
+
+        .tx-product{
+
+            position:relative;
+
+            min-height:520px;
+
+            overflow:hidden;
+
+            padding:14px;
+
+            border:
+                1px solid
+                #d8e0e8;
+
+            border-radius:21px;
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    #111a28,
+                    #1b2838
+                );
+
+            box-shadow:
+                0 24px 55px
+                rgba(25,41,60,.16);
+        }
+
+
+        .tx-product::after{
+
+            content:"";
+
+            position:absolute;
+
+            right:-90px;
+            top:-120px;
+
+            width:320px;
+            height:320px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.07);
+
+            border-radius:50%;
+
+            box-shadow:
+                0 0 0 45px
+                rgba(255,255,255,.014),
+                0 0 0 90px
+                rgba(255,255,255,.009);
+        }
+
+
+        .tx-product-top{
+
+            position:relative;
+
+            z-index:3;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:space-between;
+
+            padding:
+                5px 5px 13px;
+        }
+
+
+        .tx-product-top span{
+
+            color:#99a6b6;
+
+            font-size:6px;
+
+            font-weight:900;
+        }
+
+
+        .tx-product-live{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:5px;
+
+            color:#7bdbb9 !important;
+        }
+
+
+        .tx-product-live i{
+
+            width:5px;
+            height:5px;
+
+            border-radius:50%;
+
+            background:#35d298;
+        }
+
+
+        .tx-product-window{
+
+            position:relative;
+
+            z-index:2;
+
+            display:grid;
+
+            grid-template-columns:150px 1fr;
+
+            gap:9px;
+
+            min-height:450px;
+        }
+
+
+        .tx-product-sidebar{
+
+            padding:11px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.07);
+
+            border-radius:12px;
+
+            background:
+                rgba(255,255,255,.035);
+        }
+
+
+        .tx-product-logo{
+
+            width:32px;
+            height:32px;
+
+            display:grid;
+
+            place-items:center;
+
+            border-radius:9px;
+
+            color:#fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ae8cf0,
+                    #62479e
+                );
+
+            font-size:8px;
+
+            font-weight:950;
+        }
+
+
+        .tx-product-menu{
+
+            display:grid;
+
+            gap:6px;
+
+            margin-top:18px;
+        }
+
+
+        .tx-product-menu div{
+
+            height:28px;
+
+            border-radius:7px;
+
+            background:
+                rgba(255,255,255,.045);
+        }
+
+
+        .tx-product-menu div.active{
+
+            background:
+                rgba(149,115,226,.22);
+        }
+
+
+        .tx-product-main{
+
+            padding:14px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.07);
+
+            border-radius:12px;
+
+            background:
+                rgba(255,255,255,.035);
+        }
+
+
+        .tx-product-heading small{
+
+            display:block;
+
+            color:#7d8ba0;
+
+            font-size:5px;
+
+            font-weight:900;
+        }
+
+
+        .tx-product-heading strong{
+
+            display:block;
+
+            margin-top:4px;
+
+            color:#fff;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:18px;
+        }
+
+
+        .tx-product-kpis{
+
+            display:grid;
+
+            grid-template-columns:
+                repeat(3,1fr);
+
+            gap:7px;
+
+            margin-top:13px;
+        }
+
+
+        .tx-product-kpi{
+
+            min-height:68px;
+
+            padding:10px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.06);
+
+            border-radius:8px;
+
+            background:
+                rgba(255,255,255,.03);
+        }
+
+
+        .tx-product-kpi span{
+
+            color:#7f8da0;
+
+            font-size:5px;
+
+            font-weight:900;
+        }
+
+
+        .tx-product-kpi strong{
+
+            display:block;
+
+            margin-top:6px;
+
+            color:#fff;
+
+            font-size:14px;
+        }
+
+
+        .tx-product-map{
+
+            position:relative;
+
+            min-height:270px;
+
+            margin-top:8px;
+
+            overflow:hidden;
+
+            border-radius:10px;
+
+            background:
+                radial-gradient(
+                    circle at 48% 43%,
+                    rgba(122,93,203,.16),
+                    transparent 28%
+                ),
+                #0d1824;
+        }
+
+
+        .tx-product-map::before{
+
+            content:"";
+
+            position:absolute;
+
+            inset:0;
+
+            opacity:.26;
+
+            background-image:
+
+                linear-gradient(
+                    rgba(121,145,176,.09) 1px,
+                    transparent 1px
+                ),
+
+                linear-gradient(
+                    90deg,
+                    rgba(121,145,176,.09) 1px,
+                    transparent 1px
+                );
+
+            background-size:26px 26px;
+        }
+
+
+        .tx-product-route{
+
+            position:absolute;
+
+            height:2px;
+
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(145,111,229,.9) 0 7px,
+                    transparent 7px 12px
+                );
+        }
+
+
+        .tx-product-route.r1{
+
+            left:8%;
+            top:69%;
+
+            width:80%;
+
+            transform:rotate(-23deg);
+        }
+
+
+        .tx-product-route.r2{
+
+            left:18%;
+            top:32%;
+
+            width:62%;
+
+            transform:rotate(21deg);
+        }
+
+
+        .tx-product-route.r3{
+
+            left:42%;
+            top:57%;
+
+            width:42%;
+
+            transform:rotate(-18deg);
+        }
+
+
+        .tx-product-dot{
+
+            position:absolute;
+
+            width:7px;
+            height:7px;
+
+            border-radius:50%;
+
+            background:#45d8ef;
+
+            box-shadow:
+                0 0 0 4px
+                rgba(69,216,239,.08);
+        }
+
+
+        .tx-product-dot.a{
+            left:16%;
+            top:66%;
+        }
+
+
+        .tx-product-dot.b{
+            right:18%;
+            top:31%;
+        }
+
+
+        .tx-product-dot.c{
+            right:16%;
+            bottom:18%;
+        }
+
+
+        /* =================================================
+           STORY
+        ================================================= */
+
+        .tx-story{
+
+            padding:
+                100px 0;
+
+            background:
+                #eef3f7;
+        }
+
+
+        .tx-story-grid{
+
+            display:grid;
+
+            grid-template-columns:
+                1.25fr
+                .75fr;
+
+            gap:11px;
+        }
+
+
+        .tx-story-main{
+
+            position:relative;
+
+            min-height:510px;
+
+            overflow:hidden;
+
+            border-radius:20px;
+
+            border:
+                1px solid
+                #d8e1e9;
+        }
+
+
+        .tx-story-main img{
+
+            position:absolute;
+
+            inset:0;
+
+            width:100%;
+            height:100%;
+
+            object-fit:cover;
+        }
+
+
+        .tx-story-main::after{
+
+            content:"";
+
+            position:absolute;
+
+            inset:0;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    transparent 30%,
+                    rgba(7,12,19,.88)
+                );
+        }
+
+
+        .tx-story-caption{
+
+            position:absolute;
+
+            left:25px;
+            bottom:24px;
+
+            z-index:4;
+        }
+
+
+        .tx-story-caption span{
+
+            color:#c1afe8;
+
+            font-size:7px;
+
+            font-weight:950;
+
+            letter-spacing:1px;
+        }
+
+
+        .tx-story-caption strong{
+
+            display:block;
+
+            max-width:480px;
+
+            margin-top:7px;
+
+            color:#fff;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:35px;
+
+            line-height:1.0;
+        }
+
+
+        .tx-story-side{
+
+            display:grid;
+
+            grid-template-rows:
+                1fr
+                1fr;
+
+            gap:11px;
+        }
+
+
+        .tx-story-image{
+
+            overflow:hidden;
+
+            border-radius:17px;
+
+            border:
+                1px solid
+                #d9e2e9;
+        }
+
+
+        .tx-story-image img{
+
+            width:100%;
+            height:100%;
+
+            object-fit:cover;
+
+            transition:
+                transform .45s ease;
+        }
+
+
+        .tx-story-image:hover img{
+
+            transform:scale(1.04);
+        }
+
+
+        .tx-story-stat{
+
+            padding:23px;
+
+            border-radius:17px;
+
+            border:
+                1px solid
+                #dce4eb;
+
+            background:#fff;
+
+            box-shadow:
+                0 11px 30px
+                rgba(25,39,59,.05);
+        }
+
+
+        .tx-story-stat>span{
+
+            color:#7658b7;
+
+            font-size:7px;
+
+            font-weight:950;
+
+            letter-spacing:1px;
+        }
+
+
+        .tx-story-stat strong{
+
+            display:block;
+
+            margin-top:26px;
+
+            color:#1d2b3f;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:29px;
+        }
+
+
+        .tx-story-stat p{
+
+            max-width:290px;
+
+            margin:
+                8px 0 0;
+
+            color:#748195;
+
+            font-size:9px;
+
+            line-height:1.8;
+        }
+
+
+        /* =================================================
+           INDUSTRIES
+        ================================================= */
+
+        .tx-industries{
+
+            padding:
+                105px 0;
+        }
+
+
+        .tx-industries-grid{
+
+            display:grid;
+
+            grid-template-columns:
+                .83fr
+                1.17fr;
+
+            gap:40px;
+
+            align-items:center;
+        }
+
+
+        .tx-industries-copy>span{
+
+            color:#7658b7;
+
+            font-size:8px;
+
+            font-weight:950;
+
+            letter-spacing:1.2px;
+        }
+
+
+        .tx-industries-copy h2{
+
+            margin:
+                10px 0 12px;
+
+            color:#1a283c;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:
+                clamp(
+                    35px,
+                    4vw,
+                    56px
+                );
+
+            line-height:.98;
+
+            letter-spacing:-2.3px;
+        }
+
+
+        .tx-industries-copy>p{
+
+            max-width:500px;
+
+            margin:0;
+
+            color:#748195;
+
+            font-size:10px;
+
+            line-height:1.9;
+        }
+
+
+        .tx-industry-list{
+
+            display:grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap:7px;
+
+            margin-top:22px;
+        }
+
+
+        .tx-industry-item{
+
+            padding:
+                12px;
+
+            border:
+                1px solid
+                #dde5ec;
+
+            border-radius:9px;
+
+            color:#556378;
+
+            background:#fff;
+
+            font-size:8px;
+
+            font-weight:800;
+        }
+
+
+        .tx-industry-item b{
+
+            display:inline-grid;
+
+            place-items:center;
+
+            width:24px;
+            height:24px;
+
+            margin-right:6px;
+
+            border-radius:7px;
+
+            color:#7658b6;
+
+            background:#f0ebfb;
+
+            font-size:6px;
+        }
+
+
+        .tx-industries-image{
+
+            position:relative;
+
+            min-height:500px;
+
+            overflow:hidden;
+
+            border-radius:21px;
+
+            border:
+                1px solid
+                #d8e0e8;
+
+            box-shadow:
+                0 24px 55px
+                rgba(25,39,59,.12);
+        }
+
+
+        .tx-industries-image img{
+
+            width:100%;
+            height:100%;
+
+            position:absolute;
+
+            inset:0;
+
+            object-fit:cover;
+        }
+
+
+        .tx-industries-image::after{
+
+            content:"";
+
+            position:absolute;
+
+            inset:0;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(6,12,19,.02),
+                    rgba(6,12,19,.82)
+                );
+        }
+
+
+        .tx-industries-overlay{
+
+            position:absolute;
+
+            left:24px;
+            right:24px;
+            bottom:24px;
+
+            z-index:4;
+        }
+
+
+        .tx-industries-overlay span{
+
+            color:#c3b0eb;
+
+            font-size:7px;
+
+            font-weight:950;
+
+            letter-spacing:1px;
+        }
+
+
+        .tx-industries-overlay strong{
+
+            display:block;
+
+            max-width:400px;
+
+            margin-top:7px;
+
+            color:#fff;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:34px;
+
+            line-height:1.0;
+        }
+
+
+        /* =================================================
+           CTA
+        ================================================= */
+
+        .tx-final-section{
+
+            padding:
+                0 0 90px;
+        }
+
+
+        .tx-final{
+
+            position:relative;
+
+            overflow:hidden;
+
+            padding:
+                58px;
+
+            border-radius:23px;
+
+            color:#fff;
+
+            background:
+
+                radial-gradient(
+                    circle at 84% 12%,
+                    rgba(132,103,217,.22),
+                    transparent 28%
+                ),
+
+                linear-gradient(
+                    125deg,
+                    #111b2a,
+                    #1c2939
+                );
+
+            box-shadow:
+                0 24px 55px
+                rgba(23,38,56,.15);
+        }
+
+
+        .tx-final::after{
+
+            content:"";
+
+            position:absolute;
+
+            right:-120px;
+            top:-120px;
+
+            width:330px;
+            height:330px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            border-radius:50%;
+
+            box-shadow:
+                0 0 0 46px
+                rgba(255,255,255,.015),
+                0 0 0 92px
+                rgba(255,255,255,.010);
+        }
+
+
+        .tx-final-inner{
+
+            position:relative;
+
+            z-index:3;
+        }
+
+
+        .tx-final span{
+
+            color:#bda9e6;
+
+            font-size:8px;
+
+            font-weight:950;
+
+            letter-spacing:1.3px;
+        }
+
+
+        .tx-final h2{
+
+            max-width:700px;
+
+            margin:
+                10px 0 10px;
+
+            color:#fff;
+
+            font-family:Manrope,sans-serif;
+
+            font-size:
+                clamp(
+                    38px,
+                    5vw,
+                    60px
+                );
+
+            line-height:.98;
+
+            letter-spacing:-2.5px;
+        }
+
+
+        .tx-final p{
+
+            max-width:560px;
+
+            margin:0;
+
+            color:#bdc7d3;
+
+            font-size:10px;
+
+            line-height:1.85;
+        }
+
+
+        .tx-final-actions{
+
+            display:flex;
+
+            gap:8px;
+
+            flex-wrap:wrap;
+
+            margin-top:22px;
+        }
+
+
+        /* =================================================
+           FOOTER
+        ================================================= */
+
+        .tx-footer{
+
+            padding:
+                55px 0 25px;
+
+            background:#fff;
+
+            border-top:
+                1px solid
+                #dce4eb;
+        }
+
+
+        .tx-footer-grid{
+
+            display:grid;
+
+            grid-template-columns:
+                1.5fr
+                1fr
+                1fr
+                1fr;
+
+            gap:28px;
+        }
+
+
+        .tx-footer-brand p{
+
+            max-width:270px;
+
+            margin:
+                13px 0 0;
+
+            color:#778397;
+
+            font-size:9px;
+
+            line-height:1.8;
+        }
+
+
+        .tx-footer-col strong{
+
+            display:block;
+
+            color:#283548;
+
+            font-size:9px;
+        }
+
+
+        .tx-footer-col a{
+
+            display:block;
+
+            margin-top:9px;
+
+            color:#778397;
+
+            text-decoration:none;
+
+            font-size:8px;
+        }
+
+
+        .tx-footer-col a:hover{
+            color:#6548a8;
+        }
+
+
+        .tx-footer-bottom{
+
+            display:flex;
+
+            justify-content:space-between;
+
+            gap:15px;
+
+            margin-top:35px;
+
+            padding-top:18px;
+
+            border-top:
+                1px solid
+                #e4e9ef;
+
+            color:#8a95a4;
+
+            font-size:7px;
+        }
+
+
+        /* =================================================
+           REVEAL
+        ================================================= */
+
+        .tx-reveal{
+
+            opacity:0;
+
+            transform:
+                translateY(24px);
+
+            transition:
+                opacity .7s ease,
+                transform .7s ease;
+        }
+
+
+        .tx-reveal.revealed{
+
+            opacity:1;
+
+            transform:
+                translateY(0);
+        }
+
+
+        /* =================================================
+           RESPONSIVE
+        ================================================= */
+
+        @media(max-width:1050px){
+
+            .tx-nav{
+                display:none;
+            }
+
+            .tx-header-actions{
+                display:none;
+            }
+
+            .tx-mobile-menu{
+                display:block;
+            }
+
+            .tx-hero{
+
+                grid-template-columns:
+                    1fr;
+
+                padding:35px;
+            }
+
+            .tx-hero-visual{
+                min-height:500px;
+            }
+
+            .tx-flow-grid{
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+            .tx-network-layout{
+                grid-template-columns:
+                    1fr;
+            }
+
+            .tx-solutions-grid{
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+            .tx-solution-feature{
+                grid-column:
+                    1/-1;
+
+                grid-row:auto;
+
+                min-height:420px;
+            }
+
+            .tx-platform-grid{
+                grid-template-columns:
+                    1fr;
+            }
+
+            .tx-story-grid{
+                grid-template-columns:
+                    1fr;
+            }
+
+            .tx-story-main{
+                min-height:460px;
+            }
+
+            .tx-industries-grid{
+                grid-template-columns:
+                    1fr;
+            }
+
+        }
+
+
+        @media(max-width:700px){
+
+            .tx-container{
+                width:
+                    min(
+                        100% - 22px,
+                        1180px
+                    );
+            }
+
+            .tx-home{
+                padding-top:100px;
+            }
+
+            .tx-header-shell{
+                top:10px;
+            }
+
+            .tx-hero{
+                padding:25px;
+                border-radius:21px;
+            }
+
+            .tx-hero h1{
+                font-size:45px;
+                letter-spacing:-2.5px;
+            }
+
+            .tx-hero-actions{
+                flex-direction:column;
+            }
+
+            .tx-primary,
+            .tx-secondary{
+                width:100%;
+            }
+
+            .tx-track-row{
+                flex-direction:column;
+            }
+
+            .tx-track-row button,
+            .tx-track-row input{
+                width:100%;
+            }
+
+            .tx-hero-metrics{
+                grid-template-columns:
+                    1fr;
+            }
+
+            .tx-hero-visual{
+                min-height:400px;
+            }
+
+            .tx-service-strip{
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+            .tx-flow-grid{
+                grid-template-columns:
+                    1fr;
+            }
+
+            .tx-solutions-grid{
+                grid-template-columns:
+                    1fr;
+            }
+
+            .tx-solution-feature{
+                min-height:370px;
+            }
+
+            .tx-product-window{
+                grid-template-columns:
+                    1fr;
+            }
+
+            .tx-product-sidebar{
+                display:none;
+            }
+
+            .tx-network-map{
+                min-height:450px;
+            }
+
+            .tx-story-side{
+                grid-template-rows:
+                    250px
+                    auto;
+            }
+
+            .tx-industry-list{
+                grid-template-columns:
+                    1fr;
+            }
+
+            .tx-final{
+                padding:35px 24px;
+            }
+
+            .tx-footer-grid{
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+            .tx-footer-bottom{
+                flex-direction:column;
+            }
+
+        }
+
+
+        @media(max-width:430px){
+
+            .tx-brand-copy{
+                display:none;
+            }
+
+            .tx-hero{
+                padding:21px;
+            }
+
+            .tx-hero h1{
+                font-size:39px;
+            }
+
+            .tx-location div{
+                display:none;
+            }
+
+            .tx-live-card{
+                width:180px;
+            }
+
+            .tx-footer-grid{
+                grid-template-columns:
+                    1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="tx-header-shell">
+
+    <div class="tx-header-inner">
+
+
+        <a
+            href="./index.html"
+            class="tx-brand">
+
+            <span class="tx-brand-mark">
+                TX
+            </span>
+
+            <span class="tx-brand-copy">
+
+                <strong>
+                    TRANSLOGIX
+                </strong>
+
+                <small>
+                    INTELLIGENT LOGISTICS OS
+                </small>
+
+            </span>
+
+        </a>
+
+
+        <nav class="tx-nav">
+
+            <a href="#solutions">
+                Solutions
+            </a>
+
+            <a href="#network">
+                Network
+            </a>
+
+            <a href="#platform">
+                Platform
+            </a>
+
+            <a href="#industries">
+                Industries
+            </a>
+
+        </nav>
+
+
+        <div class="tx-header-actions">
+
+            <a
+                href="./login.html"
+                class="tx-signin">
+
+                Sign in
+
+            </a>
+
+            <a
+                href="./register.html"
+                class="tx-get-started">
+
+                Get Started
+
+                <span>
+                    →
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <button
+            id="txMobileMenuBtn"
+            class="tx-mobile-menu"
+            type="button"
+            aria-label="Open menu">
+
+            ☰
+
+        </button>
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     MOBILE NAV
+========================================================= -->
+
+<div
+    id="txMobileNav"
+    class="tx-mobile-nav">
+
+    <a href="#solutions">
+        Solutions
+    </a>
+
+    <a href="#network">
+        Network
+    </a>
+
+    <a href="#platform">
+        Platform
+    </a>
+
+    <a href="#industries">
+        Industries
+    </a>
+
+    <a href="./login.html">
+        Sign in
+    </a>
+
+    <a href="./register.html">
+        Get Started →
+    </a>
+
+</div>
+
+
+
+<main>
+
+
+<!-- =========================================================
+     HERO
+========================================================= -->
+
+<section class="tx-home">
+
+    <div class="tx-container">
+
+
+        <div class="tx-hero">
+
+
+            <!-- COPY -->
+
+            <div class="tx-hero-copy tx-reveal">
+
+
+                <div class="tx-hero-chip">
+
+                    <i></i>
+
+                    INTELLIGENT LOGISTICS NETWORK
+
+                </div>
+
+
+                <div class="tx-hero-overline">
+
+                    FREIGHT · DELIVERY · SHIPPING · SUPPLY CHAIN
+
+                </div>
+
+
+                <h1>
+
+                    Logistics
+
+                    <span>
+                        without blind spots.
+                    </span>
+
+                </h1>
+
+
+                <p>
+
+                    TRANSLOGIX connects shipment management,
+                    freight, express delivery, courier, shipping,
+                    eCommerce, cross-border and cold-chain
+                    operations in one modern digital platform.
+
+                </p>
+
+
+                <div class="tx-hero-actions">
+
+
+                    <a
+                        href="./register.html"
+                        class="tx-primary">
+
+                        Start with TRANSLOGIX
+
+                        <span>
+                            →
+                        </span>
+
+                    </a>
+
+
+                    <a
+                        href="#network"
+                        class="tx-secondary">
+
+                        Explore live network
+
+                        <span>
+                            ↓
+                        </span>
+
+                    </a>
+
+                </div>
+
+
+                <!-- TRACKING -->
+
+                <form
+                    id="homeTrackingForm"
+                    class="tx-track">
+
+                    <div class="tx-track-label">
+
+                        <i>
+                            ◎
+                        </i>
+
+                        TRACK A SHIPMENT
+
+                    </div>
+
+
+                    <div class="tx-track-row">
+
+                        <input
+                            id="homeTrackingInput"
+                            type="text"
+                            placeholder="Enter tracking number e.g. TRX10001"
+                            autocomplete="off"
+                            required>
+
+
+                        <button
+                            type="submit">
+
+                            Track shipment →
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+                <!-- METRICS -->
+
+                <div class="tx-hero-metrics">
+
+
+                    <div>
+
+                        <strong>
+                            24/7
+                        </strong>
+
+                        <span>
+                            Network visibility
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            94.2%
+                        </strong>
+
+                        <span>
+                            Network SLA
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            99.9%
+                        </strong>
+
+                        <span>
+                            Platform health
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- HERO VISUAL -->
+
+            <div class="tx-hero-visual tx-reveal">
+
+
+                <img
+                    class="tx-hero-image"
+                    src="https://www.nichecape.com/Assets/Replacements/About%20Use%20Cover%20%281%29.jpg"
+                    alt="Global logistics trucks and shipping containers"
+                    loading="eager">
+
+
+                <div class="tx-hero-image-overlay"></div>
+
+
+                <div class="tx-route-network">
+
+
+                    <div class="tx-route-line l1"></div>
+
+                    <div class="tx-route-line l2"></div>
+
+                    <div class="tx-route-line l3"></div>
+
+
+
+                    <div class="tx-location tx-pune">
+
+                        <i></i>
+
+                        <div>
+
+                            <strong>
+                                Pune
+                            </strong>
+
+                            <small>
+                                06 ACTIVE
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="tx-location tx-mumbai">
+
+                        <i></i>
+
+                        <div>
+
+                            <strong>
+                                Mumbai
+                            </strong>
+
+                            <small>
+                                04 ACTIVE
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="tx-location tx-nagpur">
+
+                        <i></i>
+
+                        <div>
+
+                            <strong>
+                                Nagpur
+                            </strong>
+
+                            <small>
+                                03 ACTIVE
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="tx-location tx-delhi">
+
+                        <i></i>
+
+                        <div>
+
+                            <strong>
+                                Delhi
+                            </strong>
+
+                            <small>
+                                DESTINATION
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- VEHICLES -->
+
+                    <div class="tx-moving-vehicle vehicle-a">
+
+                        <span></span>
+
+                        <i></i>
+
+                    </div>
+
+
+                    <div class="tx-moving-vehicle vehicle-b">
+
+                        <span></span>
+
+                        <i></i>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <div class="tx-live-card">
+
+                    <span>
+                        LIVE NETWORK STATUS
+                    </span>
+
+                    <strong>
+                        94.2% SLA
+                    </strong>
+
+                    <small>
+                        Stable route execution across active corridors
+                    </small>
+
+                    <div class="tx-progress">
+
+                        <span></span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- SERVICE STRIP -->
+
+        <div class="tx-service-strip">
+
+            <div class="tx-service-item">
+                FREIGHT
+            </div>
+
+            <div class="tx-service-item">
+                EXPRESS DELIVERY
+            </div>
+
+            <div class="tx-service-item">
+                COURIER
+            </div>
+
+            <div class="tx-service-item">
+                SHIPPING
+            </div>
+
+            <div class="tx-service-item">
+                ECOMMERCE
+            </div>
+
+            <div class="tx-service-item">
+                CROSS-BORDER
+            </div>
+
+            <div class="tx-service-item">
+                COLD-CHAIN
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     INTRO / FLOW
+========================================================= -->
+
+<section class="tx-section">
+
+    <div class="tx-container">
+
+
+        <div class="tx-section-heading tx-reveal">
+
+            <span>
+                THE TRANSLOGIX APPROACH
+            </span>
+
+            <h2>
+                One connected flow
+                from request to delivery.
+            </h2>
+
+            <p>
+
+                Logistics is a chain of decisions,
+                handoffs and movements. TRANSLOGIX
+                organizes that journey in one digital
+                operating layer.
+
+            </p>
+
+        </div>
+
+
+        <div class="tx-flow-grid">
+
+
+            <article class="tx-flow-card tx-reveal">
+
+                <div class="tx-flow-number">
+                    01
+                </div>
+
+                <h3>
+                    Create
+                </h3>
+
+                <p>
+
+                    Capture shipment details,
+                    customer requirements,
+                    origin, destination and load.
+
+                </p>
+
+            </article>
+
+
+            <article class="tx-flow-card tx-reveal">
+
+                <div class="tx-flow-number">
+                    02
+                </div>
+
+                <h3>
+                    Dispatch
+                </h3>
+
+                <p>
+
+                    Connect drivers, vehicles
+                    and routes to operational
+                    requirements.
+
+                </p>
+
+            </article>
+
+
+            <article class="tx-flow-card tx-reveal">
+
+                <div class="tx-flow-number">
+                    03
+                </div>
+
+                <h3>
+                    Track
+                </h3>
+
+                <p>
+
+                    Monitor movement,
+                    route activity and
+                    live shipment status.
+
+                </p>
+
+            </article>
+
+
+            <article class="tx-flow-card tx-reveal">
+
+                <div class="tx-flow-number">
+                    04
+                </div>
+
+                <h3>
+                    Deliver
+                </h3>
+
+                <p>
+
+                    Close the loop with
+                    better delivery execution,
+                    reports and customer visibility.
+
+                </p>
+
+            </article>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     NETWORK
+========================================================= -->
+
+<section
+    id="network"
+    class="tx-network-section">
+
+    <div class="tx-container">
+
+
+        <div class="tx-section-heading centered tx-reveal">
+
+            <span>
+                LIVE NETWORK VISIBILITY
+            </span>
+
+            <h2>
+                See freight moving
+                across the network.
+            </h2>
+
+            <p>
+
+                A visual operating layer for routes,
+                hubs, movement and logistics signals.
+
+            </p>
+
+        </div>
+
+
+        <div class="tx-network-layout">
+
+
+            <!-- MAP -->
+
+            <div class="tx-network-map tx-reveal">
+
+
+                <div class="tx-network-map-header">
+
+                    <span>
+                        TRANSLOGIX NETWORK
+                    </span>
+
+                    <div class="tx-network-live">
+
+                        <i></i>
+
+                        LIVE
+
+                    </div>
+
+                </div>
+
+
+                <svg
+                    class="tx-network-svg"
+                    viewBox="0 0 900 570"
+                    preserveAspectRatio="none">
+
+
+                    <path
+                        class="route-main"
+                        d="
+                        M100 390
+                        C220 310,
+                        240 170,
+                        440 220
+                        S690 350,
+                        820 155
+                        ">
+                    </path>
+
+
+                    <path
+                        class="route-green"
+                        d="
+                        M170 120
+                        C300 190,
+                        370 410,
+                        560 360
+                        S710 260,
+                        820 155
+                        ">
+                    </path>
+
+
+                    <path
+                        class="route-blue"
+                        d="
+                        M100 390
+                        C250 450,
+                        395 465,
+                        560 360
+                        ">
+                    </path>
+
+                </svg>
+
+
+                <!-- HUBS -->
+
+                <div class="tx-network-hub hub-pune">
+
+                    <i></i>
+
+                    <div>
+
+                        <strong>
+                            Pune
+                        </strong>
+
+                        <small>
+                            06 active
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="tx-network-hub hub-mumbai">
+
+                    <i></i>
+
+                    <div>
+
+                        <strong>
+                            Mumbai
+                        </strong>
+
+                        <small>
+                            04 active
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="tx-network-hub hub-nagpur">
+
+                    <i></i>
+
+                    <div>
+
+                        <strong>
+                            Nagpur
+                        </strong>
+
+                        <small>
+                            03 active
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="tx-network-hub hub-delhi">
+
+                    <i></i>
+
+                    <div>
+
+                        <strong>
+                            Delhi
+                        </strong>
+
+                        <small>
+                            Destination
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- MOVEMENT -->
+
+                <div class="tx-network-point point-1">
+
+                    <i></i>
+
+                    <span>
+                        TRX10001
+                    </span>
+
+                </div>
+
+
+                <div class="tx-network-point point-2">
+
+                    <i></i>
+
+                    <span>
+                        TSJ78962
+                    </span>
+
+                </div>
+
+
+                <div class="tx-network-point point-3">
+
+                    <i></i>
+
+                    <span>
+                        GHJK123456
+                    </span>
+
+                </div>
+
+
+
+                <div class="tx-network-map-card">
+
+                    <span>
+                        NETWORK PERFORMANCE
+                    </span>
+
+                    <strong>
+                        94.2%
+                    </strong>
+
+                    <small>
+                        Stable route execution across active corridors
+                    </small>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- SIDE -->
+
+            <aside class="tx-network-side">
+
+
+                <article class="tx-network-card tx-reveal">
+
+                    <span>
+                        OPERATIONAL SNAPSHOT
+                    </span>
+
+                    <h3>
+                        One view.
+                        Every journey.
+                    </h3>
+
+                    <p>
+
+                        Keep shipment,
+                        fleet and route context
+                        connected throughout the operation.
+
+                    </p>
+
+
+                    <div class="tx-network-stat-grid">
+
+
+                        <div class="tx-network-stat">
+
+                            <span>
+                                ACTIVE ROUTES
+                            </span>
+
+                            <strong>
+                                06
+                            </strong>
+
+                        </div>
+
+
+                        <div class="tx-network-stat">
+
+                            <span>
+                                MOVING
+                            </span>
+
+                            <strong>
+                                03
+                            </strong>
+
+                        </div>
+
+
+                        <div class="tx-network-stat">
+
+                            <span>
+                                FLEET READY
+                            </span>
+
+                            <strong>
+                                92%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="tx-network-stat">
+
+                            <span>
+                                ON-TIME
+                            </span>
+
+                            <strong>
+                                94%
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <article class="tx-network-card accent tx-reveal">
+
+                    <span>
+                        CUSTOMER VISIBILITY
+                    </span>
+
+                    <h3>
+                        Tracking
+                        without friction.
+                    </h3>
+
+                    <p>
+
+                        Customers can search,
+                        understand shipment status
+                        and follow movement quickly.
+
+                    </p>
+
+
+                    <a
+                        href="./login.html"
+                        class="tx-card-link">
+
+                        Open Customer Workspace
+
+                        <span>
+                            →
+                        </span>
+
+                    </a>
+
+                </article>
+
+            </aside>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     SOLUTIONS
+========================================================= -->
+
+<section
+    id="solutions"
+    class="tx-section">
+
+    <div class="tx-container">
+
+
+        <div class="tx-section-heading tx-reveal">
+
+            <span>
+                LOGISTICS SOLUTIONS
+            </span>
+
+            <h2>
+                One connected layer
+                across logistics.
+            </h2>
+
+            <p>
+
+                Designed for the operational
+                complexity behind modern
+                logistics and delivery.
+
+            </p>
+
+        </div>
+
+
+        <div class="tx-solutions-grid">
+
+
+            <!-- FEATURED -->
+
+            <article
+                class="tx-solution-feature tx-reveal">
+
+                <img
+                    src="https://mdt.swiss/assets/logistics-hub-BiovRSeW.jpg"
+                    alt="Modern logistics hub with trucks and containers"
+                    loading="lazy">
+
+
+                <div class="tx-solution-overlay">
+
+                    <span>
+                        01 / CORE PLATFORM
+                    </span>
+
+                    <h3>
+                        Integrated Logistics
+                    </h3>
+
+                    <p>
+
+                        Connect shipment,
+                        fleet, customers,
+                        dispatch and operations
+                        in one workspace.
+
+                    </p>
+
+                    <a href="./login.html">
+                        Explore platform →
+                    </a>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- EXPRESS -->
+
+            <article class="tx-solution-card tx-reveal">
+
+                <span>
+                    02
+                </span>
+
+                <div class="tx-solution-icon">
+                    ↗
+                </div>
+
+                <h3>
+                    Express Delivery
+                </h3>
+
+                <p>
+
+                    Fast workflows for
+                    time-sensitive deliveries.
+
+                </p>
+
+                <a href="./register.html">
+                    Explore →
+                </a>
+
+            </article>
+
+
+
+            <!-- FREIGHT -->
+
+            <article class="tx-solution-card tx-reveal">
+
+                <span>
+                    03
+                </span>
+
+                <div class="tx-solution-icon">
+                    ◈
+                </div>
+
+                <h3>
+                    Freight & Shipping
+                </h3>
+
+                <p>
+
+                    Organize cargo,
+                    freight and shipping
+                    operations.
+
+                </p>
+
+                <a href="./register.html">
+                    Explore →
+                </a>
+
+            </article>
+
+
+
+            <!-- CROSS BORDER -->
+
+            <article
+                class="tx-solution-card dark tx-reveal">
+
+                <span>
+                    04
+                </span>
+
+                <div class="tx-solution-icon">
+                    ◎
+                </div>
+
+                <h3>
+                    Cross-Border
+                </h3>
+
+                <p>
+
+                    Coordinate international
+                    movement and logistics.
+
+                </p>
+
+                <a href="./register.html">
+                    Explore →
+                </a>
+
+            </article>
+
+
+
+            <!-- ECOMMERCE -->
+
+            <article class="tx-solution-card tx-reveal">
+
+                <span>
+                    05
+                </span>
+
+                <div class="tx-solution-icon">
+                    □
+                </div>
+
+                <h3>
+                    eCommerce Logistics
+                </h3>
+
+                <p>
+
+                    Support order volumes
+                    from fulfilment to last mile.
+
+                </p>
+
+                <a href="./register.html">
+                    Explore →
+                </a>
+
+            </article>
+
+
+
+            <!-- COLD CHAIN -->
+
+            <article class="tx-solution-card tx-reveal">
+
+                <span>
+                    06
+                </span>
+
+                <div class="tx-solution-icon">
+                    ❄
+                </div>
+
+                <h3>
+                    Cold-Chain
+                </h3>
+
+                <p>
+
+                    Dependable digital workflows
+                    for sensitive shipments.
+
+                </p>
+
+                <a href="./register.html">
+                    Explore →
+                </a>
+
+            </article>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     PLATFORM
+========================================================= -->
+
+<section
+    id="platform"
+    class="tx-platform">
+
+    <div class="tx-container">
+
+
+        <div class="tx-platform-grid">
+
+
+            <div class="tx-platform-copy tx-reveal">
+
+                <span>
+                    TRANSLOGIX PLATFORM
+                </span>
+
+                <h2>
+                    More than tracking.
+                    An operating layer.
+                </h2>
+
+                <p>
+
+                    Bring shipment information,
+                    operational decisions, fleet
+                    context and customer experience
+                    closer together.
+
+                </p>
+
+
+                <div class="tx-platform-list">
+
+
+                    <div class="tx-platform-item">
+
+                        <i>
+                            ✓
+                        </i>
+
+                        <div>
+
+                            <strong>
+                                Shipment Command
+                            </strong>
+
+                            <small>
+                                Create, track, update and manage movement.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="tx-platform-item">
+
+                        <i>
+                            ✓
+                        </i>
+
+                        <div>
+
+                            <strong>
+                                Fleet Intelligence
+                            </strong>
+
+                            <small>
+                                Monitor vehicle readiness, health and utilization.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="tx-platform-item">
+
+                        <i>
+                            ✓
+                        </i>
+
+                        <div>
+
+                            <strong>
+                                Exception Control
+                            </strong>
+
+                            <small>
+                                Surface operational risk before failure.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="tx-platform-item">
+
+                        <i>
+                            ✓
+                        </i>
+
+                        <div>
+
+                            <strong>
+                                Customer Workspace
+                            </strong>
+
+                            <small>
+                                Give customers a clear tracking experience.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <a
+                    href="./login.html"
+                    class="tx-dark-button">
+
+                    Open Control Center
+
+                    <span>
+                        →
+                    </span>
+
+                </a>
+
+            </div>
+
+
+
+            <!-- PRODUCT -->
+
+            <div class="tx-product tx-reveal">
+
+
+                <div class="tx-product-top">
+
+                    <span>
+                        TRANSLOGIX / OPERATIONS CONTROL
+                    </span>
+
+                    <span class="tx-product-live">
+
+                        <i></i>
+
+                        LIVE
+
+                    </span>
+
+                </div>
+
+
+                <div class="tx-product-window">
+
+
+                    <aside class="tx-product-sidebar">
+
+                        <div class="tx-product-logo">
+                            TX
+                        </div>
+
+
+                        <div class="tx-product-menu">
+
+                            <div class="active"></div>
+
+                            <div></div>
+
+                            <div></div>
+
+                            <div></div>
+
+                            <div></div>
+
+                            <div></div>
+
+                        </div>
+
+                    </aside>
+
+
+                    <div class="tx-product-main">
+
+
+                        <div class="tx-product-heading">
+
+                            <small>
+                                OPERATIONS OVERVIEW
+                            </small>
+
+                            <strong>
+                                Command Center
+                            </strong>
+
+                        </div>
+
+
+                        <div class="tx-product-kpis">
+
+
+                            <div class="tx-product-kpi">
+
+                                <span>
+                                    ACTIVE
+                                </span>
+
+                                <strong>
+                                    06
+                                </strong>
+
+                            </div>
+
+
+                            <div class="tx-product-kpi">
+
+                                <span>
+                                    DELIVERED
+                                </span>
+
+                                <strong>
+                                    03
+                                </strong>
+
+                            </div>
+
+
+                            <div class="tx-product-kpi">
+
+                                <span>
+                                    SLA
+                                </span>
+
+                                <strong>
+                                    94%
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="tx-product-map">
+
+                            <div class="tx-product-route r1"></div>
+
+                            <div class="tx-product-route r2"></div>
+
+                            <div class="tx-product-route r3"></div>
+
+
+                            <i class="tx-product-dot a"></i>
+
+                            <i class="tx-product-dot b"></i>
+
+                            <i class="tx-product-dot c"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     IMAGE STORY
+========================================================= -->
+
+<section class="tx-story">
+
+    <div class="tx-container">
+
+
+        <div class="tx-story-grid">
+
+
+            <div class="tx-story-main tx-reveal">
+
+
+                <img
+                    src="https://www.gettyimages.com/"
+                    alt="Logistics freight operations"
+                    style="display:none;">
+
+                <img
+                    src="https://www.nichecape.com/Assets/Replacements/About%20Use%20Cover%20%281%29.jpg"
+                    alt="Container trucks and logistics operations"
+                    loading="lazy">
+
+
+                <div class="tx-story-caption">
+
+                    <span>
+                        NETWORK INTELLIGENCE
+                    </span>
+
+                    <strong>
+                        From first mile
+                        to final mile.
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="tx-story-side">
+
+
+                <div class="tx-story-image tx-reveal">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=88"
+                        alt="Warehouse and freight logistics"
+                        loading="lazy">
+
+                </div>
+
+
+                <div class="tx-story-stat tx-reveal">
+
+                    <span>
+                        CONNECTED OPERATIONS
+                    </span>
+
+                    <strong>
+                        One platform.
+                    </strong>
+
+                    <p>
+
+                        Designed for freight teams,
+                        dispatch operators, customers
+                        and logistics leaders.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     INDUSTRIES
+========================================================= -->
+
+<section
+    id="industries"
+    class="tx-industries">
+
+    <div class="tx-container">
+
+
+        <div class="tx-industries-grid">
+
+
+            <div class="tx-industries-copy tx-reveal">
+
+                <span>
+                    INDUSTRIES
+                </span>
+
+                <h2>
+                    One platform.
+                    Many journeys.
+                </h2>
+
+                <p>
+
+                    From local delivery operations
+                    to complex international freight,
+                    TRANSLOGIX adapts to the workflow
+                    behind the shipment.
+
+                </p>
+
+
+                <div class="tx-industry-list">
+
+
+                    <div class="tx-industry-item">
+
+                        <b>
+                            01
+                        </b>
+
+                        Logistics & Distribution
+
+                    </div>
+
+
+                    <div class="tx-industry-item">
+
+                        <b>
+                            02
+                        </b>
+
+                        Retail & eCommerce
+
+                    </div>
+
+
+                    <div class="tx-industry-item">
+
+                        <b>
+                            03
+                        </b>
+
+                        Manufacturing
+
+                    </div>
+
+
+                    <div class="tx-industry-item">
+
+                        <b>
+                            04
+                        </b>
+
+                        International Trade
+
+                    </div>
+
+                </div>
+
+
+                <a
+                    href="./register.html"
+                    class="tx-dark-button">
+
+                    Build your workspace
+
+                    <span>
+                        →
+                    </span>
+
+                </a>
+
+            </div>
+
+
+
+            <div class="tx-industries-image tx-reveal">
+
+
+                <img
+                    src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=1800&q=92"
+                    alt="Global shipping containers and freight"
+                    loading="lazy">
+
+
+                <div class="tx-industries-overlay">
+
+                    <span>
+                        GLOBAL FREIGHT
+                    </span>
+
+                    <strong>
+                        Connected
+                        across borders.
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     FINAL CTA
+========================================================= -->
+
+<section class="tx-final-section">
+
+    <div class="tx-container">
+
+
+        <div class="tx-final">
+
+
+            <div class="tx-final-inner">
+
+                <span>
+                    TRANSLOGIX
+                </span>
+
+                <h2>
+                    Make logistics
+                    feel connected.
+                </h2>
+
+                <p>
+
+                    Better visibility for customers.
+                    Better control for operations.
+                    One modern logistics experience.
+
+                </p>
+
+
+                <div class="tx-final-actions">
+
+
+                    <a
+                        href="./register.html"
+                        class="tx-primary">
+
+                        Get Started
+
+                        <span>
+                            →
+                        </span>
+
+                    </a>
+
+
+                    <a
+                        href="./login.html"
+                        class="tx-secondary">
+
+                        Sign in
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+</main>
+
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer class="tx-footer">
+
+    <div class="tx-container">
+
+
+        <div class="tx-footer-grid">
+
+
+            <div class="tx-footer-brand">
+
+                <a
+                    href="./index.html"
+                    class="tx-brand">
+
+                    <span class="tx-brand-mark">
+                        TX
+                    </span>
+
+                    <span class="tx-brand-copy">
+
+                        <strong>
+                            TRANSLOGIX
+                        </strong>
+
+                        <small>
+                            INTELLIGENT LOGISTICS OS
+                        </small>
+
+                    </span>
+
+                </a>
+
+
+                <p>
+                    Connected logistics
+                    for a moving world.
+                </p>
+
+            </div>
+
+
+
+            <div class="tx-footer-col">
+
+                <strong>
+                    Platform
+                </strong>
+
+                <a href="./login.html">
+                    Control Center
+                </a>
+
+                <a href="./login.html">
+                    Shipments
+                </a>
+
+                <a href="./login.html">
+                    Tracking
+                </a>
+
+            </div>
+
+
+
+            <div class="tx-footer-col">
+
+                <strong>
+                    Solutions
+                </strong>
+
+                <a href="#solutions">
+                    Freight
+                </a>
+
+                <a href="#solutions">
+                    Express Delivery
+                </a>
+
+                <a href="#solutions">
+                    Cold-Chain
+                </a>
+
+            </div>
+
+
+
+            <div class="tx-footer-col">
+
+                <strong>
+                    Company
+                </strong>
+
+                <a href="#platform">
+                    Platform
+                </a>
+
+                <a href="#network">
+                    Network
+                </a>
+
+                <a href="./register.html">
+                    Contact
+                </a>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="tx-footer-bottom">
+
+            <span>
+                © 2026 TRANSLOGIX
+            </span>
+
+            <span>
+                Intelligent Logistics Platform
+            </span>
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script
+    src="./Js/main.js"
+    defer>
+</script>
+
+
+<script
+    src="./Js/script.js"
+    defer>
+</script>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        /* =================================================
+           TRACKING
+        ================================================= */
+
+        const trackingForm =
+            document.getElementById(
+                "homeTrackingForm"
+            );
+
+        const trackingInput =
+            document.getElementById(
+                "homeTrackingInput"
+            );
+
+
+        if(
+            trackingForm &&
+            trackingInput
+        ){
+
+            trackingForm.addEventListener(
+                "submit",
+                function(event){
+
+                    event.preventDefault();
+
+
+                    const tracking =
+                        trackingInput.value
+                            .trim();
+
+
+                    if(!tracking){
+
+                        trackingInput.focus();
+
+                        return;
+
+                    }
+
+
+                    window.location.href =
+                        "./login.html?tracking=" +
+                        encodeURIComponent(
+                            tracking
+                        );
+
+                }
+            );
+
+        }
+
+
+
+        /* =================================================
+           MOBILE MENU
+        ================================================= */
+
+        const menuBtn =
+            document.getElementById(
+                "txMobileMenuBtn"
+            );
+
+        const mobileNav =
+            document.getElementById(
+                "txMobileNav"
+            );
+
+
+        if(
+            menuBtn &&
+            mobileNav
+        ){
+
+            menuBtn.addEventListener(
+                "click",
+                function(){
+
+                    mobileNav.classList.toggle(
+                        "open"
+                    );
+
+                }
+            );
+
+
+            mobileNav
+                .querySelectorAll("a")
+                .forEach(
+                    function(link){
+
+                        link.addEventListener(
+                            "click",
+                            function(){
+
+                                mobileNav.classList.remove(
+                                    "open"
+                                );
+
+                            }
+                        );
+
+                    }
+                );
+
+        }
+
+
+
+        /* =================================================
+           SMOOTH SCROLL
+        ================================================= */
+
+        document
+            .querySelectorAll(
+                'a[href^="#"]'
+            )
+            .forEach(
+                function(link){
+
+                    link.addEventListener(
+                        "click",
+                        function(event){
+
+                            const id =
+                                link.getAttribute(
+                                    "href"
+                                );
+
+
+                            if(
+                                !id ||
+                                id === "#"
+                            ){
+                                return;
+                            }
+
+
+                            const target =
+                                document.querySelector(
+                                    id
+                                );
+
+
+                            if(!target){
+                                return;
+                            }
+
+
+                            event.preventDefault();
+
+
+                            target.scrollIntoView({
+                                behavior:
+                                    "smooth",
+                                block:
+                                    "start"
+                            });
+
+                        }
+                    );
+
+                }
+            );
+
+
+
+        /* =================================================
+           SCROLL REVEAL
+        ================================================= */
+
+        const revealItems =
+            document.querySelectorAll(
+                ".tx-reveal"
+            );
+
+
+        if(
+            "IntersectionObserver"
+            in window
+        ){
+
+            const observer =
+                new IntersectionObserver(
+                    function(entries){
+
+                        entries.forEach(
+                            function(entry){
+
+                                if(
+                                    entry.isIntersecting
+                                ){
+
+                                    entry.target.classList.add(
+                                        "revealed"
+                                    );
+
+                                    observer.unobserve(
+                                        entry.target
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                    },
+                    {
+                        threshold:.12
+                    }
+                );
+
+
+            revealItems.forEach(
+                function(item){
+
+                    observer.observe(
+                        item
+                    );
+
+                }
+            );
+
+        }
+        else{
+
+            revealItems.forEach(
+                function(item){
+
+                    item.classList.add(
+                        "revealed"
+                    );
+
+                }
+            );
+
+        }
+
+
+
+        /* =================================================
+           HEADER SHADOW
+        ================================================= */
+
+        const header =
+            document.querySelector(
+                ".tx-header-shell"
+            );
+
+
+        window.addEventListener(
+            "scroll",
+            function(){
+
+                if(!header){
+                    return;
+                }
+
+
+                if(
+                    window.scrollY > 30
+                ){
+
+                    header.style.boxShadow =
+                        "0 15px 40px rgba(25,40,60,.12)";
+
+                }
+                else{
+
+                    header.style.boxShadow =
+                        "0 12px 35px rgba(30,45,65,.08)";
+
+                }
+
+            },
+            {
+                passive:true
+            }
+        );
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
