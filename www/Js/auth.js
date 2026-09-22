@@ -2,10 +2,10 @@
 
 /* ==========================================================
    TRANSLOGIX AUTH CONFIGURATION
-   Android Emulator -> Host Machine
+   Production Backend
 ========================================================== */
 
-const USER_API = "https://translogix-backend-1.onrender.com";
+const AUTH_API = "https://translogix-backend-1.onrender.com";
 
 
 /* ==========================================================
@@ -110,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
             }
 
+
             return data;
 
         } catch (error) {
@@ -119,10 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
-            /*
-             * fetch() throws TypeError when the Android WebView
-             * cannot connect to the backend.
-             */
 
             if (
                 error instanceof TypeError ||
@@ -130,9 +127,10 @@ document.addEventListener("DOMContentLoaded", () => {
             ) {
 
                 throw new Error(
-                    `Unable to connect to TRANSLOGIX backend at ${AUTH_API}. Make sure the Spring Boot server is running on port 8081.`
+                    `Unable to connect to TRANSLOGIX backend at ${AUTH_API}.`
                 );
             }
+
 
             throw error;
         }
@@ -157,10 +155,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         "loginUsername"
                     );
 
+
                 const passwordInput =
                     document.getElementById(
                         "loginPassword"
                     );
+
 
                 const button =
                     document.getElementById(
@@ -180,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const username =
                     usernameInput.value.trim();
+
 
                 const password =
                     passwordInput.value;
@@ -207,6 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             button.querySelector("span");
 
                         if (span) {
+
                             span.textContent =
                                 "Signing in...";
                         }
@@ -282,10 +284,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         data.token
                     );
 
+
                     localStorage.setItem(
                         "username",
                         data.username || username
                     );
+
 
                     localStorage.setItem(
                         "role",
@@ -426,15 +430,18 @@ document.addEventListener("DOMContentLoaded", () => {
                         "registerUsername"
                     );
 
+
                 const passwordInput =
                     document.getElementById(
                         "registerPassword"
                     );
 
+
                 const roleInput =
                     document.getElementById(
                         "registerRole"
                     );
+
 
                 const button =
                     document.getElementById(
@@ -459,8 +466,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 const username =
                     usernameInput.value.trim();
 
+
                 const password =
                     passwordInput.value;
+
 
                 const role =
                     roleInput.value;
@@ -488,6 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             button.querySelector("span");
 
                         if (span) {
+
                             span.textContent =
                                 "Creating...";
                         }
