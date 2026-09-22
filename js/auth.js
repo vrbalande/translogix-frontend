@@ -2,10 +2,10 @@
 
 /* ==========================================================
    TRANSLOGIX AUTH CONFIGURATION
-   Android Emulator -> Host Machine
+   Production Backend -> Render
 ========================================================== */
 
-const AUTH_API = "http://10.0.2.2:8081";
+const AUTH_API = "https://translogix-backend-1.onrender.com";
 
 
 /* ==========================================================
@@ -33,15 +33,10 @@ document.addEventListener("DOMContentLoaded", () => {
         element.textContent = text;
 
         if (type === "error") {
-
             element.className = "auth-message error";
-
         } else if (type === "success") {
-
             element.className = "auth-message success";
-
         } else {
-
             element.className = "auth-message";
         }
     }
@@ -119,18 +114,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
-            /*
-             * fetch() throws TypeError when the Android WebView
-             * cannot connect to the backend.
-             */
-
             if (
                 error instanceof TypeError ||
                 error.message === "Failed to fetch"
             ) {
 
                 throw new Error(
-                    `Unable to connect to TRANSLOGIX backend at ${AUTH_API}. Make sure the Spring Boot server is running on port 8081.`
+                    `Unable to connect to TRANSLOGIX backend at ${AUTH_API}.`
                 );
             }
 
