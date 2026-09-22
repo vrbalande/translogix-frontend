@@ -7,7 +7,10 @@
 
 const TX_COPILOT = {
 
-    API_URL: "http://localhost:8081",
+    API_URL: "https://translogix-backend-1.onrender.com",
+
+    // बाकीचा existing code जसाच्या तसा ठेवा
+
 
     panel: null,
     messages: null,

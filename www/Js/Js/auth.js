@@ -1,7 +1,6 @@
 "use strict";
-
 const AUTH_API =
-    "http://localhost:8081";
+    "https://translogix-backend-1.onrender.com";
 
 document.addEventListener(
     "DOMContentLoaded",

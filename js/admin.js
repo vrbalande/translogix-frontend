@@ -2,11 +2,12 @@
 
 /* =========================================================
    TRANSLOGIX ADMIN CONTROL TOWER
-   CRUD ENABLED VERSION
+   CORRECTED CRUD VERSION
 
    Features:
-   - Load shipments
+   - Load admin shipments
    - Create shipment
+   - Assign shipment to customer
    - View shipment
    - Edit shipment
    - Delete shipment
@@ -26,7 +27,7 @@
 ========================================================= */
 
 const ADMIN_API =
-    "http://localhost:8081";
+    "https://translogix-backend-1.onrender.com";
 
 
 /* =========================================================
@@ -36,6 +37,8 @@ const ADMIN_API =
 const state = {
 
     shipments: [],
+
+    users: [],
 
     currentPage:
         "dashboard",
@@ -301,7 +304,9 @@ function demoData(){
             destination:"Delhi",
             shipmentType:"Express",
             status:"Delivered",
-            weight:4.5
+            weight:4.5,
+            username:"vijay",
+            customerName:"vijay"
         },
 
         {
@@ -313,7 +318,9 @@ function demoData(){
             destination:"Nagpur",
             shipmentType:"International",
             status:"In Transit",
-            weight:7
+            weight:7,
+            username:"mahesh",
+            customerName:"mahesh"
         },
 
         {
@@ -325,7 +332,9 @@ function demoData(){
             destination:"Delhi",
             shipmentType:"Freight",
             status:"Delivered",
-            weight:6
+            weight:6,
+            username:"veer",
+            customerName:"veer"
         },
 
         {
@@ -337,7 +346,9 @@ function demoData(){
             destination:"Delhi",
             shipmentType:"Standard",
             status:"In Transit",
-            weight:7
+            weight:7,
+            username:"vj",
+            customerName:"vj"
         },
 
         {
@@ -349,7 +360,9 @@ function demoData(){
             destination:"JKK",
             shipmentType:"Freight",
             status:"In Transit",
-            weight:15
+            weight:15,
+            username:"rhg",
+            customerName:"rhg"
         },
 
         {
@@ -361,7 +374,9 @@ function demoData(){
             destination:"YH",
             shipmentType:"Courier",
             status:"Pending",
-            weight:7
+            weight:7,
+            username:"gh",
+            customerName:"gh"
         }
 
     ];
@@ -467,6 +482,139 @@ function stateClass(status){
 
 
 /* =========================================================
+   LOAD USERS
+========================================================= */
+
+async function loadUsers(){
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/users"
+            );
+
+
+        if(
+            Array.isArray(data)
+        ){
+
+            state.users =
+                data;
+
+        }
+
+        else{
+
+            state.users =
+                [];
+
+        }
+
+
+        return state.users;
+
+    }
+
+    catch(error){
+
+        console.error(
+            "Failed to load users:",
+            error
+        );
+
+        state.users =
+            [];
+
+        throw error;
+
+    }
+
+}
+
+
+/* =========================================================
+   POPULATE USER DROPDOWN
+========================================================= */
+
+function populateUserDropdown(
+    selectId,
+    selectedUsername = ""
+){
+
+    const select =
+        $(selectId);
+
+
+    if(!select){
+        return;
+    }
+
+
+    select.innerHTML = `
+
+        <option value="">
+            Select Customer
+        </option>
+
+    `;
+
+
+    state.users.forEach(
+        user => {
+
+            if(
+                normalize(
+                    user.role
+                ) ===
+                "admin"
+            ){
+
+                return;
+
+            }
+
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                user.username;
+
+
+            option.textContent =
+                user.username;
+
+
+            if(
+                normalize(
+                    user.username
+                ) ===
+                normalize(
+                    selectedUsername
+                )
+            ){
+
+                option.selected =
+                    true;
+
+            }
+
+
+            select.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
    LOAD SHIPMENTS
 ========================================================= */
 
@@ -476,7 +624,7 @@ async function loadShipments(){
 
         const data =
             await api(
-                "/api/shipments"
+                "/api/admin/shipments"
             );
 
 
@@ -1666,7 +1814,6 @@ function initFullMap(){
         "fullNetworkMap"
     );
 
-
 }
 
 
@@ -1840,6 +1987,33 @@ function updateMapVehicleData(){
 
 
 /* =========================================================
+   SHIPMENT CUSTOMER HELPER
+========================================================= */
+
+function getShipmentCustomer(
+    item
+){
+
+    return (
+
+        item.customerName ||
+
+        item.username ||
+
+        item.user?.username ||
+
+        item.receiverName ||
+
+        item.senderName ||
+
+        "-"
+
+    );
+
+}
+
+
+/* =========================================================
    SHIPMENT TABLE
 ========================================================= */
 
@@ -1893,10 +2067,9 @@ function renderShipmentTable(
             item => {
 
                 const customer =
-                    item.customerName ||
-                    item.receiverName ||
-                    item.senderName ||
-                    "-";
+                    getShipmentCustomer(
+                        item
+                    );
 
 
                 return `
@@ -2182,6 +2355,10 @@ function setupShipmentFilters(){
 
                         item.customerName,
 
+                        item.username,
+
+                        item.user?.username,
+
                         item.shipmentType,
 
                         item.status
@@ -2326,9 +2503,9 @@ function openShipmentModal(
 
                     ${infoBox(
                         "CUSTOMER",
-                        item.customerName ||
-                        item.receiverName ||
-                        "-"
+                        getShipmentCustomer(
+                            item
+                        )
                     )}
 
                     ${infoBox(
@@ -2639,6 +2816,28 @@ function openCreateShipmentModal(){
                 )}
 
 
+                <label>
+
+                    <span class="form-label">
+                        ASSIGN CUSTOMER
+                    </span>
+
+                    <select
+                        id="shipmentUser"
+                        name="username"
+                        class="form-control"
+                        required
+                    >
+
+                        <option value="">
+                            Loading customers...
+                        </option>
+
+                    </select>
+
+                </label>
+
+
                 <label
                     style="
                         grid-column:1/-1;
@@ -2720,6 +2919,40 @@ function openCreateShipmentModal(){
             submitShipment
         );
 
+
+    loadUsers()
+        .then(
+            () => {
+
+                populateUserDropdown(
+                    "shipmentUser"
+                );
+
+            }
+        )
+        .catch(
+            error => {
+
+                const select =
+                    $("shipmentUser");
+
+                if(select){
+
+                    select.innerHTML = `
+                        <option value="">
+                            Unable to load customers
+                        </option>
+                    `;
+
+                }
+
+                console.error(
+                    error
+                );
+
+            }
+        );
+
 }
 
 
@@ -2750,57 +2983,64 @@ async function submitShipment(
             String(
                 data.get(
                     "trackingNumber"
-                )
+                ) || ""
             ).trim(),
 
         senderName:
             String(
                 data.get(
                     "senderName"
-                )
+                ) || ""
             ).trim(),
 
         receiverName:
             String(
                 data.get(
                     "receiverName"
-                )
+                ) || ""
             ).trim(),
 
         origin:
             String(
                 data.get(
                     "origin"
-                )
+                ) || ""
             ).trim(),
 
         destination:
             String(
                 data.get(
                     "destination"
-                )
+                ) || ""
             ).trim(),
 
         shipmentType:
             String(
                 data.get(
                     "shipmentType"
-                )
-            ),
+                ) || ""
+            ).trim(),
 
         status:
             String(
                 data.get(
                     "status"
-                )
-            ),
+                ) || "Pending"
+            ).trim(),
 
         weight:
             Number(
                 data.get(
                     "weight"
                 )
-            )
+            ),
+
+        username:
+            String(
+                data.get(
+                    "username"
+                ) || ""
+            ).trim()
 
     };
 
@@ -2812,12 +3052,16 @@ async function submitShipment(
         !payload.origin ||
         !payload.destination ||
         !payload.shipmentType ||
-        !payload.weight
+        !payload.username ||
+        Number.isNaN(
+            payload.weight
+        ) ||
+        payload.weight <= 0
     ){
 
         showToast(
             "Validation error",
-            "Please fill all shipment fields.",
+            "Please fill all shipment fields and select a customer.",
             "error"
         );
 
@@ -2837,7 +3081,10 @@ async function submitShipment(
                 id:
                     Date.now(),
 
-                ...payload
+                ...payload,
+
+                customerName:
+                    payload.username
 
             });
 
@@ -2855,7 +3102,7 @@ async function submitShipment(
 
             showToast(
                 "Shipment created",
-                `${payload.trackingNumber} added locally.`,
+                `${payload.trackingNumber} assigned to ${payload.username}.`,
                 "success"
             );
 
@@ -2867,7 +3114,7 @@ async function submitShipment(
 
         await api(
 
-            "/api/shipments",
+            "/api/admin/shipments",
 
             {
 
@@ -2897,7 +3144,7 @@ async function submitShipment(
 
         showToast(
             "Shipment created",
-            `${payload.trackingNumber} created successfully.`,
+            `${payload.trackingNumber} assigned to ${payload.username}.`,
             "success"
         );
 
@@ -3043,6 +3290,28 @@ function openEditShipmentModal(
                 )}
 
 
+                <label>
+
+                    <span class="form-label">
+                        ASSIGN CUSTOMER
+                    </span>
+
+                    <select
+                        id="editShipmentUser"
+                        name="username"
+                        class="form-control"
+                        required
+                    >
+
+                        <option value="">
+                            Loading customers...
+                        </option>
+
+                    </select>
+
+                </label>
+
+
                 <label
                     style="
                         grid-column:1/-1;
@@ -3130,6 +3399,31 @@ function openEditShipmentModal(
                 submitEditShipment(
                     event,
                     item
+                );
+
+            }
+        );
+
+
+    loadUsers()
+        .then(
+            () => {
+
+                populateUserDropdown(
+                    "editShipmentUser",
+                    item.username ||
+                    item.user?.username ||
+                    item.customerName ||
+                    ""
+                );
+
+            }
+        )
+        .catch(
+            error => {
+
+                console.error(
+                    error
                 );
 
             }
@@ -3228,64 +3522,69 @@ async function submitEditShipment(
             String(
                 data.get(
                     "trackingNumber"
-                )
+                ) || ""
             ).trim(),
 
         senderName:
             String(
                 data.get(
                     "senderName"
-                )
+                ) || ""
             ).trim(),
 
         receiverName:
             String(
                 data.get(
                     "receiverName"
-                )
+                ) || ""
             ).trim(),
 
         origin:
             String(
                 data.get(
                     "origin"
-                )
+                ) || ""
             ).trim(),
 
         destination:
             String(
                 data.get(
                     "destination"
-                )
+                ) || ""
             ).trim(),
 
         shipmentType:
             String(
                 data.get(
                     "shipmentType"
-                )
-            ),
+                ) || ""
+            ).trim(),
 
         status:
             String(
                 data.get(
                     "status"
-                )
-            ),
+                ) || "Pending"
+            ).trim(),
 
         weight:
             Number(
                 data.get(
                     "weight"
                 )
-            )
+            ),
+
+        username:
+            String(
+                data.get(
+                    "username"
+                ) || ""
+            ).trim()
 
     };
 
 
-    if(
-        !id
-    ){
+    if(!id){
 
         showToast(
             "Update failed",
@@ -3305,9 +3604,11 @@ async function submitEditShipment(
         !payload.origin ||
         !payload.destination ||
         !payload.shipmentType ||
+        !payload.username ||
         Number.isNaN(
             payload.weight
-        )
+        ) ||
+        payload.weight < 0
     ){
 
         showToast(
@@ -3322,10 +3623,6 @@ async function submitEditShipment(
 
 
     try{
-
-        /* -----------------------------------------
-           DEMO MODE
-        ----------------------------------------- */
 
         if(
             state.demoMode
@@ -3364,6 +3661,9 @@ async function submitEditShipment(
 
                 ...payload,
 
+                customerName:
+                    payload.username,
+
                 id:
                     state.shipments[
                         index
@@ -3395,13 +3695,13 @@ async function submitEditShipment(
         }
 
 
-        /* -----------------------------------------
-           REAL BACKEND UPDATE
-        ----------------------------------------- */
+        /*
+           Admin update endpoint
+        */
 
         await api(
 
-            `/api/shipments/${encodeURIComponent(id)}`,
+            `/api/admin/shipments/${encodeURIComponent(id)}`,
 
             {
 
@@ -3482,10 +3782,6 @@ async function deleteShipment(
 
     try{
 
-        /* -----------------------------------------
-           DEMO MODE
-        ----------------------------------------- */
-
         if(
             state.demoMode
         ){
@@ -3517,13 +3813,9 @@ async function deleteShipment(
         }
 
 
-        /* -----------------------------------------
-           BACKEND DELETE
-        ----------------------------------------- */
-
         await api(
 
-            `/api/shipments/${encodeURIComponent(item.id)}`,
+            `/api/admin/shipments/${encodeURIComponent(item.id)}`,
 
             {
 
@@ -3580,13 +3872,6 @@ function refreshAfterMutation(){
    STATUS UPDATE
 ========================================================= */
 
-/*
-   This uses the existing PUT endpoint instead of a PATCH
-   endpoint so it works with your controller:
-
-   PUT /api/shipments/{id}
-*/
-
 async function changeStatus(
     item,
     newStatus
@@ -3625,7 +3910,13 @@ async function changeStatus(
             weight:
                 Number(
                     item.weight || 0
-                )
+                ),
+
+            username:
+                item.username ||
+                item.user?.username ||
+                item.customerName ||
+                ""
 
         };
 
@@ -3655,7 +3946,7 @@ async function changeStatus(
 
         await api(
 
-            `/api/shipments/${encodeURIComponent(item.id)}`,
+            `/api/admin/shipments/${encodeURIComponent(item.id)}`,
 
             {
 
@@ -4178,6 +4469,10 @@ function setupGlobalSearch(){
 
                             shipment.customerName,
 
+                            shipment.username,
+
+                            shipment.user?.username,
+
                             shipment.shipmentType,
 
                             shipment.status
@@ -4384,10 +4679,9 @@ function setupExport(){
                         item => {
 
                             const customer =
-                                item.customerName ||
-                                item.receiverName ||
-                                item.senderName ||
-                                "";
+                                getShipmentCustomer(
+                                    item
+                                );
 
 
                             return [
@@ -4504,6 +4798,7 @@ function setupReportButton(){
                     "Tracking",
                     "Origin",
                     "Destination",
+                    "Customer",
                     "Status",
                     "Weight"
 
@@ -4517,6 +4812,9 @@ function setupReportButton(){
                             item.trackingNumber,
                             item.origin,
                             item.destination,
+                            getShipmentCustomer(
+                                item
+                            ),
                             item.status,
                             item.weight
 
