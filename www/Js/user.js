@@ -1,19 +1,11 @@
-
 "use strict";
 
 /* =========================================================
    TRANSLOGIX CUSTOMER APPLICATION
 ========================================================= */
 
-/*
-   Android Emulator:
-   10.0.2.2 = Windows host machine
-
-   Spring Boot Backend:
-   http://localhost:8081
-*/
-
-const USER_API = "https://translogix-backend-1.onrender.com";
+const USER_API =
+    "https://translogix-backend-1.onrender.com";
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -48,7 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
        HELPERS
     ================================================= */
 
-    const $ = id => document.getElementById(id);
+    const $ = id =>
+        document.getElementById(id);
 
 
     const username =
@@ -69,7 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const element = $(id);
 
         if (element) {
-            element.textContent = value ?? "-";
+            element.textContent =
+                value ?? "-";
         }
     }
 
@@ -104,7 +98,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function statusClass(status) {
 
-        const value = normalize(status);
+        const value =
+            normalize(status);
 
 
         if (value === "delivered") {
@@ -142,11 +137,15 @@ document.addEventListener("DOMContentLoaded", () => {
        API
     ================================================= */
 
-    async function api(endpoint, options = {}) {
+    async function api(
+        endpoint,
+        options = {}
+    ) {
 
         const headers = {
 
-            "Accept": "application/json",
+            "Accept":
+                "application/json",
 
             "Authorization":
                 `Bearer ${token}`
@@ -165,19 +164,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
-            response = await fetch(
-                `${USER_API}${endpoint}`,
-                {
-                    ...options,
+            response =
+                await fetch(
+                    `${USER_API}${endpoint}`,
+                    {
+                        ...options,
 
-                    headers: {
+                        headers: {
 
-                        ...headers,
+                            ...headers,
 
-                        ...(options.headers || {})
+                            ...(options.headers || {})
+                        }
                     }
-                }
-            );
+                );
 
         }
 
@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             throw new Error(
-                "Unable to connect to TRANSLOGIX backend on port 8081."
+                "Unable to connect to TRANSLOGIX backend."
             );
         }
 
@@ -1111,9 +1111,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
+            /*
+             * IMPORTANT:
+             * Backend endpoint is:
+             * GET /api/shipments/track/{trackingNumber}
+             */
+
             const data =
                 await api(
-                    `/api/shipments/tracking/${encodeURIComponent(
+                    `/api/shipments/track/${encodeURIComponent(
                         value
                     )}`
                 );
@@ -1855,6 +1861,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     error
                 );
 
+
                 showUserMessage(
                     error.message ||
                     "Unable to load shipments.",
@@ -1864,4 +1871,3 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 });
-
