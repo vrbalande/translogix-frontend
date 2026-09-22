@@ -5,7 +5,7 @@
    Android Emulator -> Host Machine
 ========================================================== */
 
-const AUTH_API = "http://10.0.2.2:8081";
+const USER_API = "https://translogix-backend-1.onrender.com";
 
 
 /* ==========================================================

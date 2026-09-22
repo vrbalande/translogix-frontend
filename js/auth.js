@@ -1,3 +1,4 @@
+
 "use strict";
 
 /* ==========================================================
@@ -85,7 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (raw) {
 
                 try {
-
                     data = JSON.parse(raw);
 
                 } catch {
@@ -140,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
             async (event) => {
 
                 event.preventDefault();
-
 
                 const usernameInput =
                     document.getElementById(
@@ -562,3 +561,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+
