@@ -1,3177 +1,1344 @@
-/* ==========================================================
-   TRANSLOGIX ADMIN CONTROL TOWER
-   Production Version
-========================================================== */
+<!DOCTYPE html>
+<html lang="en">
 
-"use strict";
+<head>
 
+    <meta charset="UTF-8">
 
-/* ==========================================================
-   API CONFIG
-========================================================== */
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-const ADMIN_API =
-    "https://translogix-backend-1.onrender.com";
+    <meta
+        name="description"
+        content="TRANSLOGIX Admin Control Tower - Enterprise Logistics Operations">
 
+    <meta
+        name="theme-color"
+        content="#eef2f6">
 
-/* ==========================================================
-   STATE
-========================================================== */
+    <title>TRANSLOGIX | Admin Control Tower</title>
 
-const state = {
 
-    shipments: [],
+    <!-- =====================================================
+         LEAFLET
+    ====================================================== -->
 
-    customers: [],
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin="">
 
-    currentPage: "dashboard",
 
-    demoMode: false,
+    <!-- =====================================================
+         ADMIN CSS
+    ====================================================== -->
 
-    maps: {},
+    <link
+        rel="stylesheet"
+        href="./Css/admin-dashboard.css">
 
-    selectedVehicle: null
 
-};
+    <!-- =====================================================
+         COPILOT CSS
+    ====================================================== -->
 
+    <link
+        rel="stylesheet"
+        href="./Css/copilot.css">
 
-/* ==========================================================
-   AUTH TOKEN
-========================================================== */
+</head>
 
-function getToken(){
 
-    return (
-        localStorage.getItem("token") ||
-        localStorage.getItem("jwt") ||
-        localStorage.getItem("accessToken") ||
-        ""
-    );
+<body>
 
-}
+<div class="admin-app">
 
 
-/* ==========================================================
-   API HELPER
-========================================================== */
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
 
-async function api(
-    endpoint,
-    options = {}
-){
+    <aside
+        id="adminSidebar"
+        class="admin-sidebar">
 
-    const token = getToken();
+        <div class="admin-brand">
 
-    const config = {
+            <a href="./index.html">
 
-        ...options,
+                <span class="brand-mark">
+                    TX
+                </span>
 
-        headers: {
+                <div>
 
-            "Content-Type":
-                "application/json",
+                    <strong>
+                        TRANSLOGIX
+                    </strong>
 
-            ...(options.headers || {}),
+                    <small>
+                        ENTERPRISE LOGISTICS
+                    </small>
 
-            ...(token
-                ? {
-                    "Authorization":
-                        `Bearer ${token}`
-                }
-                : {})
+                </div>
 
-        }
+            </a>
 
-    };
+        </div>
 
 
-    try{
+        <!-- ACCOUNT -->
 
-        const response =
-            await fetch(
-                `${ADMIN_API}${endpoint}`,
-                config
-            );
+        <div class="admin-account-card">
 
+            <div class="admin-avatar">
+                A
+            </div>
 
-        const text =
-            await response.text();
+            <div class="admin-account-info">
 
+                <strong>
+                    Admin
+                </strong>
 
-        let data = null;
+                <small>
+                    Operations Control
+                </small>
 
+            </div>
 
-        try{
+            <i class="online-dot"></i>
 
-            data =
-                text
-                    ? JSON.parse(text)
-                    : null;
+        </div>
 
-        }
-        catch{
 
-            data = text;
+        <!-- NAVIGATION -->
 
-        }
+        <div class="sidebar-label">
+            COMMAND
+        </div>
 
 
-        /* ==================================================
-           UNAUTHORIZED
-        ================================================== */
+        <nav class="admin-nav">
 
-        if(response.status === 401){
+            <button
+                type="button"
+                class="admin-nav-item active"
+                data-page="dashboard">
 
-            localStorage.removeItem("token");
-            localStorage.removeItem("jwt");
-            localStorage.removeItem("accessToken");
+                <span class="nav-icon">
+                    ⌘
+                </span>
 
-            showToast(
-                "Session expired",
-                "Please login again.",
-                "error"
-            );
+                <span>
+                    Command Center
+                </span>
 
-            setTimeout(() => {
+            </button>
 
-                window.location.href =
-                    "./login.html";
 
-            }, 1200);
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="shipments">
 
-            throw new Error(
-                "Unauthorized"
-            );
+                <span class="nav-icon">
+                    ⇢
+                </span>
 
-        }
+                <span>
+                    Shipments
+                </span>
 
+                <em id="sidebarShipmentCount">
+                    00
+                </em>
 
-        /* ==================================================
-           FORBIDDEN
-        ================================================== */
+            </button>
 
-        if(response.status === 403){
 
-            throw new Error(
-                "Administrator permission required."
-            );
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="fleet">
 
-        }
+                <span class="nav-icon">
+                    ◈
+                </span>
 
+                <span>
+                    Fleet
+                </span>
 
-        /* ==================================================
-           OTHER ERRORS
-        ================================================== */
+            </button>
 
-        if(!response.ok){
 
-            let message =
-                "Request failed.";
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="drivers">
 
-            if(typeof data === "string" && data){
+                <span class="nav-icon">
+                    ◉
+                </span>
 
-                message = data;
+                <span>
+                    Drivers
+                </span>
 
-            }
-            else if(data?.message){
+            </button>
 
-                message = data.message;
 
-            }
-            else if(data?.error){
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="dispatch">
 
-                message = data.error;
+                <span class="nav-icon">
+                    ⇥
+                </span>
 
-            }
+                <span>
+                    Dispatch
+                </span>
 
-            throw new Error(message);
+            </button>
 
-        }
 
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="network">
 
-        return data;
+                <span class="nav-icon">
+                    ◎
+                </span>
 
-    }
-    catch(error){
+                <span>
+                    Live Network
+                </span>
 
-        console.error(
-            "API Error:",
-            endpoint,
-            error
-        );
+            </button>
 
-        throw error;
+        </nav>
 
-    }
 
-}
+        <div class="sidebar-label">
+            OPERATIONS
+        </div>
 
 
-/* ==========================================================
-   TOAST
-========================================================== */
+        <nav class="admin-nav">
 
-function showToast(
-    title,
-    message = "",
-    type = "success"
-){
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="exceptions">
 
-    if(
-        typeof window.showToast ===
-        "function"
-    ){
+                <span>
+                    Exception Center
+                </span>
 
-        window.showToast(
-            title,
-            message,
-            type
-        );
+            </button>
 
-        return;
 
-    }
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="alerts">
 
+                <span>
+                    Alerts
+                </span>
 
-    console.log(
-        `[${type}] ${title}`,
-        message
-    );
+            </button>
 
-}
 
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="maintenance">
 
-/* ==========================================================
-   LOAD CUSTOMERS
-========================================================== */
+                <span>
+                    Maintenance
+                </span>
 
-async function loadCustomers(){
+            </button>
 
-    try{
 
-        const data =
-            await api(
-                "/api/admin/users"
-            );
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="analytics">
 
+                <span>
+                    Analytics
+                </span>
 
-        state.customers =
-            Array.isArray(data)
-                ? data
-                : [];
+            </button>
 
 
-        console.log(
-            "CUSTOMERS LOADED:",
-            state.customers
-        );
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="customers">
 
+                <span>
+                    Customers
+                </span>
 
-        return state.customers;
+            </button>
 
-    }
-    catch(error){
 
-        console.error(
-            "Customer loading failed:",
-            error
-        );
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="reports">
 
+                <span>
+                    Reports
+                </span>
 
-        state.customers = [];
+            </button>
 
 
-        showToast(
-            "Customer loading failed",
-            error.message,
-            "error"
-        );
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="assignments">
 
+                <span>
+                    Assignments
+                </span>
 
-        return [];
+            </button>
 
-    }
+        </nav>
 
-}
 
+        <div class="sidebar-bottom">
 
-/* ==========================================================
-   LOAD ALL ADMIN SHIPMENTS
-========================================================== */
+            <button
+                type="button"
+                class="admin-nav-item"
+                data-page="settings">
 
-async function loadShipments(){
+                <span>
+                    Settings
+                </span>
 
-    try{
+            </button>
 
-        const data =
-            await api(
-                "/api/admin/shipments"
-            );
 
+            <button
+                type="button"
+                id="adminLogout"
+                class="admin-nav-item logout">
 
-        if(Array.isArray(data)){
+                <span>
+                    Logout
+                </span>
 
-            state.shipments =
-                data;
+            </button>
 
-        }
-        else if(
-            Array.isArray(data?.content)
-        ){
+        </div>
 
-            state.shipments =
-                data.content;
+    </aside>
 
-        }
-        else{
 
-            state.shipments = [];
 
-        }
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
 
+    <main class="admin-main">
 
-        state.demoMode = false;
 
+        <!-- HEADER -->
 
-        console.log(
-            "ADMIN SHIPMENTS LOADED:",
-            state.shipments
-        );
+        <header class="admin-header">
 
-
-    }
-    catch(error){
-
-        console.error(
-            "Admin shipment loading failed:",
-            error
-        );
-
-
-        state.shipments = [];
-
-
-        state.demoMode = true;
-
-
-        showToast(
-            "Shipment loading failed",
-            error.message,
-            "error"
-        );
-
-    }
-
-
-    updateStats();
-
-
-    renderShipmentTable(
-        state.shipments
-    );
-
-}
-
-
-/* ==========================================================
-   CUSTOMER DROPDOWN OPTIONS
-========================================================== */
-
-function customerOptions(){
-
-    if(
-        !Array.isArray(
-            state.customers
-        ) ||
-        state.customers.length === 0
-    ){
-
-        return `
-            <option value="">
-                No customers available
-            </option>
-        `;
-
-    }
-
-
-    const customers =
-        state.customers.filter(
-            customer =>
-                customer &&
-                customer.username
-        );
-
-
-    if(customers.length === 0){
-
-        return `
-            <option value="">
-                No customers available
-            </option>
-        `;
-
-    }
-
-
-    return customers
-        .map(customer => {
-
-            const username =
-                escapeHtml(
-                    customer.username
-                );
-
-
-            return `
-                <option value="${username}">
-                    ${username}
-                </option>
-            `;
-
-        })
-        .join("");
-
-}
-
-
-/* ==========================================================
-   ESCAPE HTML
-========================================================== */
-
-function escapeHtml(value){
-
-    if(value === null ||
-       value === undefined){
-
-        return "";
-
-    }
-
-
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-
-}
-
-
-/* ==========================================================
-   OPEN CREATE SHIPMENT MODAL
-========================================================== */
-
-async function openCreateShipmentModal(){
-
-    await loadCustomers();
-
-
-    const customerOptionsHtml =
-        customerOptions();
-
-
-    const modal =
-        document.createElement("div");
-
-
-    modal.id =
-        "createShipmentModal";
-
-
-    modal.className =
-        "modal-overlay";
-
-
-    modal.innerHTML = `
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h2>
-                    Create Shipment
-                </h2>
+            <div class="admin-header-left">
 
                 <button
                     type="button"
-                    class="modal-close"
-                    id="closeCreateShipment"
-                >
-                    &times;
+                    id="adminMenu"
+                    class="admin-menu">
+
+                    ☰
+
+                </button>
+
+
+                <div>
+
+                    <h1 id="adminPageTitle">
+                        Command Center
+                    </h1>
+
+                    <p id="adminPageSubtitle">
+                        Enterprise logistics control workspace
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="admin-header-right">
+
+                <input
+                    type="search"
+                    id="adminGlobalSearch"
+                    placeholder="Search dashboard...">
+
+
+                <button
+                    type="button"
+                    id="adminRefresh"
+                    class="secondary-btn">
+
+                    ↻ Refresh
+
+                </button>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             DASHBOARD
+        ================================================== -->
+
+        <section
+            id="page-dashboard"
+            class="admin-page">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        OPERATIONS
+                    </span>
+
+                    <h2>
+                        Command Center
+                    </h2>
+
+                    <p>
+                        Enterprise logistics operations overview.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="module-kpis">
+
+                <article>
+
+                    <span>
+                        TOTAL SHIPMENTS
+                    </span>
+
+                    <strong id="kpiTotal">
+                        0
+                    </strong>
+
+                </article>
+
+
+                <article>
+
+                    <span>
+                        IN TRANSIT
+                    </span>
+
+                    <strong id="kpiTransit">
+                        0
+                    </strong>
+
+                </article>
+
+
+                <article>
+
+                    <span>
+                        DELIVERED
+                    </span>
+
+                    <strong id="kpiDelivered">
+                        0
+                    </strong>
+
+                </article>
+
+
+                <article>
+
+                    <span>
+                        EXCEPTIONS
+                    </span>
+
+                    <strong id="kpiExceptions">
+                        0
+                    </strong>
+
+                </article>
+
+            </div>
+
+
+            <div class="dashboard-grid">
+
+                <article class="dashboard-card">
+
+                    <h3>
+                        Shipment Flow
+                    </h3>
+
+                    <p>
+                        Active shipment operations.
+                    </p>
+
+                    <strong id="shipmentFlowCount">
+                        0
+                    </strong>
+
+                </article>
+
+
+                <article class="dashboard-card">
+
+                    <h3>
+                        Priority Operations
+                    </h3>
+
+                    <button
+                        type="button"
+                        data-page-go="shipments">
+
+                        Manage Shipments
+
+                    </button>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             SHIPMENTS
+        ================================================== -->
+
+        <section
+            id="page-shipments"
+            class="admin-page hidden">
+
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        SHIPMENT OPERATIONS
+                    </span>
+
+                    <h2>
+                        Shipment Command
+                    </h2>
+
+                    <p>
+                        Control live shipment movement,
+                        delivery status and SLA execution.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="createShipmentBtn"
+                    class="primary-btn">
+
+                    + Create Shipment
+
                 </button>
 
             </div>
 
 
-            <form
-                id="createShipmentForm"
-                class="shipment-form"
-            >
 
-                <div class="form-group">
+            <!-- SHIPMENT KPIs -->
 
-                    <label>
-                        Tracking Number
-                    </label>
+            <div class="module-kpis">
 
-                    <input
-                        type="text"
-                        name="trackingNumber"
-                        required
-                        placeholder="TRX10007"
-                    >
+                <article>
+
+                    <span>
+                        TOTAL
+                    </span>
+
+                    <strong id="shipmentTotal">
+                        0
+                    </strong>
+
+                </article>
+
+
+                <article>
+
+                    <span>
+                        ACTIVE
+                    </span>
+
+                    <strong id="shipmentActive">
+                        0
+                    </strong>
+
+                </article>
+
+
+                <article>
+
+                    <span>
+                        DELIVERED
+                    </span>
+
+                    <strong id="shipmentDelivered">
+                        0
+                    </strong>
+
+                </article>
+
+
+                <article>
+
+                    <span>
+                        EXCEPTIONS
+                    </span>
+
+                    <strong id="shipmentExceptions">
+                        0
+                    </strong>
+
+                </article>
+
+            </div>
+
+
+
+            <!-- FILTERS -->
+
+            <div class="shipment-toolbar">
+
+                <input
+                    type="search"
+                    id="shipmentSearch"
+                    placeholder="Search tracking number, customer, route...">
+
+
+                <select
+                    id="shipmentStatusFilter">
+
+                    <option value="">
+                        All Status
+                    </option>
+
+                    <option value="Pending">
+                        Pending
+                    </option>
+
+                    <option value="In Transit">
+                        In Transit
+                    </option>
+
+                    <option value="Out for Delivery">
+                        Out for Delivery
+                    </option>
+
+                    <option value="Delivered">
+                        Delivered
+                    </option>
+
+                    <option value="Cancelled">
+                        Cancelled
+                    </option>
+
+                </select>
+
+
+                <button
+                    type="button"
+                    id="exportShipments"
+                    class="secondary-btn">
+
+                    Export
+
+                </button>
+
+            </div>
+
+
+
+            <!-- TABLE -->
+
+            <div class="table-wrapper">
+
+                <table class="admin-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Tracking
+                            </th>
+
+                            <th>
+                                Sender
+                            </th>
+
+                            <th>
+                                Receiver
+                            </th>
+
+                            <th>
+                                Route
+                            </th>
+
+                            <th>
+                                Type
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Weight
+                            </th>
+
+                            <th>
+                                Customer
+                            </th>
+
+                            <th>
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="shipmentTable">
+
+                        <tr>
+
+                            <td
+                                colspan="9"
+                                style="text-align:center;">
+
+                                Loading shipments...
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             FLEET
+        ================================================== -->
+
+        <section
+            id="page-fleet"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        FLEET
+                    </span>
+
+                    <h2>
+                        Fleet Management
+                    </h2>
+
+                    <p>
+                        Fleet readiness and vehicle operations.
+                    </p>
 
                 </div>
 
+            </div>
 
-                <div class="form-group">
-
-                    <label>
-                        Sender Name
-                    </label>
-
-                    <input
-                        type="text"
-                        name="senderName"
-                        required
-                        placeholder="Sender name"
-                    >
-
-                </div>
+        </section>
 
 
-                <div class="form-group">
 
-                    <label>
-                        Receiver Name
-                    </label>
+        <!-- =================================================
+             DRIVERS
+        ================================================== -->
 
-                    <input
-                        type="text"
-                        name="receiverName"
-                        required
-                        placeholder="Receiver name"
-                    >
+        <section
+            id="page-drivers"
+            class="admin-page hidden">
 
-                </div>
+            <div class="module-header">
 
+                <div>
 
-                <div class="form-group">
+                    <span>
+                        DRIVERS
+                    </span>
 
-                    <label>
-                        Origin
-                    </label>
+                    <h2>
+                        Driver Operations
+                    </h2>
 
-                    <input
-                        type="text"
-                        name="origin"
-                        required
-                        placeholder="Pune"
-                    >
+                    <p>
+                        Manage driver operations.
+                    </p>
 
                 </div>
 
+            </div>
 
-                <div class="form-group">
-
-                    <label>
-                        Destination
-                    </label>
-
-                    <input
-                        type="text"
-                        name="destination"
-                        required
-                        placeholder="Mumbai"
-                    >
-
-                </div>
+        </section>
 
 
-                <div class="form-group">
 
-                    <label>
-                        Customer
-                    </label>
+        <!-- =================================================
+             DISPATCH
+        ================================================== -->
 
-                    <select
-                        name="username"
-                        id="customerUsername"
-                        class="form-control"
-                        required
-                    >
+        <section
+            id="page-dispatch"
+            class="admin-page hidden">
 
-                        <option value="">
-                            Select Customer
-                        </option>
+            <div class="module-header">
 
-                        ${customerOptionsHtml}
+                <div>
 
-                    </select>
+                    <span>
+                        DISPATCH
+                    </span>
+
+                    <h2>
+                        Dispatch Board
+                    </h2>
+
+                    <p>
+                        Dispatch and shipment coordination.
+                    </p>
 
                 </div>
 
+            </div>
 
-                <div class="form-group">
+        </section>
 
-                    <label>
-                        Shipment Type
-                    </label>
 
-                    <select
-                        name="shipmentType"
-                        required
-                    >
 
-                        <option value="">
-                            Select Type
-                        </option>
+        <!-- =================================================
+             NETWORK
+        ================================================== -->
 
-                        <option value="Express">
-                            Express
-                        </option>
+        <section
+            id="page-network"
+            class="admin-page hidden">
 
-                        <option value="Standard">
-                            Standard
-                        </option>
+            <div class="module-header">
 
-                        <option value="Freight">
-                            Freight
-                        </option>
+                <div>
 
-                        <option value="Courier">
-                            Courier
-                        </option>
+                    <span>
+                        LIVE NETWORK
+                    </span>
 
-                        <option value="Cold Chain">
-                            Cold Chain
-                        </option>
+                    <h2>
+                        Network Operations
+                    </h2>
 
-                    </select>
+                    <p>
+                        Live logistics network.
+                    </p>
 
                 </div>
 
-
-                <div class="form-group">
-
-                    <label>
-                        Status
-                    </label>
-
-                    <select
-                        name="status"
-                        required
-                    >
-
-                        <option value="Pending">
-                            Pending
-                        </option>
-
-                        <option value="In Transit">
-                            In Transit
-                        </option>
-
-                        <option value="Out for Delivery">
-                            Out for Delivery
-                        </option>
-
-                        <option value="Delivered">
-                            Delivered
-                        </option>
-
-                    </select>
-
-                </div>
+            </div>
 
 
-                <div class="form-group">
+            <div
+                id="networkMap"
+                style="
+                    width:100%;
+                    min-height:450px;
+                    border-radius:16px;
+                    overflow:hidden;
+                ">
+            </div>
 
-                    <label>
-                        Weight (kg)
-                    </label>
+        </section>
 
-                    <input
-                        type="number"
-                        name="weight"
-                        min="0.01"
-                        step="0.01"
-                        required
-                        placeholder="5"
-                    >
+
+
+        <!-- =================================================
+             EXCEPTIONS
+        ================================================== -->
+
+        <section
+            id="page-exceptions"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        EXCEPTIONS
+                    </span>
+
+                    <h2>
+                        Exception Center
+                    </h2>
+
+                    <p>
+                        Operational exceptions and SLA issues.
+                    </p>
 
                 </div>
 
+            </div>
 
-                <div class="modal-actions">
-
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        id="cancelCreateShipment"
-                    >
-                        Cancel
-                    </button>
+        </section>
 
 
-                    <button
-                        type="submit"
-                        class="btn btn-primary"
-                    >
-                        Create Shipment
-                    </button>
+
+        <!-- =================================================
+             ALERTS
+        ================================================== -->
+
+        <section
+            id="page-alerts"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        ALERTS
+                    </span>
+
+                    <h2>
+                        Alert Management
+                    </h2>
+
+                    <p>
+                        Monitor operational alerts.
+                    </p>
 
                 </div>
 
-            </form>
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             MAINTENANCE
+        ================================================== -->
+
+        <section
+            id="page-maintenance"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        MAINTENANCE
+                    </span>
+
+                    <h2>
+                        Vehicle Maintenance
+                    </h2>
+
+                    <p>
+                        Maintenance operations.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             ANALYTICS
+        ================================================== -->
+
+        <section
+            id="page-analytics"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        ANALYTICS
+                    </span>
+
+                    <h2>
+                        Operational Analytics
+                    </h2>
+
+                    <p>
+                        Logistics performance analytics.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             CUSTOMERS
+        ================================================== -->
+
+        <section
+            id="page-customers"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        CUSTOMERS
+                    </span>
+
+                    <h2>
+                        Customer Intelligence
+                    </h2>
+
+                    <p>
+                        Customer operations.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             REPORTS
+        ================================================== -->
+
+        <section
+            id="page-reports"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        REPORTS
+                    </span>
+
+                    <h2>
+                        Operational Reports
+                    </h2>
+
+                    <p>
+                        Generate logistics reports.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             ASSIGNMENTS
+        ================================================== -->
+
+        <section
+            id="page-assignments"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        ASSIGNMENTS
+                    </span>
+
+                    <h2>
+                        Shipment Assignments
+                    </h2>
+
+                    <p>
+                        Assign shipments to customers.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             SETTINGS
+        ================================================== -->
+
+        <section
+            id="page-settings"
+            class="admin-page hidden">
+
+            <div class="module-header">
+
+                <div>
+
+                    <span>
+                        SETTINGS
+                    </span>
+
+                    <h2>
+                        System Configuration
+                    </h2>
+
+                    <p>
+                        Configure TRANSLOGIX administration.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+
+<!-- =========================================================
+     ADMIN MODAL
+========================================================== -->
+
+<div
+    id="adminModal"
+    class="admin-modal hidden">
+
+    <div class="admin-modal-overlay"></div>
+
+    <div class="admin-modal-box">
+
+        <button
+            type="button"
+            id="adminModalClose"
+            class="admin-modal-close">
+
+            ×
+
+        </button>
+
+
+        <div class="admin-modal-header">
+
+            <h2 id="modalTitle">
+                Shipment
+            </h2>
 
         </div>
 
-    `;
 
+        <div
+            id="modalContent"
+            class="admin-modal-content">
 
-    document.body.appendChild(modal);
+        </div>
 
+    </div>
 
-    document
-        .getElementById(
-            "closeCreateShipment"
-        )
-        ?.addEventListener(
-            "click",
-            () => modal.remove()
-        );
+</div>
 
 
-    document
-        .getElementById(
-            "cancelCreateShipment"
-        )
-        ?.addEventListener(
-            "click",
-            () => modal.remove()
-        );
 
+<!-- =========================================================
+     COPILOT
+========================================================== -->
 
-    document
-        .getElementById(
-            "createShipmentForm"
-        )
-        ?.addEventListener(
-            "submit",
-            submitShipment
-        );
+<button
+    type="button"
+    id="txCopilotOpen"
+    class="tx-copilot-open-btn">
 
-}
+    ✦
+    <span>Copilot</span>
 
+</button>
 
-/* ==========================================================
-   SUBMIT CREATE SHIPMENT
-========================================================== */
 
-async function submitShipment(event){
+<section
+    id="txCopilotPanel"
+    class="tx-copilot-panel hidden">
 
-    event.preventDefault();
+    <header class="tx-copilot-header">
 
+        <div class="tx-copilot-brand">
 
-    const form =
-        event.target;
+            <div class="tx-copilot-logo">
+                ✦
+            </div>
 
+            <div class="tx-copilot-title">
 
-    const formData =
-        new FormData(form);
+                <strong>
+                    Translogix Copilot
+                </strong>
 
+                <small>
+                    Operations Assistant
+                </small>
 
-    const trackingNumber =
-        String(
-            formData.get(
-                "trackingNumber"
-            ) || ""
-        ).trim();
+            </div>
 
+        </div>
 
-    const senderName =
-        String(
-            formData.get(
-                "senderName"
-            ) || ""
-        ).trim();
 
+        <button
+            type="button"
+            id="txCopilotClose"
+            class="tx-copilot-close">
 
-    const receiverName =
-        String(
-            formData.get(
-                "receiverName"
-            ) || ""
-        ).trim();
+            ×
 
+        </button>
 
-    const origin =
-        String(
-            formData.get(
-                "origin"
-            ) || ""
-        ).trim();
+    </header>
 
 
-    const destination =
-        String(
-            formData.get(
-                "destination"
-            ) || ""
-        ).trim();
+    <div class="tx-copilot-status">
 
+        <i></i>
 
-    const username =
-        String(
-            formData.get(
-                "username"
-            ) || ""
-        ).trim();
+        <span>
+            System online
+        </span>
 
+    </div>
 
-    const shipmentType =
-        String(
-            formData.get(
-                "shipmentType"
-            ) || ""
-        ).trim();
 
+    <div
+        id="txCopilotMessages"
+        class="tx-copilot-messages">
 
-    const status =
-        String(
-            formData.get(
-                "status"
-            ) || "Pending"
-        ).trim();
+    </div>
 
 
-    const weight =
-        Number(
-            formData.get(
-                "weight"
-            )
-        );
+    <div class="tx-copilot-input">
 
+        <form
+            id="txCopilotForm"
+            style="
+                width:100%;
+                display:flex;
+                gap:8px;
+            ">
 
-    /* ======================================================
-       VALIDATION
-    ====================================================== */
+            <input
+                type="text"
+                id="txCopilotInput"
+                placeholder="Ask about shipments...">
 
-    if(!trackingNumber){
+            <button
+                type="submit"
+                class="tx-copilot-send">
 
-        showToast(
-            "Validation error",
-            "Tracking number is required.",
-            "error"
-        );
+                ↑
 
-        return;
+            </button>
 
-    }
+        </form>
 
+    </div>
 
-    if(!senderName){
+</section>
 
-        showToast(
-            "Validation error",
-            "Sender name is required.",
-            "error"
-        );
 
-        return;
 
-    }
+<!-- =========================================================
+     LEAFLET JS
+========================================================== -->
 
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin="">
+</script>
 
-    if(!receiverName){
 
-        showToast(
-            "Validation error",
-            "Receiver name is required.",
-            "error"
-        );
+<!-- =========================================================
+     ADMIN JS
+========================================================== -->
 
-        return;
+<script
+    src="./Js/admin.js"
+    defer>
+</script>
 
-    }
 
+<!-- =========================================================
+     COPILOT JS
+========================================================== -->
 
-    if(!origin){
+<script
+    src="./Js/copilot.js"
+    defer>
+</script>
 
-        showToast(
-            "Validation error",
-            "Origin is required.",
-            "error"
-        );
 
-        return;
+</body>
 
-    }
-
-
-    if(!destination){
-
-        showToast(
-            "Validation error",
-            "Destination is required.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    if(!username){
-
-        showToast(
-            "Validation error",
-            "Please select a customer.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    if(!shipmentType){
-
-        showToast(
-            "Validation error",
-            "Shipment type is required.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    if(
-        !Number.isFinite(weight) ||
-        weight <= 0
-    ){
-
-        showToast(
-            "Validation error",
-            "Weight must be greater than 0.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    /* ======================================================
-       REQUEST PAYLOAD
-    ====================================================== */
-
-    const payload = {
-
-        trackingNumber:
-            trackingNumber,
-
-        senderName:
-            senderName,
-
-        receiverName:
-            receiverName,
-
-        origin:
-            origin,
-
-        destination:
-            destination,
-
-        shipmentType:
-            shipmentType,
-
-        status:
-            status,
-
-        weight:
-            weight,
-
-        username:
-            username
-
-    };
-
-
-    console.log(
-        "CREATE SHIPMENT PAYLOAD:",
-        payload
-    );
-
-
-    try{
-
-        /* ==================================================
-           DEMO MODE
-        ================================================== */
-
-        if(state.demoMode){
-
-            const demoShipment = {
-
-                id:
-                    Date.now(),
-
-                trackingNumber:
-                    trackingNumber,
-
-                senderName:
-                    senderName,
-
-                receiverName:
-                    receiverName,
-
-                origin:
-                    origin,
-
-                destination:
-                    destination,
-
-                shipmentType:
-                    shipmentType,
-
-                status:
-                    status,
-
-                weight:
-                    weight,
-
-                username:
-                    username
-
-            };
-
-
-            state.shipments.unshift(
-                demoShipment
-            );
-
-
-            renderShipmentTable(
-                state.shipments
-            );
-
-
-            updateStats();
-
-
-            document
-                .getElementById(
-                    "createShipmentModal"
-                )
-                ?.remove();
-
-
-            showToast(
-                "Demo shipment created",
-                `${trackingNumber} assigned to ${username}`,
-                "success"
-            );
-
-
-            return;
-
-        }
-
-
-        /* ==================================================
-           REAL BACKEND REQUEST
-        ================================================== */
-
-        const createdShipment =
-            await api(
-                "/api/admin/shipments",
-                {
-
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify(
-                            payload
-                        )
-
-                }
-            );
-
-
-        console.log(
-            "SHIPMENT CREATED:",
-            createdShipment
-        );
-
-
-        document
-            .getElementById(
-                "createShipmentModal"
-            )
-            ?.remove();
-
-
-        await loadShipments();
-
-
-        showToast(
-            "Shipment created",
-            `${trackingNumber} assigned to ${username}`,
-            "success"
-        );
-
-
-    }
-    catch(error){
-
-        console.error(
-            "Shipment creation failed:",
-            error
-        );
-
-
-        showToast(
-            "Shipment creation failed",
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* ==========================================================
-   UPDATE STATS
-========================================================== */
-
-function updateStats(){
-
-    const shipments =
-        Array.isArray(
-            state.shipments
-        )
-            ? state.shipments
-            : [];
-
-
-    const total =
-        shipments.length;
-
-
-    const pending =
-        shipments.filter(
-            shipment =>
-                String(
-                    shipment.status || ""
-                ).toLowerCase()
-                === "pending"
-        ).length;
-
-
-    const inTransit =
-        shipments.filter(
-            shipment =>
-                String(
-                    shipment.status || ""
-                ).toLowerCase()
-                === "in transit"
-        ).length;
-
-
-    const outForDelivery =
-        shipments.filter(
-            shipment =>
-                String(
-                    shipment.status || ""
-                ).toLowerCase()
-                === "out for delivery"
-        ).length;
-
-
-    const delivered =
-        shipments.filter(
-            shipment =>
-                String(
-                    shipment.status || ""
-                ).toLowerCase()
-                === "delivered"
-        ).length;
-
-
-    setText(
-        "totalShipments",
-        total
-    );
-
-
-    setText(
-        "pendingShipments",
-        pending
-    );
-
-
-    setText(
-        "inTransitShipments",
-        inTransit
-    );
-
-
-    setText(
-        "outForDeliveryShipments",
-        outForDelivery
-    );
-
-
-    setText(
-        "deliveredShipments",
-        delivered
-    );
-
-}
-
-
-/* ==========================================================
-   SAFE TEXT SETTER
-========================================================== */
-
-function setText(
-    id,
-    value
-){
-
-    const element =
-        document.getElementById(id);
-
-
-    if(element){
-
-        element.textContent =
-            value;
-
-    }
-
-}
-
-
-/* ==========================================================
-   RENDER SHIPMENT TABLE
-========================================================== */
-
-function renderShipmentTable(
-    shipments = []
-){
-
-    const tableBody =
-        document.querySelector(
-            "#shipmentTableBody"
-        );
-
-
-    if(!tableBody){
-
-        console.warn(
-            "Shipment table body not found."
-        );
-
-        return;
-
-    }
-
-
-    if(
-        !Array.isArray(shipments) ||
-        shipments.length === 0
-    ){
-
-        tableBody.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="10"
-                    style="text-align:center;"
-                >
-                    No shipments found.
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-
-    }
-
-
-    tableBody.innerHTML =
-        shipments
-            .map(
-                shipment => {
-
-                    const tracking =
-                        escapeHtml(
-                            shipment.trackingNumber
-                            || "-"
-                        );
-
-
-                    const sender =
-                        escapeHtml(
-                            shipment.senderName
-                            || "-"
-                        );
-
-
-                    const receiver =
-                        escapeHtml(
-                            shipment.receiverName
-                            || "-"
-                        );
-
-
-                    const origin =
-                        escapeHtml(
-                            shipment.origin
-                            || "-"
-                        );
-
-
-                    const destination =
-                        escapeHtml(
-                            shipment.destination
-                            || "-"
-                        );
-
-
-                    const type =
-                        escapeHtml(
-                            shipment.shipmentType
-                            || "-"
-                        );
-
-
-                    const status =
-                        escapeHtml(
-                            shipment.status
-                            || "Pending"
-                        );
-
-
-                    const weight =
-                        shipment.weight ??
-                        "-";
-
-
-                    const username =
-                        escapeHtml(
-                            shipment.username ||
-                            shipment.user?.username ||
-                            "-"
-                        );
-
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                ${tracking}
-                            </td>
-
-                            <td>
-                                ${sender}
-                            </td>
-
-                            <td>
-                                ${receiver}
-                            </td>
-
-                            <td>
-                                ${origin}
-                            </td>
-
-                            <td>
-                                ${destination}
-                            </td>
-
-                            <td>
-                                ${type}
-                            </td>
-
-                            <td>
-                                ${weight} kg
-                            </td>
-
-                            <td>
-                                ${status}
-                            </td>
-
-                            <td>
-                                ${username}
-                            </td>
-
-                            <td>
-
-                                <button
-                                    class="btn btn-sm btn-primary"
-                                    onclick="viewShipment('${tracking}')"
-                                >
-                                    View
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-            )
-            .join("");
-
-}
-
-
-/* ==========================================================
-   VIEW SHIPMENT
-========================================================== */
-
-async function viewShipment(
-    trackingNumber
-){
-
-    try{
-
-        const shipment =
-            await api(
-                `/api/shipments/tracking/${encodeURIComponent(
-                    trackingNumber
-                )}`
-            );
-
-
-        console.log(
-            "SHIPMENT DETAILS:",
-            shipment
-        );
-
-
-        showToast(
-            "Shipment found",
-            `${shipment.trackingNumber || trackingNumber}`,
-            "success"
-        );
-
-    }
-    catch(error){
-
-        showToast(
-            "Shipment not found",
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* ==========================================================
-   CREATE SHIPMENT BUTTON
-========================================================== */
-
-function setupCreateShipment(){
-
-    const buttons =
-        document.querySelectorAll(
-            "[data-action='create-shipment'], #createShipmentBtn, #addShipmentBtn"
-        );
-
-
-    buttons.forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                openCreateShipmentModal
-            );
-
-        }
-    );
-
-}
-
-
-/* ==========================================================
-   REFRESH
-========================================================== */
-
-function setupRefresh(){
-
-    const button =
-        document.getElementById(
-            "refreshBtn"
-        );
-
-
-    if(!button){
-
-        return;
-
-    }
-
-
-    button.addEventListener(
-        "click",
-        async () => {
-
-            await loadCustomers();
-
-            await loadShipments();
-
-            showToast(
-                "Dashboard refreshed",
-                "Latest data loaded.",
-                "success"
-            );
-
-        }
-    );
-
-}
-
-
-/* ==========================================================
-   ADMIN PAGE NAVIGATION
-========================================================== */
-
-const adminPageMap = {
-
-    dashboard: {
-        section: "page-dashboard",
-        title: "Command Center",
-        subtitle: "Enterprise logistics control workspace"
-    },
-
-    shipments: {
-        section: "page-shipments",
-        title: "Shipments",
-        subtitle: "Shipment operations and tracking"
-    },
-
-    fleet: {
-        section: "page-fleet",
-        title: "Fleet",
-        subtitle: "Fleet management and readiness"
-    },
-
-    drivers: {
-        section: "page-drivers",
-        title: "Drivers",
-        subtitle: "Driver operations"
-    },
-
-    dispatch: {
-        section: "page-dispatch",
-        title: "Dispatch",
-        subtitle: "Dispatch board and operations"
-    },
-
-    network: {
-        section: "page-network",
-        title: "Live Network",
-        subtitle: "Network operations"
-    },
-
-    exceptions: {
-        section: "page-exceptions",
-        title: "Exception Center",
-        subtitle: "Operational exceptions"
-    },
-
-    alerts: {
-        section: "page-alerts",
-        title: "Alerts",
-        subtitle: "Alert management"
-    },
-
-    maintenance: {
-        section: "page-maintenance",
-        title: "Maintenance",
-        subtitle: "Vehicle maintenance"
-    },
-
-    analytics: {
-        section: "page-analytics",
-        title: "Analytics",
-        subtitle: "Operational analytics"
-    },
-
-    customers: {
-        section: "page-customers",
-        title: "Customer Intelligence",
-        subtitle: "Customer operations"
-    },
-
-    reports: {
-        section: "page-reports",
-        title: "Reports",
-        subtitle: "Operational reports"
-    },
-
-    assignments: {
-        section: "page-assignments",
-        title: "Assignments",
-        subtitle: "Shipment assignments"
-    },
-
-    settings: {
-        section: "page-settings",
-        title: "Settings",
-        subtitle: "System configuration"
-    }
-
-};
-
-
-/* ==========================================================
-   SHOW PAGE
-========================================================== */
-
-function showPage(page){
-
-    console.log(
-        "ADMIN NAVIGATION:",
-        page
-    );
-
-
-    const config =
-        adminPageMap[page] ||
-        adminPageMap.dashboard;
-
-
-    document
-        .querySelectorAll(
-            ".admin-page"
-        )
-        .forEach(section => {
-
-            section.classList.add(
-                "hidden"
-            );
-
-        });
-
-
-    const selectedPage =
-        document.getElementById(
-            config.section
-        );
-
-
-    if(!selectedPage){
-
-        console.error(
-            "Admin page section not found:",
-            config.section
-        );
-
-        return;
-
-    }
-
-
-    selectedPage.classList.remove(
-        "hidden"
-    );
-
-
-    document
-        .querySelectorAll(
-            ".admin-nav-item[data-page]"
-        )
-        .forEach(button => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.page ===
-                page
-            );
-
-        });
-
-
-    setText(
-        "pageTitle",
-        config.title
-    );
-
-
-    setText(
-        "pageSubtitle",
-        config.subtitle
-    );
-
-
-    setText(
-        "adminPageTitle",
-        config.title
-    );
-
-
-    setText(
-        "adminPageSubtitle",
-        config.subtitle
-    );
-
-
-    state.currentPage =
-        page;
-
-
-    if(
-        page === "shipments"
-    ){
-
-        renderShipmentTable(
-            state.shipments
-        );
-
-    }
-
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-}
-
-
-/* ==========================================================
-   SETUP NAVIGATION
-========================================================== */
-
-function setupNavigation(){
-
-    console.log(
-        "ADMIN NAVIGATION INITIALIZED"
-    );
-
-
-    const navButtons =
-        document.querySelectorAll(
-            ".admin-nav-item[data-page]"
-        );
-
-
-    console.log(
-        "NAV BUTTONS:",
-        navButtons.length
-    );
-
-
-    navButtons.forEach(
-        button => {
-
-            if(
-                button.dataset.navBound ===
-                "true"
-            ){
-
-                return;
-
-            }
-
-
-            button.dataset.navBound =
-                "true";
-
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    event.stopPropagation();
-
-
-                    const page =
-                        button.dataset.page;
-
-
-                    console.log(
-                        "NAV CLICK:",
-                        page
-                    );
-
-
-                    showPage(
-                        page
-                    );
-
-                }
-            );
-
-        }
-    );
-
-
-    const pageGoButtons =
-        document.querySelectorAll(
-            "[data-page-go]"
-        );
-
-
-    pageGoButtons.forEach(
-        button => {
-
-            if(
-                button.dataset.pageGoBound ===
-                "true"
-            ){
-
-                return;
-
-            }
-
-
-            button.dataset.pageGoBound =
-                "true";
-
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    event.stopPropagation();
-
-
-                    const page =
-                        button.dataset.pageGo;
-
-
-                    console.log(
-                        "PAGE GO:",
-                        page
-                    );
-
-
-                    showPage(
-                        page
-                    );
-
-                }
-            );
-
-        }
-    );
-
-}
-
-
-/* ==========================================================
-   ADMIN INITIALIZATION
-========================================================== */
-
-async function initAdmin(){
-
-    try{
-
-        setupNavigation();
-
-
-        if(
-            typeof setupShipmentTable ===
-            "function"
-        ){
-
-            setupShipmentTable();
-
-        }
-
-
-        if(
-            typeof setupShipmentFilters ===
-            "function"
-        ){
-
-            setupShipmentFilters();
-
-        }
-
-
-        setupCreateShipment();
-
-
-        if(
-            typeof setupExceptions ===
-            "function"
-        ){
-
-            setupExceptions();
-
-        }
-
-
-        if(
-            typeof setupGlobalSearch ===
-            "function"
-        ){
-
-            setupGlobalSearch();
-
-        }
-
-
-        setupRefresh();
-
-
-        if(
-            typeof setupNotification ===
-            "function"
-        ){
-
-            setupNotification();
-
-        }
-
-
-        if(
-            typeof setupExport ===
-            "function"
-        ){
-
-            setupExport();
-
-        }
-
-
-        if(
-            typeof setupReportButton ===
-            "function"
-        ){
-
-            setupReportButton();
-
-        }
-
-
-        if(
-            typeof setupActions ===
-            "function"
-        ){
-
-            setupActions();
-
-        }
-
-
-        if(
-            typeof setupMobileMenu ===
-            "function"
-        ){
-
-            setupMobileMenu();
-
-        }
-
-
-        if(
-            typeof setupModal ===
-            "function"
-        ){
-
-            setupModal();
-
-        }
-
-
-        if(
-            typeof setupLogout ===
-            "function"
-        ){
-
-            setupLogout();
-
-        }
-
-
-        if(
-            typeof setupAddVehicle ===
-            "function"
-        ){
-
-            setupAddVehicle();
-
-        }
-
-
-        showPage(
-            "dashboard"
-        );
-
-
-        await loadCustomers();
-
-
-        await loadShipments();
-
-
-        if(
-            typeof initDashboardMap ===
-            "function"
-        ){
-
-            initDashboardMap();
-
-        }
-
-
-        console.log(
-            "TRANSLOGIX ADMIN CONTROL TOWER READY"
-        );
-
-    }
-    catch(error){
-
-        console.error(
-            "Admin initialization failed:",
-            error
-        );
-
-    }
-
-}
-
-
-/* ==========================================================
-   START ADMIN
-========================================================== */
-
-if(
-    document.readyState ===
-    "loading"
-){
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initAdmin
-    );
-
-}
-else{
-
-    initAdmin();
-
-}
-
-        receiverName:
-            receiverName,
-
-        origin:
-            origin,
-
-        destination:
-            destination,
-
-        shipmentType:
-            shipmentType,
-
-        status:
-            status,
-
-        weight:
-            weight,
-
-        username:
-            username
-
-    };
-
-
-    console.log(
-        "CREATE SHIPMENT PAYLOAD:",
-        payload
-    );
-
-
-    try{
-
-        /* ==================================================
-           DEMO MODE
-        ================================================== */
-
-        if(state.demoMode){
-
-            const demoShipment = {
-
-                id:
-                    Date.now(),
-
-                trackingNumber:
-                    trackingNumber,
-
-                senderName:
-                    senderName,
-
-                receiverName:
-                    receiverName,
-
-                origin:
-                    origin,
-
-                destination:
-                    destination,
-
-                shipmentType:
-                    shipmentType,
-
-                status:
-                    status,
-
-                weight:
-                    weight,
-
-                username:
-                    username
-
-            };
-
-
-            state.shipments.unshift(
-                demoShipment
-            );
-
-
-            renderShipmentTable(
-                state.shipments
-            );
-
-
-            updateStats();
-
-
-            document
-                .getElementById(
-                    "createShipmentModal"
-                )
-                ?.remove();
-
-
-            showToast(
-                "Demo shipment created",
-                `${trackingNumber} assigned to ${username}`,
-                "success"
-            );
-
-
-            return;
-
-        }
-
-
-        /* ==================================================
-           REAL BACKEND REQUEST
-        ================================================== */
-
-        const createdShipment =
-            await api(
-                "/api/admin/shipments",
-                {
-
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify(
-                            payload
-                        )
-
-                }
-            );
-
-
-        console.log(
-            "SHIPMENT CREATED:",
-            createdShipment
-        );
-
-
-        document
-            .getElementById(
-                "createShipmentModal"
-            )
-            ?.remove();
-
-
-        await loadShipments();
-
-
-        showToast(
-            "Shipment created",
-            `${trackingNumber} assigned to ${username}`,
-            "success"
-        );
-
-
-    }
-    catch(error){
-
-        console.error(
-            "Shipment creation failed:",
-            error
-        );
-
-
-        showToast(
-            "Shipment creation failed",
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* ==========================================================
-   UPDATE STATS
-========================================================== */
-
-function updateStats(){
-
-    const shipments =
-        Array.isArray(
-            state.shipments
-        )
-            ? state.shipments
-            : [];
-
-
-    const total =
-        shipments.length;
-
-
-    const pending =
-        shipments.filter(
-            shipment =>
-                String(
-                    shipment.status || ""
-                ).toLowerCase()
-                === "pending"
-        ).length;
-
-
-    const inTransit =
-        shipments.filter(
-            shipment =>
-                String(
-                    shipment.status || ""
-                ).toLowerCase()
-                === "in transit"
-        ).length;
-
-
-    const outForDelivery =
-        shipments.filter(
-            shipment =>
-                String(
-                    shipment.status || ""
-                ).toLowerCase()
-                === "out for delivery"
-        ).length;
-
-
-    const delivered =
-        shipments.filter(
-            shipment =>
-                String(
-                    shipment.status || ""
-                ).toLowerCase()
-                === "delivered"
-        ).length;
-
-
-    setText(
-        "totalShipments",
-        total
-    );
-
-
-    setText(
-        "pendingShipments",
-        pending
-    );
-
-
-    setText(
-        "inTransitShipments",
-        inTransit
-    );
-
-
-    setText(
-        "outForDeliveryShipments",
-        outForDelivery
-    );
-
-
-    setText(
-        "deliveredShipments",
-        delivered
-    );
-
-}
-
-
-/* ==========================================================
-   SAFE TEXT SETTER
-========================================================== */
-
-function setText(
-    id,
-    value
-){
-
-    const element =
-        document.getElementById(id);
-
-
-    if(element){
-
-        element.textContent =
-            value;
-
-    }
-
-}
-
-
-/* ==========================================================
-   RENDER SHIPMENT TABLE
-========================================================== */
-
-function renderShipmentTable(
-    shipments = []
-){
-
-    const tableBody =
-        document.querySelector(
-            "#shipmentTableBody"
-        );
-
-
-    if(!tableBody){
-
-        console.warn(
-            "Shipment table body not found."
-        );
-
-        return;
-
-    }
-
-
-    if(
-        !Array.isArray(shipments) ||
-        shipments.length === 0
-    ){
-
-        tableBody.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="10"
-                    style="text-align:center;"
-                >
-                    No shipments found.
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-
-    }
-
-
-    tableBody.innerHTML =
-        shipments
-            .map(
-                shipment => {
-
-                    const tracking =
-                        escapeHtml(
-                            shipment.trackingNumber
-                            || "-"
-                        );
-
-
-                    const sender =
-                        escapeHtml(
-                            shipment.senderName
-                            || "-"
-                        );
-
-
-                    const receiver =
-                        escapeHtml(
-                            shipment.receiverName
-                            || "-"
-                        );
-
-
-                    const origin =
-                        escapeHtml(
-                            shipment.origin
-                            || "-"
-                        );
-
-
-                    const destination =
-                        escapeHtml(
-                            shipment.destination
-                            || "-"
-                        );
-
-
-                    const type =
-                        escapeHtml(
-                            shipment.shipmentType
-                            || "-"
-                        );
-
-
-                    const status =
-                        escapeHtml(
-                            shipment.status
-                            || "Pending"
-                        );
-
-
-                    const weight =
-                        shipment.weight ??
-                        "-";
-
-
-                    const username =
-                        escapeHtml(
-                            shipment.username ||
-                            shipment.user?.username ||
-                            "-"
-                        );
-
-
-                    return `
-
-                        <tr>
-
-                            <td>
-                                ${tracking}
-                            </td>
-
-                            <td>
-                                ${sender}
-                            </td>
-
-                            <td>
-                                ${receiver}
-                            </td>
-
-                            <td>
-                                ${origin}
-                            </td>
-
-                            <td>
-                                ${destination}
-                            </td>
-
-                            <td>
-                                ${type}
-                            </td>
-
-                            <td>
-                                ${weight} kg
-                            </td>
-
-                            <td>
-                                ${status}
-                            </td>
-
-                            <td>
-                                ${username}
-                            </td>
-
-                            <td>
-
-                                <button
-                                    class="btn btn-sm btn-primary"
-                                    onclick="viewShipment('${tracking}')"
-                                >
-                                    View
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-            )
-            .join("");
-
-}
-
-
-/* ==========================================================
-   VIEW SHIPMENT
-========================================================== */
-
-async function viewShipment(
-    trackingNumber
-){
-
-    try{
-
-        const shipment =
-            await api(
-                `/api/shipments/tracking/${encodeURIComponent(
-                    trackingNumber
-                )}`
-            );
-
-
-        console.log(
-            "SHIPMENT DETAILS:",
-            shipment
-        );
-
-
-        showToast(
-            "Shipment found",
-            `${shipment.trackingNumber || trackingNumber}`,
-            "success"
-        );
-
-    }
-    catch(error){
-
-        showToast(
-            "Shipment not found",
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* ==========================================================
-   CREATE SHIPMENT BUTTON
-========================================================== */
-
-function setupCreateShipment(){
-
-    const buttons =
-        document.querySelectorAll(
-            "[data-action='create-shipment'], #createShipmentBtn, #addShipmentBtn"
-        );
-
-
-    buttons.forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                openCreateShipmentModal
-            );
-
-        }
-    );
-
-}
-
-
-/* ==========================================================
-   REFRESH
-========================================================== */
-
-function setupRefresh(){
-
-    const button =
-        document.getElementById(
-            "refreshBtn"
-        );
-
-
-    if(!button){
-
-        return;
-
-    }
-
-
-    button.addEventListener(
-        "click",
-        async () => {
-
-            await loadCustomers();
-
-            await loadShipments();
-
-            showToast(
-                "Dashboard refreshed",
-                "Latest data loaded.",
-                "success"
-            );
-
-        }
-    );
-
-}
-
-
-/* ==========================================================
-   ADMIN PAGE NAVIGATION
-========================================================== */
-
-const adminPageMap = {
-
-    dashboard: {
-        section: "page-dashboard",
-        title: "Command Center",
-        subtitle: "Enterprise logistics control workspace"
-    },
-
-    shipments: {
-        section: "page-shipments",
-        title: "Shipments",
-        subtitle: "Shipment operations and tracking"
-    },
-
-    fleet: {
-        section: "page-fleet",
-        title: "Fleet",
-        subtitle: "Fleet management and readiness"
-    },
-
-    drivers: {
-        section: "page-drivers",
-        title: "Drivers",
-        subtitle: "Driver operations"
-    },
-
-    dispatch: {
-        section: "page-dispatch",
-        title: "Dispatch",
-        subtitle: "Dispatch board and operations"
-    },
-
-    network: {
-        section: "page-network",
-        title: "Live Network",
-        subtitle: "Network operations"
-    },
-
-    exceptions: {
-        section: "page-exceptions",
-        title: "Exception Center",
-        subtitle: "Operational exceptions"
-    },
-
-    alerts: {
-        section: "page-alerts",
-        title: "Alerts",
-        subtitle: "Alert management"
-    },
-
-    maintenance: {
-        section: "page-maintenance",
-        title: "Maintenance",
-        subtitle: "Vehicle maintenance"
-    },
-
-    analytics: {
-        section: "page-analytics",
-        title: "Analytics",
-        subtitle: "Operational analytics"
-    },
-
-    customers: {
-        section: "page-customers",
-        title: "Customer Intelligence",
-        subtitle: "Customer operations"
-    },
-
-    reports: {
-        section: "page-reports",
-        title: "Reports",
-        subtitle: "Operational reports"
-    },
-
-    assignments: {
-        section: "page-assignments",
-        title: "Assignments",
-        subtitle: "Shipment assignments"
-    },
-
-    settings: {
-        section: "page-settings",
-        title: "Settings",
-        subtitle: "System configuration"
-    }
-
-};
-
-
-/* ==========================================================
-   SHOW PAGE
-========================================================== */
-
-function showPage(page){
-
-    console.log(
-        "ADMIN NAVIGATION:",
-        page
-    );
-
-
-    const config =
-        adminPageMap[page] ||
-        adminPageMap.dashboard;
-
-
-    document
-        .querySelectorAll(
-            ".admin-page"
-        )
-        .forEach(section => {
-
-            section.classList.add(
-                "hidden"
-            );
-
-        });
-
-
-    const selectedPage =
-        document.getElementById(
-            config.section
-        );
-
-
-    if(!selectedPage){
-
-        console.error(
-            "Admin page section not found:",
-            config.section
-        );
-
-        return;
-
-    }
-
-
-    selectedPage.classList.remove(
-        "hidden"
-    );
-
-
-    document
-        .querySelectorAll(
-            ".admin-nav-item[data-page]"
-        )
-        .forEach(button => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.page ===
-                page
-            );
-
-        });
-
-
-    setText(
-        "pageTitle",
-        config.title
-    );
-
-
-    setText(
-        "pageSubtitle",
-        config.subtitle
-    );
-
-
-    setText(
-        "adminPageTitle",
-        config.title
-    );
-
-
-    setText(
-        "adminPageSubtitle",
-        config.subtitle
-    );
-
-
-    state.currentPage =
-        page;
-
-
-    if(
-        page === "shipments"
-    ){
-
-        renderShipmentTable(
-            state.shipments
-        );
-
-    }
-
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-}
-
-
-/* ==========================================================
-   SETUP NAVIGATION
-========================================================== */
-
-function setupNavigation(){
-
-    console.log(
-        "ADMIN NAVIGATION INITIALIZED"
-    );
-
-
-    const navButtons =
-        document.querySelectorAll(
-            ".admin-nav-item[data-page]"
-        );
-
-
-    console.log(
-        "NAV BUTTONS:",
-        navButtons.length
-    );
-
-
-    navButtons.forEach(
-        button => {
-
-            if(
-                button.dataset.navBound ===
-                "true"
-            ){
-
-                return;
-
-            }
-
-
-            button.dataset.navBound =
-                "true";
-
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    event.stopPropagation();
-
-
-                    const page =
-                        button.dataset.page;
-
-
-                    console.log(
-                        "NAV CLICK:",
-                        page
-                    );
-
-
-                    showPage(
-                        page
-                    );
-
-                }
-            );
-
-        }
-    );
-
-
-    const pageGoButtons =
-        document.querySelectorAll(
-            "[data-page-go]"
-        );
-
-
-    pageGoButtons.forEach(
-        button => {
-
-            if(
-                button.dataset.pageGoBound ===
-                "true"
-            ){
-
-                return;
-
-            }
-
-
-            button.dataset.pageGoBound =
-                "true";
-
-
-            button.addEventListener(
-                "click",
-                event => {
-
-                    event.preventDefault();
-
-                    event.stopPropagation();
-
-
-                    const page =
-                        button.dataset.pageGo;
-
-
-                    console.log(
-                        "PAGE GO:",
-                        page
-                    );
-
-
-                    showPage(
-                        page
-                    );
-
-                }
-            );
-
-        }
-    );
-
-}
-
-
-/* ==========================================================
-   ADMIN INITIALIZATION
-========================================================== */
-
-async function initAdmin(){
-
-    try{
-
-        setupNavigation();
-
-
-        if(
-            typeof setupShipmentTable ===
-            "function"
-        ){
-
-            setupShipmentTable();
-
-        }
-
-
-        if(
-            typeof setupShipmentFilters ===
-            "function"
-        ){
-
-            setupShipmentFilters();
-
-        }
-
-
-        setupCreateShipment();
-
-
-        if(
-            typeof setupExceptions ===
-            "function"
-        ){
-
-            setupExceptions();
-
-        }
-
-
-        if(
-            typeof setupGlobalSearch ===
-            "function"
-        ){
-
-            setupGlobalSearch();
-
-        }
-
-
-        setupRefresh();
-
-
-        if(
-            typeof setupNotification ===
-            "function"
-        ){
-
-            setupNotification();
-
-        }
-
-
-        if(
-            typeof setupExport ===
-            "function"
-        ){
-
-            setupExport();
-
-        }
-
-
-        if(
-            typeof setupReportButton ===
-            "function"
-        ){
-
-            setupReportButton();
-
-        }
-
-
-        if(
-            typeof setupActions ===
-            "function"
-        ){
-
-            setupActions();
-
-        }
-
-
-        if(
-            typeof setupMobileMenu ===
-            "function"
-        ){
-
-            setupMobileMenu();
-
-        }
-
-
-        if(
-            typeof setupModal ===
-            "function"
-        ){
-
-            setupModal();
-
-        }
-
-
-        if(
-            typeof setupLogout ===
-            "function"
-        ){
-
-            setupLogout();
-
-        }
-
-
-        if(
-            typeof setupAddVehicle ===
-            "function"
-        ){
-
-            setupAddVehicle();
-
-        }
-
-
-        showPage(
-            "dashboard"
-        );
-
-
-        await loadCustomers();
-
-
-        await loadShipments();
-
-
-        if(
-            typeof initDashboardMap ===
-            "function"
-        ){
-
-            initDashboardMap();
-
-        }
-
-
-        console.log(
-            "TRANSLOGIX ADMIN CONTROL TOWER READY"
-        );
-
-    }
-    catch(error){
-
-        console.error(
-            "Admin initialization failed:",
-            error
-        );
-
-    }
-
-}
-
-
-/* ==========================================================
-   START ADMIN
-========================================================== */
-
-if(
-    document.readyState ===
-    "loading"
-){
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initAdmin
-    );
-
-}
-else{
-
-    initAdmin();
-
-}
+</html>
