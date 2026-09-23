@@ -1,491 +1,698 @@
+/* ==========================================================
+   TRANSLOGIX — ENTERPRISE ADMIN CONTROL TOWER
+   COMPLETE PRODUCTION ADMIN.JS
+========================================================== */
+
 "use strict";
 
-/* =========================================================
-   TRANSLOGIX ADMIN CONTROL TOWER
-   CORRECTED CRUD VERSION
 
-   Features:
-   - Load admin shipments
-   - Create shipment
-   - Assign shipment to customer
-   - View shipment
-   - Edit shipment
-   - Delete shipment
-   - Update status
-   - Search / filter
-   - CSV export
-   - Reports
-   - Dashboard stats
-   - Leaflet network maps
-   - Notifications
-   - Responsive navigation
-========================================================= */
-
-
-/* =========================================================
-   API
-========================================================= */
+/* ==========================================================
+   API CONFIG
+========================================================== */
 
 const ADMIN_API =
     "https://translogix-backend-1.onrender.com";
 
 
-/* =========================================================
-   STATE
-========================================================= */
+/* ==========================================================
+   GLOBAL STATE
+========================================================== */
 
 const state = {
 
     shipments: [],
 
-    users: [],
+    customers: [],
 
-    currentPage:
-        "dashboard",
-
-    demoMode:
-        false,
+    currentPage: "dashboard",
 
     maps: {},
 
-    selectedVehicle:
-        null
+    selectedShipment: null,
+
+    selectedVehicle: null
 
 };
 
 
-/* =========================================================
-   HELPERS
-========================================================= */
+/* ==========================================================
+   AUTH TOKEN
+========================================================== */
 
-function $(id){
+function getToken(){
 
-    return document.getElementById(id);
-
-}
-
-
-function normalize(value){
-
-    return String(
-        value ?? ""
-    )
-        .trim()
-        .toLowerCase();
+    return (
+        localStorage.getItem("token") ||
+        localStorage.getItem("jwt") ||
+        localStorage.getItem("accessToken") ||
+        ""
+    );
 
 }
 
 
-function text(
-    id,
-    value
-){
+/* ==========================================================
+   HTML ESCAPE
+========================================================== */
+
+function escapeHtml(value){
+
+    if(
+        value === null ||
+        value === undefined
+    ){
+
+        return "";
+
+    }
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+/* ==========================================================
+   TEXT SETTER
+========================================================== */
+
+function setText(id, value){
 
     const element =
-        $(id);
+        document.getElementById(id);
 
     if(element){
 
         element.textContent =
-            value ?? "-";
+            value ?? "";
 
     }
 
 }
 
 
-function escapeHTML(value){
+/* ==========================================================
+   TOAST
+========================================================== */
 
-    return String(
-        value ?? ""
-    )
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
+function showToast(
+    title,
+    message = "",
+    type = "success"
+){
+
+    if(
+        typeof window.showToast ===
+        "function"
+    ){
+
+        window.showToast(
+            title,
+            message,
+            type
         );
 
-}
+        return;
+
+    }
 
 
-function token(){
-
-    return (
-
-        localStorage.getItem(
-            "token"
-        ) ||
-
-        localStorage.getItem(
-            "jwt"
-        ) ||
-
-        localStorage.getItem(
-            "accessToken"
-        ) ||
-
-        ""
-
+    console.log(
+        `[${type}] ${title}`,
+        message
     );
 
 }
 
 
-/* =========================================================
+/* ==========================================================
    API HELPER
-========================================================= */
+========================================================== */
 
 async function api(
     endpoint,
     options = {}
 ){
 
-    const headers = {
+    const token =
+        getToken();
 
-        Accept:
-            "application/json"
+
+    const config = {
+
+        ...options,
+
+        headers: {
+
+            "Content-Type":
+                "application/json",
+
+            ...(options.headers || {}),
+
+            ...(token
+                ? {
+                    Authorization:
+                        `Bearer ${token}`
+                }
+                : {})
+
+        }
 
     };
 
 
-    const authToken =
-        token();
+    try{
+
+        const response =
+            await fetch(
+                `${ADMIN_API}${endpoint}`,
+                config
+            );
 
 
-    if(authToken){
-
-        headers.Authorization =
-            `Bearer ${authToken}`;
-
-    }
+        const text =
+            await response.text();
 
 
-    if(options.body){
-
-        headers[
-            "Content-Type"
-        ] =
-            "application/json";
-
-    }
+        let data = null;
 
 
-    const response =
-        await fetch(
+        try{
 
-            `${ADMIN_API}${endpoint}`,
+            data =
+                text
+                    ? JSON.parse(text)
+                    : null;
 
-            {
+        }
+        catch{
 
-                ...options,
+            data =
+                text;
 
-                headers:{
+        }
 
-                    ...headers,
 
-                    ...(options.headers || {})
+        /* ==================================================
+           UNAUTHORIZED
+        ================================================== */
 
-                }
+        if(response.status === 401){
+
+            localStorage.removeItem("token");
+            localStorage.removeItem("jwt");
+            localStorage.removeItem("accessToken");
+
+            showToast(
+                "Session expired",
+                "Please login again.",
+                "error"
+            );
+
+            setTimeout(
+                () => {
+
+                    window.location.href =
+                        "./login.html";
+
+                },
+                1000
+            );
+
+            throw new Error(
+                "Unauthorized"
+            );
+
+        }
+
+
+        /* ==================================================
+           FORBIDDEN
+        ================================================== */
+
+        if(response.status === 403){
+
+            throw new Error(
+                "Administrator permission required."
+            );
+
+        }
+
+
+        /* ==================================================
+           OTHER ERRORS
+        ================================================== */
+
+        if(!response.ok){
+
+            let message =
+                "Request failed.";
+
+            if(
+                typeof data ===
+                "string" &&
+                data
+            ){
+
+                message =
+                    data;
+
+            }
+            else if(data?.message){
+
+                message =
+                    data.message;
+
+            }
+            else if(data?.error){
+
+                message =
+                    data.error;
 
             }
 
-        );
+            throw new Error(
+                message
+            );
 
-
-    const raw =
-        await response.text();
-
-
-    let data;
-
-
-    try{
-
-        data =
-            raw
-                ? JSON.parse(raw)
-                : {};
-
-    }
-
-    catch{
-
-        data =
-            raw;
-
-    }
-
-
-    if(
-        response.status ===
-        401
-    ){
-
-        localStorage.clear();
-
-        window.location.href =
-            "./login.html";
-
-        throw new Error(
-            "Session expired."
-        );
-
-    }
-
-
-    if(
-        response.status ===
-        403
-    ){
-
-        throw new Error(
-            "Administrator permission required."
-        );
-
-    }
-
-
-    if(!response.ok){
-
-        throw new Error(
-
-            typeof data ===
-            "string"
-
-                ? data
-
-                : (
-                    data?.message ||
-
-                    data?.error ||
-
-                    `Request failed (${response.status})`
-                )
-
-        );
-
-    }
-
-
-    return data;
-
-}
-
-
-/* =========================================================
-   DEMO DATA
-========================================================= */
-
-function demoData(){
-
-    return [
-
-        {
-            id:1,
-            trackingNumber:"TRX10001",
-            senderName:"Vijay",
-            receiverName:"Amit",
-            origin:"Pune",
-            destination:"Delhi",
-            shipmentType:"Express",
-            status:"Delivered",
-            weight:4.5,
-            username:"vijay",
-            customerName:"vijay"
-        },
-
-        {
-            id:7,
-            trackingNumber:"TSJ78962",
-            senderName:"Mahesh",
-            receiverName:"Daya",
-            origin:"Jalgaon",
-            destination:"Nagpur",
-            shipmentType:"International",
-            status:"In Transit",
-            weight:7,
-            username:"mahesh",
-            customerName:"mahesh"
-        },
-
-        {
-            id:9,
-            trackingNumber:"GHJK123456",
-            senderName:"Veer",
-            receiverName:"Tanu",
-            origin:"Pune",
-            destination:"Delhi",
-            shipmentType:"Freight",
-            status:"Delivered",
-            weight:6,
-            username:"veer",
-            customerName:"veer"
-        },
-
-        {
-            id:10,
-            trackingNumber:"3554661",
-            senderName:"RJ",
-            receiverName:"Vj",
-            origin:"Pune",
-            destination:"Delhi",
-            shipmentType:"Standard",
-            status:"In Transit",
-            weight:7,
-            username:"vj",
-            customerName:"vj"
-        },
-
-        {
-            id:12,
-            trackingNumber:"THJJ1556",
-            senderName:"RHG",
-            receiverName:"JHG",
-            origin:"UHH",
-            destination:"JKK",
-            shipmentType:"Freight",
-            status:"In Transit",
-            weight:15,
-            username:"rhg",
-            customerName:"rhg"
-        },
-
-        {
-            id:13,
-            trackingNumber:"TYJJB123",
-            senderName:"GH",
-            receiverName:"KJ",
-            origin:"BH",
-            destination:"YH",
-            shipmentType:"Courier",
-            status:"Pending",
-            weight:7,
-            username:"gh",
-            customerName:"gh"
         }
 
-    ];
 
-}
+        return data;
 
+    }
+    catch(error){
 
-/* =========================================================
-   STATUS HELPERS
-========================================================= */
-
-function isActive(item){
-
-    const status =
-        normalize(
-            item.status
+        console.error(
+            "TRANSLOGIX API ERROR:",
+            endpoint,
+            error
         );
 
-    return (
+        throw error;
 
-        status ===
-        "in transit" ||
-
-        status ===
-        "out for delivery"
-
-    );
+    }
 
 }
 
 
-function isDelivered(item){
+/* ==========================================================
+   PAGE MAP
+========================================================== */
 
-    return (
-        normalize(
-            item.status
-        ) ===
-        "delivered"
-    );
+const adminPageMap = {
 
-}
+    dashboard: {
+
+        section:
+            "page-dashboard",
+
+        title:
+            "Command Center",
+
+        subtitle:
+            "Enterprise logistics control workspace"
+
+    },
+
+    shipments: {
+
+        section:
+            "page-shipments",
+
+        title:
+            "Shipments",
+
+        subtitle:
+            "Shipment operations and tracking"
+
+    },
+
+    fleet: {
+
+        section:
+            "page-fleet",
+
+        title:
+            "Fleet",
+
+        subtitle:
+            "Fleet management and readiness"
+
+    },
+
+    drivers: {
+
+        section:
+            "page-drivers",
+
+        title:
+            "Drivers",
+
+        subtitle:
+            "Driver operations"
+
+    },
+
+    dispatch: {
+
+        section:
+            "page-dispatch",
+
+        title:
+            "Dispatch",
+
+        subtitle:
+            "Dispatch board and operations"
+
+    },
+
+    network: {
+
+        section:
+            "page-network",
+
+        title:
+            "Live Network",
+
+        subtitle:
+            "Network operations"
+
+    },
+
+    exceptions: {
+
+        section:
+            "page-exceptions",
+
+        title:
+            "Exception Center",
+
+        subtitle:
+            "Operational exceptions"
+
+    },
+
+    alerts: {
+
+        section:
+            "page-alerts",
+
+        title:
+            "Alerts",
+
+        subtitle:
+            "Alert management"
+
+    },
+
+    maintenance: {
+
+        section:
+            "page-maintenance",
+
+        title:
+            "Maintenance",
+
+        subtitle:
+            "Vehicle maintenance"
+
+    },
+
+    analytics: {
+
+        section:
+            "page-analytics",
+
+        title:
+            "Analytics",
+
+        subtitle:
+            "Operational analytics"
+
+    },
+
+    customers: {
+
+        section:
+            "page-customers",
+
+        title:
+            "Customer Intelligence",
+
+        subtitle:
+            "Customer operations"
+
+    },
+
+    reports: {
+
+        section:
+            "page-reports",
+
+        title:
+            "Reports",
+
+        subtitle:
+            "Operational reports"
+
+    },
+
+    assignments: {
+
+        section:
+            "page-assignments",
+
+        title:
+            "Assignments",
+
+        subtitle:
+            "Shipment assignments"
+
+    },
+
+    settings: {
+
+        section:
+            "page-settings",
+
+        title:
+            "Settings",
+
+        subtitle:
+            "System configuration"
+
+    }
+
+};
 
 
-function isException(item){
+/* ==========================================================
+   SHOW PAGE
+========================================================== */
 
-    const status =
-        normalize(
-            item.status
+function showPage(page){
+
+    const config =
+        adminPageMap[page] ||
+        adminPageMap.dashboard;
+
+
+    document
+        .querySelectorAll(".admin-page")
+        .forEach(
+            section => {
+
+                section.classList.add(
+                    "hidden"
+                );
+
+            }
         );
 
-    return (
 
-        status === "pending" ||
-
-        status === "delayed" ||
-
-        status === "exception"
-
-    );
-
-}
-
-
-function stateClass(status){
-
-    const value =
-        normalize(
-            status
+    const selectedPage =
+        document.getElementById(
+            config.section
         );
 
 
-    if(
+    if(!selectedPage){
 
-        value === "delivered" ||
+        console.warn(
+            "Admin page not found:",
+            config.section
+        );
 
-        value === "in transit" ||
+        return;
 
-        value === "out for delivery"
+    }
 
-    ){
 
-        return "state-green";
+    selectedPage.classList.remove(
+        "hidden"
+    );
+
+
+    document
+        .querySelectorAll(
+            ".admin-nav-item[data-page]"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.page ===
+                        page
+                );
+
+            }
+        );
+
+
+    setText(
+        "adminPageTitle",
+        config.title
+    );
+
+    setText(
+        "adminPageSubtitle",
+        config.subtitle
+    );
+
+    setText(
+        "pageTitle",
+        config.title
+    );
+
+    setText(
+        "pageSubtitle",
+        config.subtitle
+    );
+
+
+    state.currentPage =
+        page;
+
+
+    if(page === "shipments"){
+
+        renderShipmentTable(
+            state.shipments
+        );
 
     }
 
 
     if(
-
-        value === "delayed" ||
-
-        value === "exception"
-
+        page === "network" ||
+        page === "dashboard"
     ){
 
-        return "state-red";
+        setTimeout(
+            refreshMaps,
+            150
+        );
 
     }
-
-
-    return "state-purple";
 
 }
 
 
-/* =========================================================
-   LOAD USERS
-========================================================= */
+/* ==========================================================
+   NAVIGATION
+========================================================== */
 
-async function loadUsers(){
+function setupNavigation(){
+
+    document
+        .querySelectorAll(
+            ".admin-nav-item[data-page]"
+        )
+        .forEach(
+            button => {
+
+                if(
+                    button.dataset.bound ===
+                    "true"
+                ){
+
+                    return;
+
+                }
+
+
+                button.dataset.bound =
+                    "true";
+
+
+                button.addEventListener(
+                    "click",
+                    event => {
+
+                        event.preventDefault();
+
+                        showPage(
+                            button.dataset.page
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            "[data-page-go]"
+        )
+        .forEach(
+            button => {
+
+                if(
+                    button.dataset.bound ===
+                    "true"
+                ){
+
+                    return;
+
+                }
+
+
+                button.dataset.bound =
+                    "true";
+
+
+                button.addEventListener(
+                    "click",
+                    event => {
+
+                        event.preventDefault();
+
+                        showPage(
+                            button.dataset.pageGo
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* ==========================================================
+   LOAD CUSTOMERS
+========================================================== */
+
+async function loadCustomers(){
 
     try{
 
@@ -495,128 +702,50 @@ async function loadUsers(){
             );
 
 
-        if(
+        state.customers =
             Array.isArray(data)
-        ){
-
-            state.users =
-                data;
-
-        }
-
-        else{
-
-            state.users =
-                [];
-
-        }
+                ? data
+                : [];
 
 
-        return state.users;
+        console.log(
+            "TRANSLOGIX CUSTOMERS:",
+            state.customers
+        );
+
+
+        return state.customers;
 
     }
-
     catch(error){
 
         console.error(
-            "Failed to load users:",
+            "Customer loading failed:",
             error
         );
 
-        state.users =
+
+        state.customers =
             [];
 
-        throw error;
+
+        showToast(
+            "Customer loading failed",
+            error.message,
+            "error"
+        );
+
+
+        return [];
 
     }
 
 }
 
 
-/* =========================================================
-   POPULATE USER DROPDOWN
-========================================================= */
-
-function populateUserDropdown(
-    selectId,
-    selectedUsername = ""
-){
-
-    const select =
-        $(selectId);
-
-
-    if(!select){
-        return;
-    }
-
-
-    select.innerHTML = `
-
-        <option value="">
-            Select Customer
-        </option>
-
-    `;
-
-
-    state.users.forEach(
-        user => {
-
-            if(
-                normalize(
-                    user.role
-                ) ===
-                "admin"
-            ){
-
-                return;
-
-            }
-
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                user.username;
-
-
-            option.textContent =
-                user.username;
-
-
-            if(
-                normalize(
-                    user.username
-                ) ===
-                normalize(
-                    selectedUsername
-                )
-            ){
-
-                option.selected =
-                    true;
-
-            }
-
-
-            select.appendChild(
-                option
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   LOAD SHIPMENTS
-========================================================= */
+/* ==========================================================
+   LOAD ADMIN SHIPMENTS
+========================================================== */
 
 async function loadShipments(){
 
@@ -636,7 +765,6 @@ async function loadShipments(){
                 data;
 
         }
-
         else if(
             Array.isArray(
                 data?.content
@@ -647,7 +775,6 @@ async function loadShipments(){
                 data.content;
 
         }
-
         else{
 
             state.shipments =
@@ -656,2127 +783,287 @@ async function loadShipments(){
         }
 
 
-        state.demoMode =
-            false;
+        console.log(
+            "TRANSLOGIX ADMIN SHIPMENTS:",
+            state.shipments
+        );
+
+
+        updateDashboardStats();
+
+        renderShipmentTable(
+            state.shipments
+        );
+
+
+        updateControlTower();
+
+
+        return state.shipments;
 
     }
-
     catch(error){
 
-        console.warn(
-            "Backend unavailable. Demo mode enabled.",
+        console.error(
+            "Shipment loading failed:",
             error
         );
 
 
         state.shipments =
-            demoData();
+            [];
 
 
-        state.demoMode =
-            true;
+        updateDashboardStats();
+
+        renderShipmentTable([]);
+
+
+        showToast(
+            "Shipment loading failed",
+            error.message,
+            "error"
+        );
+
+
+        return [];
 
     }
-
-
-    updateStats();
-
-
-    renderShipmentTable(
-        state.shipments
-    );
-
-
-    updateMapVehicleData();
 
 }
 
 
-/* =========================================================
-   STATS
-========================================================= */
+/* ==========================================================
+   CUSTOMER OPTIONS
+========================================================== */
 
-function updateStats(){
-
-    const total =
-        state.shipments.length;
-
-
-    const active =
-        state.shipments.filter(
-            isActive
-        ).length;
-
-
-    const delivered =
-        state.shipments.filter(
-            isDelivered
-        ).length;
-
-
-    const exceptions =
-        state.shipments.filter(
-            isException
-        ).length;
-
-
-    text(
-        "kpiTotal",
-        String(
-            total
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-
-    text(
-        "kpiTransit",
-        String(
-            active
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-
-    text(
-        "kpiDelivered",
-        String(
-            delivered
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-
-    text(
-        "kpiExceptions",
-        String(
-            exceptions
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-
-    text(
-        "shipmentTotal",
-        String(
-            total
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-
-    text(
-        "shipmentActive",
-        String(
-            active
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-
-    text(
-        "shipmentDelivered",
-        String(
-            delivered
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-
-    text(
-        "shipmentExceptions",
-        String(
-            exceptions
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-
-    text(
-        "sidebarShipmentCount",
-        String(
-            total
-        ).padStart(
-            2,
-            "0"
-        )
-    );
-
-}
-
-
-/* =========================================================
-   PAGE CONFIG
-========================================================= */
-
-const pageConfig = {
-
-    dashboard:{
-        title:
-            "Command Center",
-        subtitle:
-            "Enterprise logistics control workspace"
-    },
-
-    shipments:{
-        title:
-            "Shipment Command",
-        subtitle:
-            "Control live shipment movement"
-    },
-
-    fleet:{
-        title:
-            "Fleet Control",
-        subtitle:
-            "Vehicle health and readiness"
-    },
-
-    drivers:{
-        title:
-            "Driver Command",
-        subtitle:
-            "Driver availability and performance"
-    },
-
-    dispatch:{
-        title:
-            "Dispatch Operations",
-        subtitle:
-            "Route release and allocation"
-    },
-
-    network:{
-        title:
-            "Live Network",
-        subtitle:
-            "Real-time logistics movement"
-    },
-
-    exceptions:{
-        title:
-            "Exception Center",
-        subtitle:
-            "Operational risk and priority actions"
-    },
-
-    alerts:{
-        title:
-            "Alert Operations",
-        subtitle:
-            "Network alert management"
-    },
-
-    maintenance:{
-        title:
-            "Maintenance Control",
-        subtitle:
-            "Vehicle service operations"
-    },
-
-    analytics:{
-        title:
-            "Network Analytics",
-        subtitle:
-            "Operational performance intelligence"
-    },
-
-    customers:{
-        title:
-            "Customer Operations",
-        subtitle:
-            "Customer experience intelligence"
-    },
-
-    reports:{
-        title:
-            "Operational Reports",
-        subtitle:
-            "Shipment and performance reporting"
-    },
-
-    assignments:{
-        title:
-            "Assignment Control",
-        subtitle:
-            "Shipment, driver and vehicle allocation"
-    },
-
-    settings:{
-        title:
-            "Settings",
-        subtitle:
-            "Platform configuration"
-    }
-
-};
-
-
-/* =========================================================
-   SHOW PAGE
-========================================================= */
-
-function showPage(page){
+function customerOptions(){
 
     if(
-        !pageConfig[page]
+        !Array.isArray(
+            state.customers
+        ) ||
+        state.customers.length === 0
     ){
 
-        page =
-            "dashboard";
-
-    }
-
-
-    Object.keys(
-        pageConfig
-    )
-        .forEach(
-            key => {
-
-                const section =
-                    $(
-                        `page-${key}`
-                    );
-
-
-                if(section){
-
-                    section.classList.toggle(
-                        "hidden",
-                        key !== page
-                    );
-
-                }
-
-            }
-        );
-
-
-    document
-        .querySelectorAll(
-            ".admin-nav-item"
-        )
-        .forEach(
-            button => {
-
-                button.classList.toggle(
-                    "active",
-                    button.dataset.page ===
-                    page
-                );
-
-            }
-        );
-
-
-    text(
-        "adminPageTitle",
-        pageConfig[
-            page
-        ].title
-    );
-
-
-    text(
-        "adminPageSubtitle",
-        pageConfig[
-            page
-        ].subtitle
-    );
-
-
-    state.currentPage =
-        page;
-
-
-    if(
-        page === "network"
-    ){
-
-        setTimeout(
-            () => {
-
-                initFullMap();
-
-            },
-            100
-        );
-
-    }
-
-
-    if(
-        page === "dashboard"
-    ){
-
-        setTimeout(
-            () => {
-
-                initDashboardMap();
-
-            },
-            100
-        );
-
-    }
-
-
-    $("adminSidebar")
-        ?.classList.remove(
-            "open"
-        );
-
-
-    window.scrollTo({
-        top:0,
-        behavior:"smooth"
-    });
-
-}
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function setupNavigation(){
-
-    document.addEventListener(
-        "click",
-        event => {
-
-            const target =
-                event.target.closest(
-                    "[data-page], [data-page-go]"
-                );
-
-
-            if(!target){
-                return;
-            }
-
-
-            const page =
-                target.dataset.page ||
-                target.dataset.pageGo;
-
-
-            if(!page){
-                return;
-            }
-
-
-            event.preventDefault();
-
-
-            showPage(
-                page
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   MAP DATA
-========================================================= */
-
-const hubData = {
-
-    Pune:{
-        lat:18.5204,
-        lng:73.8567,
-        code:"P",
-        active:"06 active"
-    },
-
-    Mumbai:{
-        lat:19.0760,
-        lng:72.8777,
-        code:"M",
-        active:"04 active"
-    },
-
-    Nagpur:{
-        lat:21.1458,
-        lng:79.0882,
-        code:"N",
-        active:"03 active"
-    },
-
-    Delhi:{
-        lat:28.6139,
-        lng:77.2090,
-        code:"D",
-        active:"Destination"
-    }
-
-};
-
-
-const vehicleData = [
-
-    {
-
-        id:"MH12-TR-4581",
-        driver:"Rahul Patil",
-        route:"Pune → Delhi",
-        status:"ACTIVE",
-        health:"96%",
-        fuel:"82%",
-        speed:"64 km/h",
-        color:"green",
-
-        points:[
-            [18.5204,73.8567],
-            [20.5937,76.0128],
-            [22.3072,77.3360],
-            [25.3176,77.4126],
-            [28.6139,77.2090]
-        ]
-
-    },
-
-    {
-
-        id:"MH46-CT-7823",
-        driver:"Suresh More",
-        route:"Nagpur → Delhi",
-        status:"ACTIVE",
-        health:"91%",
-        fuel:"71%",
-        speed:"58 km/h",
-        color:"green",
-
-        points:[
-            [21.1458,79.0882],
-            [22.3000,78.4500],
-            [24.2000,78.1000],
-            [26.5000,77.7000],
-            [28.6139,77.2090]
-        ]
-
-    },
-
-    {
-
-        id:"MH14-VN-2264",
-        driver:"Amit Sharma",
-        route:"Mumbai → Pune",
-        status:"READY",
-        health:"98%",
-        fuel:"94%",
-        speed:"0 km/h",
-        color:"purple",
-
-        points:[
-            [19.0760,72.8777],
-            [18.9500,73.2500],
-            [18.7000,73.6000],
-            [18.5204,73.8567]
-        ]
-
-    },
-
-    {
-
-        id:"MH15-MT-1198",
-        driver:"Kiran Jadhav",
-        route:"Jalgaon → Pune",
-        status:"SERVICE",
-        health:"64%",
-        fuel:"41%",
-        speed:"0 km/h",
-        color:"danger",
-
-        points:[
-            [21.0077,75.5626],
-            [20.6000,75.9000],
-            [19.9000,76.5000],
-            [18.9500,75.9000],
-            [18.5204,73.8567]
-        ]
-
-    }
-
-];
-
-
-/* =========================================================
-   MAP ICONS
-========================================================= */
-
-function createHubIcon(
-    code,
-    name,
-    active
-){
-
-    return L.divIcon({
-
-        className:
-            "tx-map-icon",
-
-        html:
-
-            `
-            <div class="tx-hub-marker">
-                ${escapeHTML(code)}
-            </div>
-
-            <div class="tx-hub-label">
-
-                ${escapeHTML(name)}
-
-                <small>
-                    ${escapeHTML(active)}
-                </small>
-
-            </div>
-            `,
-
-        iconSize:[
-            120,
-            50
-        ],
-
-        iconAnchor:[
-            9,
-            9
-        ]
-
-    });
-
-}
-
-
-function createVehicleIcon(
-    vehicle
-){
-
-    const danger =
-        vehicle.color ===
-        "danger";
-
-
-    return L.divIcon({
-
-        className:
-            "tx-map-vehicle",
-
-        html:
-
-            `
-            <div class="tx-vehicle-wrap">
-
-                <div class="tx-vehicle-marker">
-
-                    <span class="tx-wheel-a"></span>
-
-                    <span class="tx-wheel-b"></span>
-
-                    <i class="
-                        tx-vehicle-live
-                        ${danger ? "danger" : ""}
-                    "></i>
-
-                </div>
-
-                <div class="tx-vehicle-label">
-
-                    ${escapeHTML(
-                        vehicle.id
-                    )}
-
-                    <small>
-                        ${escapeHTML(
-                            vehicle.status
-                        )}
-                    </small>
-
-                </div>
-
-            </div>
-            `,
-
-        iconSize:[
-            160,
-            58
-        ],
-
-        iconAnchor:[
-            26,
-            26
-        ]
-
-    });
-
-}
-
-
-/* =========================================================
-   VEHICLE POPUP
-========================================================= */
-
-function vehiclePopup(
-    vehicle
-){
-
-    return `
-
-        <div class="vehicle-popup">
-
-            <strong>
-                ${escapeHTML(
-                    vehicle.id
-                )}
-            </strong>
-
-            <span>
-                ${escapeHTML(
-                    vehicle.route
-                )}
-            </span>
-
-            <div class="vehicle-popup-grid">
-
-                <div>
-                    <small>DRIVER</small>
-                    <b>
-                        ${escapeHTML(
-                            vehicle.driver
-                        )}
-                    </b>
-                </div>
-
-                <div>
-                    <small>STATUS</small>
-                    <b>
-                        ${escapeHTML(
-                            vehicle.status
-                        )}
-                    </b>
-                </div>
-
-                <div>
-                    <small>HEALTH</small>
-                    <b>
-                        ${escapeHTML(
-                            vehicle.health
-                        )}
-                    </b>
-                </div>
-
-                <div>
-                    <small>FUEL</small>
-                    <b>
-                        ${escapeHTML(
-                            vehicle.fuel
-                        )}
-                    </b>
-                </div>
-
-                <div>
-                    <small>SPEED</small>
-                    <b>
-                        ${escapeHTML(
-                            vehicle.speed
-                        )}
-                    </b>
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-/* =========================================================
-   ROUTE STYLE
-========================================================= */
-
-function routeStyle(
-    color
-){
-
-    if(
-        color ===
-        "danger"
-    ){
-
-        return {
-
-            color:
-                "#dc5061",
-
-            weight:
-                4,
-
-            opacity:
-                .58,
-
-            dashArray:
-                "7 9"
-
-        };
-
-    }
-
-
-    if(
-        color ===
-        "purple"
-    ){
-
-        return {
-
-            color:
-                "#7657c7",
-
-            weight:
-                4,
-
-            opacity:
-                .55,
-
-            dashArray:
-                "8 10"
-
-        };
-
-    }
-
-
-    return {
-
-        color:
-            "#20a679",
-
-        weight:
-            4,
-
-        opacity:
-            .52,
-
-        dashArray:
-            "8 10"
-
-    };
-
-}
-
-
-/* =========================================================
-   CREATE MAP
-========================================================= */
-
-function createMap(
-    elementId
-){
-
-    if(
-        !$(elementId) ||
-        typeof L ===
-        "undefined"
-    ){
-
-        return null;
-
-    }
-
-
-    if(
-        state.maps[elementId]
-    ){
-
-        setTimeout(
-            () => {
-
-                state.maps[
-                    elementId
-                ].invalidateSize();
-
-            },
-            120
-        );
-
-        return state.maps[
-            elementId
-        ];
-
-    }
-
-
-    const map =
-        L.map(
-            elementId,
-            {
-                zoomControl:true,
-                attributionControl:true
-            }
-        );
-
-
-    L.tileLayer(
-
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
-        {
-
-            maxZoom:19,
-
-            attribution:
-                '&copy; OpenStreetMap contributors'
-
-        }
-
-    ).addTo(map);
-
-
-    map.setView(
-        [21.2,76.5],
-        5
-    );
-
-
-    state.maps[
-        elementId
-    ] =
-        map;
-
-
-    return map;
-
-}
-
-
-/* =========================================================
-   ADD HUBS
-========================================================= */
-
-function addHubs(
-    map
-){
-
-    Object.entries(
-        hubData
-    )
-        .forEach(
-            ([name,hub]) => {
-
-                L.marker(
-
-                    [
-                        hub.lat,
-                        hub.lng
-                    ],
-
-                    {
-                        icon:
-                            createHubIcon(
-                                hub.code,
-                                name,
-                                hub.active
-                            )
-                    }
-
-                )
-                    .addTo(map)
-
-                    .bindTooltip(
-
-                        `${name} · ${hub.active}`,
-
-                        {
-                            direction:
-                                "top"
-                        }
-
-                    );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   ADD ROUTES
-========================================================= */
-
-function addRoutes(
-    map
-){
-
-    vehicleData.forEach(
-        vehicle => {
-
-            L.polyline(
-                vehicle.points,
-                routeStyle(
-                    vehicle.color
-                )
-            ).addTo(map);
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   ADD VEHICLES
-========================================================= */
-
-function addVehicles(
-    map
-){
-
-    vehicleData.forEach(
-        vehicle => {
-
-            const marker =
-                L.marker(
-
-                    vehicle.points[0],
-
-                    {
-                        icon:
-                            createVehicleIcon(
-                                vehicle
-                            ),
-
-                        zIndexOffset:
-                            500
-
-                    }
-
-                ).addTo(map);
-
-
-            marker.bindPopup(
-                vehiclePopup(
-                    vehicle
-                ),
-                {
-                    maxWidth:
-                        320
-                }
-            );
-
-
-            marker.on(
-                "click",
-                () => {
-
-                    state.selectedVehicle =
-                        vehicle.id;
-
-
-                    showToast(
-
-                        "Vehicle selected",
-
-                        `${vehicle.id} · ${vehicle.route}`,
-
-                        vehicle.color ===
-                        "danger"
-
-                            ? "error"
-
-                            : "success"
-
-                    );
-
-                }
-            );
-
-
-            vehicle.marker =
-                marker;
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   MAP INITIALIZER
-========================================================= */
-
-function initializeMap(
-    elementId
-){
-
-    if(
-        typeof L ===
-        "undefined"
-    ){
-
-        console.error(
-            "Leaflet failed to load."
-        );
-
-        return;
-
-    }
-
-
-    const map =
-        createMap(
-            elementId
-        );
-
-
-    if(!map){
-        return;
-    }
-
-
-    if(
-        map._txInitialized
-    ){
-
-        return;
-
-    }
-
-
-    map._txInitialized =
-        true;
-
-
-    addHubs(
-        map
-    );
-
-
-    addRoutes(
-        map
-    );
-
-
-    addVehicles(
-        map
-    );
-
-
-    setTimeout(
-        () => {
-
-            map.invalidateSize();
-
-        },
-        150
-    );
-
-
-    startVehicleAnimation();
-
-}
-
-
-function initDashboardMap(){
-
-    initializeMap(
-        "networkMap"
-    );
-
-}
-
-
-function initFullMap(){
-
-    initializeMap(
-        "fullNetworkMap"
-    );
-
-}
-
-
-/* =========================================================
-   VEHICLE ANIMATION
-========================================================= */
-
-let vehicleAnimationRunning =
-    false;
-
-
-function startVehicleAnimation(){
-
-    if(
-        vehicleAnimationRunning
-    ){
-
-        return;
-
-    }
-
-
-    vehicleAnimationRunning =
-        true;
-
-
-    function move(){
-
-        vehicleData.forEach(
-            vehicle => {
-
-                if(
-
-                    !vehicle.marker ||
-
-                    vehicle.points.length < 2 ||
-
-                    vehicle.status ===
-                    "SERVICE"
-
-                ){
-
-                    return;
-
-                }
-
-
-                if(
-                    typeof vehicle.progress !==
-                    "number"
-                ){
-
-                    vehicle.progress =
-                        0;
-
-                }
-
-
-                vehicle.progress +=
-                    .0025;
-
-
-                if(
-                    vehicle.progress >
-                    vehicle.points.length - 1
-                ){
-
-                    vehicle.progress =
-                        0;
-
-                }
-
-
-                const index =
-                    Math.floor(
-                        vehicle.progress
-                    );
-
-
-                const local =
-                    vehicle.progress -
-                    index;
-
-
-                const from =
-                    vehicle.points[
-                        index
-                    ];
-
-
-                const to =
-                    vehicle.points[
-                        Math.min(
-                            index + 1,
-                            vehicle.points.length - 1
-                        )
-                    ];
-
-
-                const lat =
-                    from[0] +
-                    (
-                        to[0] -
-                        from[0]
-                    ) *
-                    local;
-
-
-                const lng =
-                    from[1] +
-                    (
-                        to[1] -
-                        from[1]
-                    ) *
-                    local;
-
-
-                vehicle.marker
-                    .setLatLng(
-                        [
-                            lat,
-                            lng
-                        ]
-                    );
-
-            }
-        );
-
-
-        requestAnimationFrame(
-            move
-        );
-
-    }
-
-
-    requestAnimationFrame(
-        move
-    );
-
-}
-
-
-/* =========================================================
-   MAP VEHICLE DATA UPDATE
-========================================================= */
-
-function updateMapVehicleData(){
-
-    const active =
-        state.shipments.filter(
-            isActive
-        );
-
-
-    if(
-        active.length &&
-        vehicleData[0]
-    ){
-
-        const shipment =
-            active[0];
-
-
-        vehicleData[0].route =
-            `${shipment.origin || "Pune"} → ${shipment.destination || "Delhi"}`;
-
-    }
-
-}
-
-
-/* =========================================================
-   SHIPMENT CUSTOMER HELPER
-========================================================= */
-
-function getShipmentCustomer(
-    item
-){
-
-    return (
-
-        item.customerName ||
-
-        item.username ||
-
-        item.user?.username ||
-
-        item.receiverName ||
-
-        item.senderName ||
-
-        "-"
-
-    );
-
-}
-
-
-/* =========================================================
-   SHIPMENT TABLE
-========================================================= */
-
-function renderShipmentTable(
-    list
-){
-
-    const table =
-        $("shipmentTable");
-
-
-    if(!table){
-        return;
-    }
-
-
-    if(
-        !Array.isArray(list) ||
-        !list.length
-    ){
-
-        table.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="7"
-                    style="
-                        text-align:center;
-                        padding:70px;
-                        color:#687588;
-                    "
-                >
-
-                    No shipment records found.
-
-                </td>
-
-            </tr>
-
+        return `
+            <option value="">
+                No customers available
+            </option>
         `;
 
-        return;
-
     }
 
 
-    table.innerHTML =
+    return state.customers
 
-        list.map(
-            item => {
+        .filter(
+            customer =>
+                customer &&
+                customer.username
+        )
 
-                const customer =
-                    getShipmentCustomer(
-                        item
+        .map(
+            customer => {
+
+                const username =
+                    escapeHtml(
+                        customer.username
                     );
 
 
                 return `
-
-                    <tr>
-
-                        <td>
-
-                            <strong>
-                                ${escapeHTML(
-                                    item.trackingNumber
-                                )}
-                            </strong>
-
-                        </td>
-
-
-                        <td>
-
-                            ${escapeHTML(
-                                item.origin
-                            )}
-
-                            <span
-                                style="
-                                    color:#8a6bd1;
-                                    margin:0 5px;
-                                "
-                            >
-                                →
-                            </span>
-
-                            ${escapeHTML(
-                                item.destination
-                            )}
-
-                        </td>
-
-
-                        <td>
-                            ${escapeHTML(
-                                customer
-                            )}
-                        </td>
-
-
-                        <td>
-                            ${escapeHTML(
-                                item.shipmentType
-                            )}
-                        </td>
-
-
-                        <td>
-
-                            <span
-                                class="${stateClass(
-                                    item.status
-                                )}"
-                            >
-
-                                ${escapeHTML(
-                                    item.status
-                                )}
-
-                            </span>
-
-                        </td>
-
-
-                        <td>
-
-                            ${Number(
-                                item.weight || 0
-                            ).toFixed(1)}
-
-                            kg
-
-                        </td>
-
-
-                        <td>
-
-                            <div
-                                class="shipment-actions"
-                            >
-
-                                <button
-                                    type="button"
-                                    class="
-                                        shipment-action
-                                        view
-                                    "
-                                    data-shipment-action="view"
-                                    data-id="${escapeHTML(
-                                        item.id
-                                    )}"
-                                >
-                                    View
-                                </button>
-
-
-                                <button
-                                    type="button"
-                                    class="
-                                        shipment-action
-                                        edit
-                                    "
-                                    data-shipment-action="edit"
-                                    data-id="${escapeHTML(
-                                        item.id
-                                    )}"
-                                >
-                                    Edit
-                                </button>
-
-
-                                <button
-                                    type="button"
-                                    class="
-                                        shipment-action
-                                        delete
-                                    "
-                                    data-shipment-action="delete"
-                                    data-id="${escapeHTML(
-                                        item.id
-                                    )}"
-                                >
-                                    Delete
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
+                    <option value="${username}">
+                        ${username}
+                    </option>
                 `;
 
             }
         )
+
         .join("");
 
 }
 
 
-/* =========================================================
-   TABLE EVENTS
-========================================================= */
+/* ==========================================================
+   CREATE SHIPMENT MODAL
+========================================================== */
 
-function setupShipmentTable(){
+async function openCreateShipmentModal(){
 
-    $("shipmentTable")
-        ?.addEventListener(
-
-            "click",
-
-            async event => {
-
-                const button =
-                    event.target.closest(
-                        "[data-shipment-action]"
-                    );
+    await loadCustomers();
 
 
-                if(!button){
-                    return;
-                }
+    document
+        .getElementById(
+            "createShipmentModal"
+        )
+        ?.remove();
 
 
-                const id =
-                    button.dataset.id;
-
-
-                const action =
-                    button.dataset.shipmentAction;
-
-
-                const shipment =
-                    state.shipments.find(
-                        item =>
-                            String(
-                                item.id
-                            ) ===
-                            String(
-                                id
-                            )
-                    );
-
-
-                if(!shipment){
-                    return;
-                }
-
-
-                if(
-                    action === "view"
-                ){
-
-                    openShipmentModal(
-                        shipment
-                    );
-
-                    return;
-
-                }
-
-
-                if(
-                    action === "edit"
-                ){
-
-                    openEditShipmentModal(
-                        shipment
-                    );
-
-                    return;
-
-                }
-
-
-                if(
-                    action === "delete"
-                ){
-
-                    await deleteShipment(
-                        shipment
-                    );
-
-                }
-
-            }
-
+    const modal =
+        document.createElement(
+            "div"
         );
 
-}
+
+    modal.id =
+        "createShipmentModal";
 
 
-/* =========================================================
-   SHIPMENT FILTER
-========================================================= */
-
-function setupShipmentFilters(){
-
-    const search =
-        $("shipmentSearch");
+    modal.className =
+        "modal-overlay";
 
 
-    const filter =
-        $("shipmentStatusFilter");
+    modal.innerHTML = `
 
+        <div class="modal-content">
 
-    function applyFilter(){
+            <div class="modal-header">
 
-        const query =
-            normalize(
-                search?.value
-            );
+                <div>
 
-
-        const status =
-            normalize(
-                filter?.value
-            );
-
-
-        const filtered =
-            state.shipments.filter(
-
-                item => {
-
-                    const searchable = [
-
-                        item.trackingNumber,
-
-                        item.origin,
-
-                        item.destination,
-
-                        item.senderName,
-
-                        item.receiverName,
-
-                        item.customerName,
-
-                        item.username,
-
-                        item.user?.username,
-
-                        item.shipmentType,
-
-                        item.status
-
-                    ]
-                        .join(" ")
-                        .toLowerCase();
-
-
-                    return (
-
-                        (
-                            !query ||
-                            searchable.includes(
-                                query
-                            )
-                        )
-
-                        &&
-
-                        (
-                            !status ||
-                            normalize(
-                                item.status
-                            ) ===
-                            status
-                        )
-
-                    );
-
-                }
-
-            );
-
-
-        renderShipmentTable(
-            filtered
-        );
-
-    }
-
-
-    search?.addEventListener(
-        "input",
-        applyFilter
-    );
-
-
-    filter?.addEventListener(
-        "change",
-        applyFilter
-    );
-
-}
-
-
-/* =========================================================
-   VIEW SHIPMENT
-========================================================= */
-
-function openShipmentModal(
-    item
-){
-
-    openModal(
-
-        "Shipment Details",
-
-        `
-
-            <div class="shipment-detail-modal">
-
-                <div
-                    style="
-                        display:grid;
-                        gap:7px;
-                    "
-                >
-
-                    <span
-                        style="
-                            color:#7658b7;
-                            font-size:8px;
-                            font-weight:950;
-                        "
-                    >
-                        TRACKING NUMBER
+                    <span>
+                        TRANSLOGIX OPERATION
                     </span>
 
-
-                    <h3
-                        style="
-                            margin:0;
-                            color:#18263a;
-                            font-size:30px;
-                        "
-                    >
-
-                        ${escapeHTML(
-                            item.trackingNumber
-                        )}
-
-                    </h3>
-
-
-                    <p
-                        style="
-                            margin:0;
-                            color:#718095;
-                            font-size:11px;
-                        "
-                    >
-
-                        ${escapeHTML(
-                            item.origin
-                        )}
-
-                        →
-
-                        ${escapeHTML(
-                            item.destination
-                        )}
-
-                    </p>
+                    <h2>
+                        Create Shipment
+                    </h2>
 
                 </div>
 
-
-                <div
-                    style="
-                        display:grid;
-                        grid-template-columns:
-                            repeat(2,1fr);
-                        gap:10px;
-                    "
+                <button
+                    type="button"
+                    class="modal-close"
+                    id="closeCreateShipment"
                 >
-
-                    ${infoBox(
-                        "STATUS",
-                        item.status
-                    )}
-
-                    ${infoBox(
-                        "CUSTOMER",
-                        getShipmentCustomer(
-                            item
-                        )
-                    )}
-
-                    ${infoBox(
-                        "TYPE",
-                        item.shipmentType
-                    )}
-
-                    ${infoBox(
-                        "WEIGHT",
-                        `${item.weight ?? 0} kg`
-                    )}
-
-                    ${infoBox(
-                        "SENDER",
-                        item.senderName
-                    )}
-
-                    ${infoBox(
-                        "RECEIVER",
-                        item.receiverName
-                    )}
-
-                </div>
-
-
-                <div
-                    style="
-                        display:flex;
-                        justify-content:flex-end;
-                        gap:8px;
-                        padding-top:15px;
-                        border-top:
-                            1px solid #e6ebf0;
-                    "
-                >
-
-                    <button
-                        class="outline-btn"
-                        id="viewEditBtn"
-                    >
-                        Edit
-                    </button>
-
-
-                    <button
-                        class="primary-btn"
-                        id="viewCloseBtn"
-                    >
-                        Close
-                    </button>
-
-                </div>
+                    ×
+                </button>
 
             </div>
 
-        `
-
-    );
-
-
-    $("viewCloseBtn")
-        ?.addEventListener(
-            "click",
-            closeModal
-        );
-
-
-    $("viewEditBtn")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                closeModal();
-
-                openEditShipmentModal(
-                    item
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   INFO BOX
-========================================================= */
-
-function infoBox(
-    label,
-    value
-){
-
-    return `
-
-        <div
-            style="
-                padding:13px;
-                border:
-                    1px solid #dfe5eb;
-                border-radius:9px;
-                background:#f8fafc;
-            "
-        >
-
-            <span
-                style="
-                    display:block;
-                    color:#758195;
-                    font-size:7px;
-                    font-weight:950;
-                "
-            >
-
-                ${escapeHTML(
-                    label
-                )}
-
-            </span>
-
-
-            <strong
-                style="
-                    display:block;
-                    margin-top:6px;
-                    color:#263448;
-                    font-size:10px;
-                "
-            >
-
-                ${escapeHTML(
-                    value
-                )}
-
-            </strong>
-
-        </div>
-
-    `;
-
-}
-
-
-/* =========================================================
-   FORM FIELD
-========================================================= */
-
-function formField(
-    name,
-    label,
-    value,
-    placeholder,
-    type = "text",
-    required = true
-){
-
-    return `
-
-        <label>
-
-            <span class="form-label">
-                ${escapeHTML(
-                    label
-                )}
-            </span>
-
-            <input
-                class="form-control"
-                name="${escapeHTML(name)}"
-                type="${escapeHTML(type)}"
-                value="${escapeHTML(value)}"
-                placeholder="${escapeHTML(placeholder)}"
-                ${
-                    type === "number"
-                        ? 'min="0" step="0.1"'
-                        : ""
-                }
-                ${
-                    required
-                        ? "required"
-                        : ""
-                }
-            >
-
-        </label>
-
-    `;
-
-}
-
-
-/* =========================================================
-   CREATE SHIPMENT
-========================================================= */
-
-function setupCreateShipment(){
-
-    $("createShipmentBtn")
-        ?.addEventListener(
-            "click",
-            openCreateShipmentModal
-        );
-
-}
-
-
-function openCreateShipmentModal(){
-
-    openModal(
-
-        "Create Shipment",
-
-        `
 
             <form
                 id="createShipmentForm"
-                class="shipment-form-grid"
+                class="shipment-form"
             >
 
-                ${formField(
-                    "trackingNumber",
-                    "TRACKING NUMBER",
-                    "",
-                    "TRX10007",
-                    "text"
-                )}
+                <div class="form-group">
 
-                ${formField(
-                    "senderName",
-                    "SENDER NAME",
-                    "",
-                    "Sender name",
-                    "text"
-                )}
+                    <label>
+                        Tracking Number
+                    </label>
 
-                ${formField(
-                    "receiverName",
-                    "RECEIVER NAME",
-                    "",
-                    "Receiver name",
-                    "text"
-                )}
+                    <input
+                        name="trackingNumber"
+                        type="text"
+                        required
+                        placeholder="TRX10007"
+                    >
 
-                ${formField(
-                    "origin",
-                    "ORIGIN",
-                    "",
-                    "Pune",
-                    "text"
-                )}
-
-                ${formField(
-                    "destination",
-                    "DESTINATION",
-                    "",
-                    "Delhi",
-                    "text"
-                )}
+                </div>
 
 
-                <label>
+                <div class="form-group">
 
-                    <span class="form-label">
-                        SHIPMENT TYPE
-                    </span>
+                    <label>
+                        Sender Name
+                    </label>
+
+                    <input
+                        name="senderName"
+                        type="text"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Receiver Name
+                    </label>
+
+                    <input
+                        name="receiverName"
+                        type="text"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Origin
+                    </label>
+
+                    <input
+                        name="origin"
+                        type="text"
+                        required
+                        placeholder="Pune"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Destination
+                    </label>
+
+                    <input
+                        name="destination"
+                        type="text"
+                        required
+                        placeholder="Mumbai"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Customer
+                    </label>
+
+                    <select
+                        name="username"
+                        required
+                    >
+
+                        <option value="">
+                            Select Customer
+                        </option>
+
+                        ${customerOptions()}
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Shipment Type
+                    </label>
 
                     <select
                         name="shipmentType"
-                        class="form-control"
                         required
                     >
+
+                        <option value="">
+                            Select Type
+                        </option>
 
                         <option value="Express">
                             Express
@@ -2794,63 +1081,23 @@ function openCreateShipmentModal(){
                             Courier
                         </option>
 
-                        <option value="Cold-chain">
-                            Cold-chain
-                        </option>
-
-                        <option value="International">
-                            International
+                        <option value="Cold Chain">
+                            Cold Chain
                         </option>
 
                     </select>
 
-                </label>
+                </div>
 
 
-                ${formField(
-                    "weight",
-                    "WEIGHT KG",
-                    "",
-                    "5",
-                    "number"
-                )}
+                <div class="form-group">
 
-
-                <label>
-
-                    <span class="form-label">
-                        ASSIGN CUSTOMER
-                    </span>
-
-                    <select
-                        id="shipmentUser"
-                        name="username"
-                        class="form-control"
-                        required
-                    >
-
-                        <option value="">
-                            Loading customers...
-                        </option>
-
-                    </select>
-
-                </label>
-
-
-                <label
-                    style="
-                        grid-column:1/-1;
-                    "
-                >
-
-                    <span class="form-label">
-                        STATUS
-                    </span>
+                    <label>
+                        Status
+                    </label>
 
                     <select
                         name="status"
-                        class="form-control"
                         required
                     >
 
@@ -2872,27 +1119,39 @@ function openCreateShipmentModal(){
 
                     </select>
 
-                </label>
+                </div>
 
 
-                <div
-                    class="
-                        shipment-form-actions
-                    "
-                >
+                <div class="form-group">
+
+                    <label>
+                        Weight (kg)
+                    </label>
+
+                    <input
+                        name="weight"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="modal-actions">
 
                     <button
                         type="button"
-                        class="outline-btn"
-                        id="cancelCreate"
+                        class="btn btn-secondary"
+                        id="cancelCreateShipment"
                     >
                         Cancel
                     </button>
 
-
                     <button
                         type="submit"
-                        class="primary-btn"
+                        class="btn btn-primary"
                     >
                         Create Shipment
                     </button>
@@ -2901,64 +1160,51 @@ function openCreateShipmentModal(){
 
             </form>
 
-        `
+        </div>
 
+    `;
+
+
+    document.body.appendChild(
+        modal
     );
 
 
-    $("cancelCreate")
+    document
+        .getElementById(
+            "closeCreateShipment"
+        )
         ?.addEventListener(
             "click",
-            closeModal
+            () => modal.remove()
         );
 
 
-    $("createShipmentForm")
+    document
+        .getElementById(
+            "cancelCreateShipment"
+        )
+        ?.addEventListener(
+            "click",
+            () => modal.remove()
+        );
+
+
+    document
+        .getElementById(
+            "createShipmentForm"
+        )
         ?.addEventListener(
             "submit",
             submitShipment
         );
 
-
-    loadUsers()
-        .then(
-            () => {
-
-                populateUserDropdown(
-                    "shipmentUser"
-                );
-
-            }
-        )
-        .catch(
-            error => {
-
-                const select =
-                    $("shipmentUser");
-
-                if(select){
-
-                    select.innerHTML = `
-                        <option value="">
-                            Unable to load customers
-                        </option>
-                    `;
-
-                }
-
-                console.error(
-                    error
-                );
-
-            }
-        );
-
 }
 
 
-/* =========================================================
-   SUBMIT CREATE
-========================================================= */
+/* ==========================================================
+   SUBMIT SHIPMENT
+========================================================== */
 
 async function submitShipment(
     event
@@ -2968,76 +1214,74 @@ async function submitShipment(
 
 
     const form =
-        event.currentTarget;
+        event.target;
 
 
-    const data =
-        new FormData(
-            form
-        );
+    const formData =
+        new FormData(form);
 
 
     const payload = {
 
         trackingNumber:
             String(
-                data.get(
+                formData.get(
                     "trackingNumber"
                 ) || ""
             ).trim(),
 
         senderName:
             String(
-                data.get(
+                formData.get(
                     "senderName"
                 ) || ""
             ).trim(),
 
         receiverName:
             String(
-                data.get(
+                formData.get(
                     "receiverName"
                 ) || ""
             ).trim(),
 
         origin:
             String(
-                data.get(
+                formData.get(
                     "origin"
                 ) || ""
             ).trim(),
 
         destination:
             String(
-                data.get(
+                formData.get(
                     "destination"
                 ) || ""
             ).trim(),
 
         shipmentType:
             String(
-                data.get(
+                formData.get(
                     "shipmentType"
                 ) || ""
             ).trim(),
 
         status:
             String(
-                data.get(
+                formData.get(
                     "status"
                 ) || "Pending"
             ).trim(),
 
         weight:
             Number(
-                data.get(
+                formData.get(
                     "weight"
                 )
             ),
 
         username:
             String(
-                data.get(
+                formData.get(
                     "username"
                 ) || ""
             ).trim()
@@ -3052,8 +1296,22 @@ async function submitShipment(
         !payload.origin ||
         !payload.destination ||
         !payload.shipmentType ||
-        !payload.username ||
-        Number.isNaN(
+        !payload.username
+    ){
+
+        showToast(
+            "Validation error",
+            "Please complete all required fields.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !Number.isFinite(
             payload.weight
         ) ||
         payload.weight <= 0
@@ -3061,7 +1319,7 @@ async function submitShipment(
 
         showToast(
             "Validation error",
-            "Please fill all shipment fields and select a customer.",
+            "Weight must be greater than 0.",
             "error"
         );
 
@@ -3072,50 +1330,8 @@ async function submitShipment(
 
     try{
 
-        if(
-            state.demoMode
-        ){
-
-            state.shipments.push({
-
-                id:
-                    Date.now(),
-
-                ...payload,
-
-                customerName:
-                    payload.username
-
-            });
-
-
-            closeModal();
-
-
-            refreshAfterMutation();
-
-
-            showPage(
-                "shipments"
-            );
-
-
-            showToast(
-                "Shipment created",
-                `${payload.trackingNumber} assigned to ${payload.username}.`,
-                "success"
-            );
-
-
-            return;
-
-        }
-
-
         await api(
-
             "/api/admin/shipments",
-
             {
 
                 method:
@@ -3127,33 +1343,36 @@ async function submitShipment(
                     )
 
             }
-
         );
 
 
-        closeModal();
+        document
+            .getElementById(
+                "createShipmentModal"
+            )
+            ?.remove();
 
 
         await loadShipments();
 
 
-        showPage(
-            "shipments"
-        );
-
-
         showToast(
             "Shipment created",
-            `${payload.trackingNumber} assigned to ${payload.username}.`,
+            `${payload.trackingNumber} assigned to ${payload.username}`,
             "success"
         );
 
     }
-
     catch(error){
 
+        console.error(
+            "Shipment creation failed:",
+            error
+        );
+
+
         showToast(
-            "Create failed",
+            "Shipment creation failed",
             error.message,
             "error"
         );
@@ -3163,433 +1382,335 @@ async function submitShipment(
 }
 
 
-/* =========================================================
-   EDIT SHIPMENT
-========================================================= */
+/* ==========================================================
+   DASHBOARD STATS
+========================================================== */
 
-function openEditShipmentModal(
-    item
-){
+function updateDashboardStats(){
 
-    openModal(
-
-        "Edit Shipment",
-
-        `
-
-            <form
-                id="editShipmentForm"
-                class="shipment-form-grid"
-            >
-
-                <input
-                    type="hidden"
-                    name="id"
-                    value="${escapeHTML(item.id)}"
-                >
+    const shipments =
+        Array.isArray(
+            state.shipments
+        )
+            ? state.shipments
+            : [];
 
 
-                ${formField(
-                    "trackingNumber",
-                    "TRACKING NUMBER",
-                    item.trackingNumber || "",
-                    "TRX10007",
-                    "text"
-                )}
+    const normalize =
+        value =>
+            String(
+                value || ""
+            )
+            .trim()
+            .toLowerCase();
 
 
-                ${formField(
-                    "senderName",
-                    "SENDER NAME",
-                    item.senderName || "",
-                    "Sender name",
-                    "text"
-                )}
+    const total =
+        shipments.length;
 
 
-                ${formField(
-                    "receiverName",
-                    "RECEIVER NAME",
-                    item.receiverName || "",
-                    "Receiver name",
-                    "text"
-                )}
+    const pending =
+        shipments.filter(
+            shipment =>
+                normalize(
+                    shipment.status
+                ) === "pending"
+        ).length;
 
 
-                ${formField(
-                    "origin",
-                    "ORIGIN",
-                    item.origin || "",
-                    "Pune",
-                    "text"
-                )}
+    const inTransit =
+        shipments.filter(
+            shipment =>
+                normalize(
+                    shipment.status
+                ) === "in transit"
+        ).length;
 
 
-                ${formField(
-                    "destination",
-                    "DESTINATION",
-                    item.destination || "",
-                    "Delhi",
-                    "text"
-                )}
+    const outForDelivery =
+        shipments.filter(
+            shipment =>
+                normalize(
+                    shipment.status
+                ) ===
+                "out for delivery"
+        ).length;
 
 
-                <label>
-
-                    <span class="form-label">
-                        SHIPMENT TYPE
-                    </span>
-
-                    <select
-                        name="shipmentType"
-                        class="form-control"
-                        required
-                    >
-
-                        ${shipmentTypeOption(
-                            "Express",
-                            item.shipmentType
-                        )}
-
-                        ${shipmentTypeOption(
-                            "Standard",
-                            item.shipmentType
-                        )}
-
-                        ${shipmentTypeOption(
-                            "Freight",
-                            item.shipmentType
-                        )}
-
-                        ${shipmentTypeOption(
-                            "Courier",
-                            item.shipmentType
-                        )}
-
-                        ${shipmentTypeOption(
-                            "Cold-chain",
-                            item.shipmentType
-                        )}
-
-                        ${shipmentTypeOption(
-                            "International",
-                            item.shipmentType
-                        )}
-
-                    </select>
-
-                </label>
+    const delivered =
+        shipments.filter(
+            shipment =>
+                normalize(
+                    shipment.status
+                ) === "delivered"
+        ).length;
 
 
-                ${formField(
-                    "weight",
-                    "WEIGHT KG",
-                    item.weight ?? "",
-                    "5",
-                    "number"
-                )}
+    const exceptions =
+        shipments.filter(
+            shipment => {
+
+                const status =
+                    normalize(
+                        shipment.status
+                    );
+
+                return (
+                    status.includes(
+                        "exception"
+                    ) ||
+                    status.includes(
+                        "failed"
+                    ) ||
+                    status.includes(
+                        "delayed"
+                    ) ||
+                    status.includes(
+                        "risk"
+                    )
+                );
+
+            }
+        ).length;
 
 
-                <label>
+    /* Current dashboard IDs */
 
-                    <span class="form-label">
-                        ASSIGN CUSTOMER
-                    </span>
+    setText(
+        "shipmentTotal",
+        total
+    );
 
-                    <select
-                        id="editShipmentUser"
-                        name="username"
-                        class="form-control"
-                        required
-                    >
+    setText(
+        "shipmentActive",
+        inTransit +
+        outForDelivery
+    );
 
-                        <option value="">
-                            Loading customers...
-                        </option>
+    setText(
+        "shipmentDelivered",
+        delivered
+    );
 
-                    </select>
-
-                </label>
-
-
-                <label
-                    style="
-                        grid-column:1/-1;
-                    "
-                >
-
-                    <span class="form-label">
-                        STATUS
-                    </span>
-
-                    <select
-                        name="status"
-                        class="form-control"
-                        required
-                    >
-
-                        ${statusOption(
-                            "Pending",
-                            item.status
-                        )}
-
-                        ${statusOption(
-                            "In Transit",
-                            item.status
-                        )}
-
-                        ${statusOption(
-                            "Out for Delivery",
-                            item.status
-                        )}
-
-                        ${statusOption(
-                            "Delivered",
-                            item.status
-                        )}
-
-                    </select>
-
-                </label>
-
-
-                <div
-                    class="
-                        shipment-form-actions
-                    "
-                >
-
-                    <button
-                        type="button"
-                        class="outline-btn"
-                        id="cancelEdit"
-                    >
-                        Cancel
-                    </button>
-
-
-                    <button
-                        type="submit"
-                        class="primary-btn"
-                    >
-                        Update Shipment
-                    </button>
-
-                </div>
-
-            </form>
-
-        `
-
+    setText(
+        "shipmentExceptions",
+        exceptions
     );
 
 
-    $("cancelEdit")
-        ?.addEventListener(
-            "click",
-            closeModal
-        );
+    setText(
+        "kpiTotal",
+        total
+    );
+
+    setText(
+        "kpiTransit",
+        inTransit
+    );
+
+    setText(
+        "kpiDelivered",
+        delivered
+    );
+
+    setText(
+        "kpiExceptions",
+        exceptions
+    );
 
 
-    $("editShipmentForm")
-        ?.addEventListener(
-            "submit",
-            event => {
+    /* Older dashboard IDs */
 
-                submitEditShipment(
-                    event,
-                    item
-                );
+    setText(
+        "totalShipments",
+        total
+    );
 
-            }
-        );
+    setText(
+        "pendingShipments",
+        pending
+    );
+
+    setText(
+        "inTransitShipments",
+        inTransit
+    );
+
+    setText(
+        "outForDeliveryShipments",
+        outForDelivery
+    );
+
+    setText(
+        "deliveredShipments",
+        delivered
+    );
 
 
-    loadUsers()
-        .then(
-            () => {
+    /* Tower IDs */
 
-                populateUserDropdown(
-                    "editShipmentUser",
-                    item.username ||
-                    item.user?.username ||
-                    item.customerName ||
-                    ""
-                );
+    setText(
+        "towerActiveShipments",
+        inTransit +
+        outForDelivery
+    );
 
-            }
-        )
-        .catch(
-            error => {
+    setText(
+        "towerInTransit",
+        inTransit
+    );
 
-                console.error(
-                    error
-                );
+    setText(
+        "towerDelivered",
+        delivered
+    );
 
-            }
-        );
+    setText(
+        "towerExceptions",
+        exceptions
+    );
+
+    setText(
+        "towerActiveCount",
+        inTransit +
+        outForDelivery
+    );
+
+    setText(
+        "towerTransitCount",
+        inTransit
+    );
+
+    setText(
+        "towerDeliveredCount",
+        delivered
+    );
+
+    setText(
+        "towerExceptionCount",
+        exceptions
+    );
+
+
+    setText(
+        "shipmentFlowCount",
+        total
+    );
+
+
+    setText(
+        "towerLastUpdated",
+        `Updated ${new Date().toLocaleTimeString()}`
+    );
 
 }
 
 
-/* =========================================================
-   SELECT OPTION HELPERS
-========================================================= */
+/* ==========================================================
+   CONTROL TOWER
+========================================================== */
 
-function shipmentTypeOption(
-    value,
-    selected
-){
+function updateControlTower(){
 
-    return `
+    updateDashboardStats();
 
-        <option
-            value="${escapeHTML(value)}"
-            ${
-                normalize(value) ===
-                normalize(selected)
-                    ? "selected"
-                    : ""
+
+    const total =
+        state.shipments.length;
+
+
+    const inTransit =
+        state.shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "in transit"
+        ).length;
+
+
+    const delivered =
+        state.shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "delivered"
+        ).length;
+
+
+    const exceptions =
+        state.shipments.filter(
+            shipment => {
+
+                const status =
+                    String(
+                        shipment.status || ""
+                    ).toLowerCase();
+
+                return (
+                    status.includes(
+                        "exception"
+                    ) ||
+                    status.includes(
+                        "delayed"
+                    ) ||
+                    status.includes(
+                        "failed"
+                    )
+                );
+
             }
-        >
+        ).length;
 
-            ${escapeHTML(value)}
 
-        </option>
+    setText(
+        "towerActiveShipments",
+        total
+    );
 
-    `;
+    setText(
+        "towerInTransit",
+        inTransit
+    );
+
+    setText(
+        "towerDelivered",
+        delivered
+    );
+
+    setText(
+        "towerExceptions",
+        exceptions
+    );
 
 }
 
 
-function statusOption(
-    value,
-    selected
+/* ==========================================================
+   SHIPMENT TABLE
+========================================================== */
+
+function renderShipmentTable(
+    shipments = []
 ){
 
-    return `
+    /*
+     * IMPORTANT:
+     * Actual HTML uses #shipmentTable.
+     * NOT #shipmentTableBody.
+     */
 
-        <option
-            value="${escapeHTML(value)}"
-            ${
-                normalize(value) ===
-                normalize(selected)
-                    ? "selected"
-                    : ""
-            }
-        >
-
-            ${escapeHTML(value)}
-
-        </option>
-
-    `;
-
-}
-
-
-/* =========================================================
-   UPDATE SHIPMENT
-========================================================= */
-
-async function submitEditShipment(
-    event,
-    originalItem
-){
-
-    event.preventDefault();
-
-
-    const form =
-        event.currentTarget;
-
-
-    const data =
-        new FormData(
-            form
+    const tableBody =
+        document.querySelector(
+            "#shipmentTable"
         );
 
 
-    const id =
-        data.get(
-            "id"
-        );
+    if(!tableBody){
 
-
-    const payload = {
-
-        trackingNumber:
-            String(
-                data.get(
-                    "trackingNumber"
-                ) || ""
-            ).trim(),
-
-        senderName:
-            String(
-                data.get(
-                    "senderName"
-                ) || ""
-            ).trim(),
-
-        receiverName:
-            String(
-                data.get(
-                    "receiverName"
-                ) || ""
-            ).trim(),
-
-        origin:
-            String(
-                data.get(
-                    "origin"
-                ) || ""
-            ).trim(),
-
-        destination:
-            String(
-                data.get(
-                    "destination"
-                ) || ""
-            ).trim(),
-
-        shipmentType:
-            String(
-                data.get(
-                    "shipmentType"
-                ) || ""
-            ).trim(),
-
-        status:
-            String(
-                data.get(
-                    "status"
-                ) || "Pending"
-            ).trim(),
-
-        weight:
-            Number(
-                data.get(
-                    "weight"
-                )
-            ),
-
-        username:
-            String(
-                data.get(
-                    "username"
-                ) || ""
-            ).trim()
-
-    };
-
-
-    if(!id){
-
-        showToast(
-            "Update failed",
-            "Shipment ID not found.",
-            "error"
+        console.warn(
+            "Shipment table #shipmentTable not found."
         );
 
         return;
@@ -3598,546 +1719,480 @@ async function submitEditShipment(
 
 
     if(
-        !payload.trackingNumber ||
-        !payload.senderName ||
-        !payload.receiverName ||
-        !payload.origin ||
-        !payload.destination ||
-        !payload.shipmentType ||
-        !payload.username ||
-        Number.isNaN(
-            payload.weight
-        ) ||
-        payload.weight < 0
+        !Array.isArray(shipments) ||
+        shipments.length === 0
     ){
 
-        showToast(
-            "Validation error",
-            "Please enter valid shipment information.",
-            "error"
-        );
+        tableBody.innerHTML = `
 
-        return;
+            <tr>
 
-    }
-
-
-    try{
-
-        if(
-            state.demoMode
-        ){
-
-            const index =
-                state.shipments.findIndex(
-                    shipment =>
-                        String(
-                            shipment.id
-                        ) ===
-                        String(
-                            id
-                        )
-                );
-
-
-            if(
-                index === -1
-            ){
-
-                throw new Error(
-                    "Shipment not found."
-                );
-
-            }
-
-
-            state.shipments[
-                index
-            ] = {
-
-                ...state.shipments[
-                    index
-                ],
-
-                ...payload,
-
-                customerName:
-                    payload.username,
-
-                id:
-                    state.shipments[
-                        index
-                    ].id
-
-            };
-
-
-            closeModal();
-
-
-            refreshAfterMutation();
-
-
-            showPage(
-                "shipments"
-            );
-
-
-            showToast(
-                "Shipment updated",
-                `${payload.trackingNumber} updated locally.`,
-                "success"
-            );
-
-
-            return;
-
-        }
-
-
-        /*
-           Admin update endpoint
-        */
-
-        await api(
-
-            `/api/admin/shipments/${encodeURIComponent(id)}`,
-
-            {
-
-                method:
-                    "PUT",
-
-                body:
-                    JSON.stringify(
-                        payload
-                    )
-
-            }
-
-        );
-
-
-        closeModal();
-
-
-        await loadShipments();
-
-
-        showPage(
-            "shipments"
-        );
-
-
-        showToast(
-            "Shipment updated",
-            `${payload.trackingNumber} updated successfully.`,
-            "success"
-        );
-
-    }
-
-    catch(error){
-
-        showToast(
-            "Update failed",
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   DELETE SHIPMENT
-========================================================= */
-
-async function deleteShipment(
-    item
-){
-
-    const tracking =
-        item.trackingNumber ||
-        "this shipment";
-
-
-    const confirmed =
-        window.confirm(
-
-            `Delete shipment ${tracking}?\n\n` +
-
-            `This action will permanently remove the shipment record.`
-
-        );
-
-
-    if(!confirmed){
-
-        return;
-
-    }
-
-
-    try{
-
-        if(
-            state.demoMode
-        ){
-
-            state.shipments =
-                state.shipments.filter(
-                    shipment =>
-                        String(
-                            shipment.id
-                        ) !==
-                        String(
-                            item.id
-                        )
-                );
-
-
-            refreshAfterMutation();
-
-
-            showToast(
-                "Shipment deleted",
-                `${tracking} removed locally.`,
-                "success"
-            );
-
-
-            return;
-
-        }
-
-
-        await api(
-
-            `/api/admin/shipments/${encodeURIComponent(item.id)}`,
-
-            {
-
-                method:
-                    "DELETE"
-
-            }
-
-        );
-
-
-        await loadShipments();
-
-
-        showToast(
-            "Shipment deleted",
-            `${tracking} deleted successfully.`,
-            "success"
-        );
-
-    }
-
-    catch(error){
-
-        showToast(
-            "Delete failed",
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   LOCAL REFRESH
-========================================================= */
-
-function refreshAfterMutation(){
-
-    updateStats();
-
-    renderShipmentTable(
-        state.shipments
-    );
-
-    updateMapVehicleData();
-
-}
-
-
-/* =========================================================
-   STATUS UPDATE
-========================================================= */
-
-async function changeStatus(
-    item,
-    newStatus
-){
-
-    if(!item){
-        return;
-    }
-
-
-    try{
-
-        const updatedPayload = {
-
-            trackingNumber:
-                item.trackingNumber,
-
-            senderName:
-                item.senderName,
-
-            receiverName:
-                item.receiverName,
-
-            origin:
-                item.origin,
-
-            destination:
-                item.destination,
-
-            shipmentType:
-                item.shipmentType,
-
-            status:
-                newStatus,
-
-            weight:
-                Number(
-                    item.weight || 0
-                ),
-
-            username:
-                item.username ||
-                item.user?.username ||
-                item.customerName ||
-                ""
-
-        };
-
-
-        if(
-            state.demoMode
-        ){
-
-            item.status =
-                newStatus;
-
-
-            refreshAfterMutation();
-
-
-            showToast(
-                "Status updated",
-                `${item.trackingNumber} → ${newStatus}`,
-                "success"
-            );
-
-
-            return;
-
-        }
-
-
-        await api(
-
-            `/api/admin/shipments/${encodeURIComponent(item.id)}`,
-
-            {
-
-                method:
-                    "PUT",
-
-                body:
-                    JSON.stringify(
-                        updatedPayload
-                    )
-
-            }
-
-        );
-
-
-        await loadShipments();
-
-
-        showToast(
-            "Status updated",
-            `${item.trackingNumber} → ${newStatus}`,
-            "success"
-        );
-
-    }
-
-    catch(error){
-
-        showToast(
-            "Status update failed",
-            error.message,
-            "error"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   QUICK STATUS MODAL
-========================================================= */
-
-function openStatusModal(
-    item
-){
-
-    openModal(
-
-        "Update Shipment Status",
-
-        `
-
-            <div
-                style="
-                    display:grid;
-                    gap:15px;
-                "
-            >
-
-                <div>
-
-                    <span
-                        style="
-                            display:block;
-                            color:#7658b7;
-                            font-size:7px;
-                            font-weight:950;
-                        "
-                    >
-                        TRACKING
-                    </span>
-
-
-                    <strong
-                        style="
-                            display:block;
-                            margin-top:6px;
-                            color:#18263a;
-                            font-size:24px;
-                        "
-                    >
-
-                        ${escapeHTML(
-                            item.trackingNumber
-                        )}
-
-                    </strong>
-
-                </div>
-
-
-                <label>
-
-                    <span class="form-label">
-                        SELECT STATUS
-                    </span>
-
-                    <select
-                        id="quickStatusValue"
-                        class="form-control"
-                    >
-
-                        ${statusOption(
-                            "Pending",
-                            item.status
-                        )}
-
-                        ${statusOption(
-                            "In Transit",
-                            item.status
-                        )}
-
-                        ${statusOption(
-                            "Out for Delivery",
-                            item.status
-                        )}
-
-                        ${statusOption(
-                            "Delivered",
-                            item.status
-                        )}
-
-                    </select>
-
-                </label>
-
-
-                <div
-                    style="
-                        display:flex;
-                        justify-content:flex-end;
-                        gap:8px;
-                        padding-top:14px;
-                        border-top:1px solid #e6ebf0;
-                    "
+                <td
+                    colspan="10"
+                    style="text-align:center;"
                 >
 
-                    <button
-                        class="outline-btn"
-                        id="quickStatusCancel"
-                    >
-                        Cancel
-                    </button>
+                    No shipments found.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
 
 
-                    <button
-                        class="primary-btn"
-                        id="quickStatusSave"
-                    >
-                        Update Status
-                    </button>
+    tableBody.innerHTML =
+        shipments
+            .map(
+                shipment => {
 
-                </div>
-
-            </div>
-
-        `
-
-    );
+                    const id =
+                        escapeHtml(
+                            shipment.id ??
+                            ""
+                        );
 
 
-    $("quickStatusCancel")
-        ?.addEventListener(
-            "click",
-            closeModal
+                    const tracking =
+                        escapeHtml(
+                            shipment.trackingNumber ||
+                            "-"
+                        );
+
+
+                    const sender =
+                        escapeHtml(
+                            shipment.senderName ||
+                            "-"
+                        );
+
+
+                    const receiver =
+                        escapeHtml(
+                            shipment.receiverName ||
+                            "-"
+                        );
+
+
+                    const origin =
+                        escapeHtml(
+                            shipment.origin ||
+                            "-"
+                        );
+
+
+                    const destination =
+                        escapeHtml(
+                            shipment.destination ||
+                            "-"
+                        );
+
+
+                    const type =
+                        escapeHtml(
+                            shipment.shipmentType ||
+                            "-"
+                        );
+
+
+                    const status =
+                        escapeHtml(
+                            shipment.status ||
+                            "Pending"
+                        );
+
+
+                    const weight =
+                        shipment.weight ??
+                        "-";
+
+
+                    const username =
+                        escapeHtml(
+                            shipment.username ||
+                            shipment.user?.username ||
+                            "-"
+                        );
+
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                ${tracking}
+                            </td>
+
+                            <td>
+                                ${sender}
+                            </td>
+
+                            <td>
+                                ${receiver}
+                            </td>
+
+                            <td>
+                                ${origin}
+                            </td>
+
+                            <td>
+                                ${destination}
+                            </td>
+
+                            <td>
+                                ${type}
+                            </td>
+
+                            <td>
+                                ${weight} kg
+                            </td>
+
+                            <td>
+                                <span
+                                    class="status-badge"
+                                >
+                                    ${status}
+                                </span>
+                            </td>
+
+                            <td>
+                                ${username}
+                            </td>
+
+                            <td>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary"
+                                    data-view-shipment="${id}"
+                                >
+                                    View
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+
+    tableBody
+        .querySelectorAll(
+            "[data-view-shipment]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        viewShipment(
+                            button.dataset
+                                .viewShipment
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* ==========================================================
+   VIEW SHIPMENT
+========================================================== */
+
+async function viewShipment(
+    shipmentId
+){
+
+    if(!shipmentId){
+
+        return;
+
+    }
+
+
+    try{
+
+        /*
+         * ADMIN endpoint.
+         * Do NOT use public tracking endpoint here.
+         */
+
+        const shipment =
+            await api(
+                `/api/admin/shipments/${encodeURIComponent(
+                    shipmentId
+                )}`
+            );
+
+
+        state.selectedShipment =
+            shipment;
+
+
+        openShipmentDetails(
+            shipment
+        );
+
+    }
+    catch(error){
+
+        showToast(
+            "Shipment details failed",
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   SHIPMENT DETAILS MODAL
+========================================================== */
+
+function openShipmentDetails(
+    shipment
+){
+
+    const modal =
+        document.getElementById(
+            "adminModal"
         );
 
 
-    $("quickStatusSave")
-        ?.addEventListener(
+    const title =
+        document.getElementById(
+            "modalTitle"
+        );
+
+
+    const content =
+        document.getElementById(
+            "modalContent"
+        );
+
+
+    if(
+        !modal ||
+        !content
+    ){
+
+        return;
+
+    }
+
+
+    if(title){
+
+        title.textContent =
+            `Shipment ${shipment.trackingNumber || ""}`;
+
+    }
+
+
+    content.innerHTML = `
+
+        <div class="shipment-detail-grid">
+
+            <div>
+                <span>Tracking</span>
+                <strong>
+                    ${escapeHtml(
+                        shipment.trackingNumber
+                    )}
+                </strong>
+            </div>
+
+            <div>
+                <span>Status</span>
+                <strong>
+                    ${escapeHtml(
+                        shipment.status
+                    )}
+                </strong>
+            </div>
+
+            <div>
+                <span>Sender</span>
+                <strong>
+                    ${escapeHtml(
+                        shipment.senderName
+                    )}
+                </strong>
+            </div>
+
+            <div>
+                <span>Receiver</span>
+                <strong>
+                    ${escapeHtml(
+                        shipment.receiverName
+                    )}
+                </strong>
+            </div>
+
+            <div>
+                <span>Origin</span>
+                <strong>
+                    ${escapeHtml(
+                        shipment.origin
+                    )}
+                </strong>
+            </div>
+
+            <div>
+                <span>Destination</span>
+                <strong>
+                    ${escapeHtml(
+                        shipment.destination
+                    )}
+                </strong>
+            </div>
+
+            <div>
+                <span>Type</span>
+                <strong>
+                    ${escapeHtml(
+                        shipment.shipmentType
+                    )}
+                </strong>
+            </div>
+
+            <div>
+                <span>Weight</span>
+                <strong>
+                    ${shipment.weight ?? "-"} kg
+                </strong>
+            </div>
+
+            <div>
+                <span>Customer</span>
+                <strong>
+                    ${escapeHtml(
+                        shipment.username ||
+                        shipment.user?.username ||
+                        "-"
+                    )}
+                </strong>
+            </div>
+
+        </div>
+
+    `;
+
+
+    modal.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* ==========================================================
+   MODAL
+========================================================== */
+
+function setupModal(){
+
+    const modal =
+        document.getElementById(
+            "adminModal"
+        );
+
+
+    const close =
+        document.getElementById(
+            "adminModalClose"
+        );
+
+
+    if(close){
+
+        close.addEventListener(
             "click",
-            async () => {
+            () => {
 
-                const value =
-                    $("quickStatusValue")
-                        ?.value;
+                modal?.classList.add(
+                    "hidden"
+                );
+
+            }
+        );
+
+    }
 
 
-                if(!value){
+    if(modal){
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if(
+                    event.target ===
+                    modal
+                ){
+
+                    modal.classList.add(
+                        "hidden"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   CREATE SHIPMENT BUTTON
+========================================================== */
+
+function setupCreateShipment(){
+
+    document
+        .querySelectorAll(
+            "#createShipmentBtn, [data-admin-action='createShipment'], [data-action='create-shipment']"
+        )
+        .forEach(
+            button => {
+
+                if(
+                    button.dataset
+                        .createBound ===
+                    "true"
+                ){
+
                     return;
+
                 }
 
 
-                closeModal();
+                button.dataset
+                    .createBound =
+                    "true";
 
 
-                await changeStatus(
-                    item,
-                    value
+                button.addEventListener(
+                    "click",
+                    openCreateShipmentModal
                 );
 
             }
@@ -4146,32 +2201,85 @@ function openStatusModal(
 }
 
 
-/* =========================================================
-   EXCEPTION
-========================================================= */
+/* ==========================================================
+   REFRESH
+========================================================== */
 
-function setupExceptions(){
+function setupRefresh(){
 
-    document.addEventListener(
-        "click",
-        event => {
+    const buttons = [
 
-            const target =
-                event.target.closest(
-                    "[data-exception]"
-                );
+        document.getElementById(
+            "adminRefresh"
+        ),
+
+        document.getElementById(
+            "towerRefreshBtn"
+        )
+
+    ].filter(Boolean);
 
 
-            if(!target){
+    buttons.forEach(
+        button => {
+
+            if(
+                button.dataset
+                    .refreshBound ===
+                "true"
+            ){
+
                 return;
+
             }
 
 
-            event.preventDefault();
+            button.dataset
+                .refreshBound =
+                "true";
 
 
-            openExceptionModal(
-                target.dataset.exception
+            button.addEventListener(
+                "click",
+                async () => {
+
+                    button.disabled =
+                        true;
+
+
+                    try{
+
+                        await loadCustomers();
+
+                        await loadShipments();
+
+                        refreshMaps();
+
+
+                        showToast(
+                            "Dashboard refreshed",
+                            "Latest operational data loaded.",
+                            "success"
+                        );
+
+                    }
+                    catch(error){
+
+                        showToast(
+                            "Refresh failed",
+                            error.message,
+                            "error"
+                        );
+
+                    }
+                    finally{
+
+                        button.disabled =
+                            false;
+
+                    }
+
+                }
             );
 
         }
@@ -4180,252 +2288,320 @@ function setupExceptions(){
 }
 
 
-function openExceptionModal(
-    vehicle
-){
+/* ==========================================================
+   SHIPMENT SEARCH + FILTER
+========================================================== */
 
-    const data = {
+function setupShipmentFilters(){
 
-        "MH15-MT-1198":{
-
-            priority:
-                "P1 · CRITICAL",
-
-            title:
-                "Vehicle service required",
-
-            health:
-                "64%",
-
-            fuel:
-                "41%",
-
-            driver:
-                "Kiran Jadhav",
-
-            route:
-                "Jalgaon → Pune"
-
-        },
-
-        "MH46-CT-7823":{
-
-            priority:
-                "P2 · HIGH",
-
-            title:
-                "Fuel watch triggered",
-
-            health:
-                "91%",
-
-            fuel:
-                "71%",
-
-            driver:
-                "Suresh More",
-
-            route:
-                "Nagpur → Delhi"
-
-        }
-
-    };
+    const search =
+        document.getElementById(
+            "shipmentSearch"
+        );
 
 
-    const item =
-        data[
-            vehicle
-        ] ||
-        {
+    const filter =
+        document.getElementById(
+            "shipmentStatusFilter"
+        );
 
-            priority:
-                "ACTION REQUIRED",
 
-            title:
-                "Operational issue",
+    const render =
+        () => {
 
-            health:
-                "-",
+            let result =
+                [...state.shipments];
 
-            fuel:
-                "-",
 
-            driver:
-                "-",
+            const searchValue =
+                String(
+                    search?.value ||
+                    ""
+                )
+                .trim()
+                .toLowerCase();
 
-            route:
-                "-"
+
+            const statusValue =
+                String(
+                    filter?.value ||
+                    ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            if(searchValue){
+
+                result =
+                    result.filter(
+                        shipment => {
+
+                            const text =
+                                [
+
+                                    shipment.trackingNumber,
+
+                                    shipment.senderName,
+
+                                    shipment.receiverName,
+
+                                    shipment.origin,
+
+                                    shipment.destination,
+
+                                    shipment.username,
+
+                                    shipment.user?.username
+
+                                ]
+                                .filter(Boolean)
+                                .join(" ")
+                                .toLowerCase();
+
+
+                            return text.includes(
+                                searchValue
+                            );
+
+                        }
+                    );
+
+            }
+
+
+            if(
+                statusValue &&
+                statusValue !== "all"
+            ){
+
+                result =
+                    result.filter(
+                        shipment =>
+                            String(
+                                shipment.status ||
+                                ""
+                            )
+                            .toLowerCase() ===
+                            statusValue
+                    );
+
+            }
+
+
+            renderShipmentTable(
+                result
+            );
 
         };
 
 
-    openModal(
-
-        "Operational Exception",
-
-        `
-
-            <div
-                style="
-                    display:grid;
-                    gap:14px;
-                "
-            >
-
-                <strong
-                    style="
-                        color:#dc5061;
-                        font-size:11px;
-                    "
-                >
-
-                    ${escapeHTML(
-                        item.priority
-                    )}
-
-                </strong>
-
-
-                <h3
-                    style="
-                        margin:0;
-                        color:#1d2b3f;
-                        font-size:27px;
-                    "
-                >
-
-                    ${escapeHTML(
-                        vehicle
-                    )}
-
-                </h3>
-
-
-                <p
-                    style="
-                        margin:0;
-                        color:#707c8f;
-                        font-size:10px;
-                    "
-                >
-
-                    ${escapeHTML(
-                        item.title
-                    )}
-
-                </p>
-
-
-                <div
-                    style="
-                        display:grid;
-                        grid-template-columns:
-                            1fr 1fr;
-                        gap:8px;
-                    "
-                >
-
-                    ${infoBox(
-                        "HEALTH",
-                        item.health
-                    )}
-
-                    ${infoBox(
-                        "FUEL",
-                        item.fuel
-                    )}
-
-                    ${infoBox(
-                        "DRIVER",
-                        item.driver
-                    )}
-
-                    ${infoBox(
-                        "ROUTE",
-                        item.route
-                    )}
-
-                </div>
-
-
-                <div
-                    style="
-                        display:flex;
-                        justify-content:flex-end;
-                        gap:7px;
-                    "
-                >
-
-                    <button
-                        class="outline-btn"
-                        id="exceptionFleetBtn"
-                    >
-                        Open Fleet
-                    </button>
-
-
-                    <button
-                        class="primary-btn"
-                        id="resolveExceptionBtn"
-                    >
-                        Resolve
-                    </button>
-
-                </div>
-
-            </div>
-
-        `
-
+    search?.addEventListener(
+        "input",
+        render
     );
 
 
-    $("exceptionFleetBtn")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                closeModal();
-
-                showPage(
-                    "fleet"
-                );
-
-            }
-        );
-
-
-    $("resolveExceptionBtn")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                closeModal();
-
-                showToast(
-                    "Resolution queued",
-                    `${vehicle} moved to operations queue.`,
-                    "success"
-                );
-
-            }
-        );
+    filter?.addEventListener(
+        "change",
+        render
+    );
 
 }
 
 
-/* =========================================================
+/* ==========================================================
+   EXPORT SHIPMENTS
+========================================================== */
+
+function setupExport(){
+
+    const button =
+        document.getElementById(
+            "exportShipments"
+        );
+
+
+    if(!button){
+
+        return;
+
+    }
+
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            if(
+                !state.shipments.length
+            ){
+
+                showToast(
+                    "Nothing to export",
+                    "No shipments available.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const headers = [
+
+                "Tracking Number",
+
+                "Sender",
+
+                "Receiver",
+
+                "Origin",
+
+                "Destination",
+
+                "Type",
+
+                "Weight",
+
+                "Status",
+
+                "Customer"
+
+            ];
+
+
+            const rows =
+                state.shipments.map(
+                    shipment => [
+
+                        shipment.trackingNumber,
+
+                        shipment.senderName,
+
+                        shipment.receiverName,
+
+                        shipment.origin,
+
+                        shipment.destination,
+
+                        shipment.shipmentType,
+
+                        shipment.weight,
+
+                        shipment.status,
+
+                        shipment.username ||
+                        shipment.user?.username ||
+                        ""
+
+                    ]
+                );
+
+
+            const csv = [
+
+                headers,
+
+                ...rows
+
+            ]
+            .map(
+                row =>
+                    row
+                        .map(
+                            value =>
+                                `"${String(
+                                    value ??
+                                    ""
+                                ).replaceAll(
+                                    '"',
+                                    '""'
+                                )}"`
+                        )
+                        .join(",")
+            )
+            .join("\n");
+
+
+            const blob =
+                new Blob(
+                    [csv],
+                    {
+                        type:
+                            "text/csv;charset=utf-8;"
+                    }
+                );
+
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+
+            link.href =
+                url;
+
+
+            link.download =
+                `translogix-shipments-${Date.now()}.csv`;
+
+
+            document.body.appendChild(
+                link
+            );
+
+
+            link.click();
+
+
+            link.remove();
+
+
+            URL.revokeObjectURL(
+                url
+            );
+
+
+            showToast(
+                "Export completed",
+                "Shipment CSV downloaded.",
+                "success"
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
    GLOBAL SEARCH
-========================================================= */
+========================================================== */
 
 function setupGlobalSearch(){
 
     const input =
-        $("adminGlobalSearch");
+        document.getElementById(
+            "adminGlobalSearch"
+        );
 
 
-    input?.addEventListener(
+    if(!input){
+
+        return;
+
+    }
+
+
+    input.addEventListener(
         "keydown",
         event => {
 
@@ -4440,71 +2616,81 @@ function setupGlobalSearch(){
 
 
             const query =
-                normalize(
-                    input.value
-                );
+                input.value
+                    .trim()
+                    .toLowerCase();
 
 
             if(!query){
+
                 return;
+
             }
 
 
-            const item =
+            const shipment =
                 state.shipments.find(
+                    item => {
 
-                    shipment => {
-
-                        const searchable = [
-
-                            shipment.trackingNumber,
-
-                            shipment.origin,
-
-                            shipment.destination,
-
-                            shipment.senderName,
-
-                            shipment.receiverName,
-
-                            shipment.customerName,
-
-                            shipment.username,
-
-                            shipment.user?.username,
-
-                            shipment.shipmentType,
-
-                            shipment.status
-
-                        ]
-                            .join(" ")
+                        const tracking =
+                            String(
+                                item.trackingNumber ||
+                                ""
+                            )
                             .toLowerCase();
 
 
-                        return searchable.includes(
-                            query
-                        );
+                        return tracking ===
+                            query;
 
                     }
-
                 );
 
 
-            if(item){
+            if(shipment){
 
-                openShipmentModal(
-                    item
+                showPage(
+                    "shipments"
                 );
+
+
+                setTimeout(
+                    () => {
+
+                        viewShipment(
+                            shipment.id
+                        );
+
+                    },
+                    100
+                );
+
+
+                return;
 
             }
 
-            else{
 
-                showToast(
-                    "No result",
-                    "No matching shipment found.",
-                    "error"
+            showPage(
+                "shipments"
+            );
+
+
+            const shipmentSearch =
+                document.getElementById(
+                    "shipmentSearch"
+                );
+
+
+            if(shipmentSearch){
+
+                shipmentSearch.value =
+                    input.value;
+
+                shipmentSearch.dispatchEvent(
+                    new Event(
+                        "input"
+                    )
                 );
 
             }
@@ -4512,31 +2698,374 @@ function setupGlobalSearch(){
         }
     );
 
+}
 
-    document.addEventListener(
-        "keydown",
-        event => {
+
+/* ==========================================================
+   LOGOUT
+========================================================== */
+
+function setupLogout(){
+
+    const logout =
+        document.getElementById(
+            "adminLogout"
+        );
+
+
+    if(!logout){
+
+        return;
+
+    }
+
+
+    logout.addEventListener(
+        "click",
+        () => {
+
+            localStorage.removeItem(
+                "token"
+            );
+
+            localStorage.removeItem(
+                "jwt"
+            );
+
+            localStorage.removeItem(
+                "accessToken"
+            );
+
+
+            window.location.href =
+                "./login.html";
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
+   MOBILE MENU
+========================================================== */
+
+function setupMobileMenu(){
+
+    const sidebar =
+        document.getElementById(
+            "adminSidebar"
+        );
+
+
+    const menu =
+        document.getElementById(
+            "adminMenu"
+        );
+
+
+    if(
+        !sidebar ||
+        !menu
+    ){
+
+        return;
+
+    }
+
+
+    menu.addEventListener(
+        "click",
+        () => {
+
+            sidebar.classList.toggle(
+                "open"
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
+   MAP
+========================================================== */
+
+function initDashboardMap(){
+
+    const mapElement =
+        document.getElementById(
+            "networkMap"
+        );
+
+
+    if(
+        !mapElement ||
+        typeof L ===
+        "undefined"
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        state.maps.network
+    ){
+
+        setTimeout(
+            () => {
+
+                state.maps.network.invalidateSize();
+
+            },
+            150
+        );
+
+        return;
+
+    }
+
+
+    state.maps.network =
+        L.map(
+            mapElement,
+            {
+                zoomControl:
+                    true
+            }
+        )
+        .setView(
+            [19.0760, 72.8777],
+            6
+        );
+
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+
+            maxZoom:
+                19,
+
+            attribution:
+                "&copy; OpenStreetMap contributors"
+
+        }
+    )
+    .addTo(
+        state.maps.network
+    );
+
+
+    const hubs = [
+
+        {
+            name:
+                "Pune Hub",
+
+            coords:
+                [18.5204, 73.8567]
+
+        },
+
+        {
+            name:
+                "Mumbai Hub",
+
+            coords:
+                [19.0760, 72.8777]
+
+        },
+
+        {
+            name:
+                "Delhi Hub",
+
+            coords:
+                [28.6139, 77.2090]
+
+        },
+
+        {
+            name:
+                "Nashik Hub",
+
+            coords:
+                [20.0059, 73.7897]
+
+        }
+
+    ];
+
+
+    hubs.forEach(
+        hub => {
+
+            L.marker(
+                hub.coords
+            )
+            .addTo(
+                state.maps.network
+            )
+            .bindPopup(
+                `<strong>${escapeHtml(
+                    hub.name
+                )}</strong>`
+            );
+
+        }
+    );
+
+
+    refreshShipmentMapMarkers();
+
+}
+
+
+/* ==========================================================
+   SHIPMENT MAP MARKERS
+========================================================== */
+
+function refreshShipmentMapMarkers(){
+
+    const map =
+        state.maps.network;
+
+
+    if(!map){
+
+        return;
+
+    }
+
+
+    if(
+        state.maps.shipmentLayer
+    ){
+
+        state.maps.shipmentLayer.clearLayers();
+
+    }
+    else{
+
+        state.maps.shipmentLayer =
+            L.layerGroup()
+                .addTo(map);
+
+    }
+
+
+    const routeMap = {
+
+        "pune":
+            [18.5204, 73.8567],
+
+        "mumbai":
+            [19.0760, 72.8777],
+
+        "delhi":
+            [28.6139, 77.2090],
+
+        "nashik":
+            [20.0059, 73.7897],
+
+        "bangalore":
+            [12.9716, 77.5946],
+
+        "hyderabad":
+            [17.3850, 78.4867],
+
+        "nagpur":
+            [21.1458, 79.0882]
+
+    };
+
+
+    state.shipments.forEach(
+        shipment => {
+
+            const destination =
+                String(
+                    shipment.destination ||
+                    ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            const origin =
+                String(
+                    shipment.origin ||
+                    ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            const destinationPoint =
+                routeMap[destination];
+
+
+            const originPoint =
+                routeMap[origin];
+
 
             if(
-
-                (
-                    event.ctrlKey ||
-                    event.metaKey
-                )
-
-                &&
-
-                event.key.toLowerCase() ===
-                "k"
-
+                !originPoint ||
+                !destinationPoint
             ){
 
-                event.preventDefault();
-
-
-                input?.focus();
+                return;
 
             }
+
+
+            const line =
+                L.polyline(
+                    [
+                        originPoint,
+                        destinationPoint
+                    ],
+                    {
+                        weight:
+                            3,
+
+                        opacity:
+                            0.7
+                    }
+                );
+
+
+            line.bindPopup(
+                `
+                    <strong>
+                        ${escapeHtml(
+                            shipment.trackingNumber
+                        )}
+                    </strong>
+                    <br>
+                    ${escapeHtml(
+                        shipment.origin
+                    )}
+                    →
+                    ${escapeHtml(
+                        shipment.destination
+                    )}
+                    <br>
+                    Status:
+                    ${escapeHtml(
+                        shipment.status
+                    )}
+                `
+            );
+
+
+            line.addTo(
+                state.maps.shipmentLayer
+            );
 
         }
     );
@@ -4544,789 +3073,165 @@ function setupGlobalSearch(){
 }
 
 
-/* =========================================================
-   REFRESH
-========================================================= */
+/* ==========================================================
+   REFRESH MAPS
+========================================================== */
 
-function setupRefresh(){
+function refreshMaps(){
 
-    $("adminRefresh")
-        ?.addEventListener(
-            "click",
-            async () => {
+    if(
+        state.maps.network
+    ){
 
-                try{
+        state.maps.network.invalidateSize();
 
-                    await loadShipments();
+        refreshShipmentMapMarkers();
 
+    }
+    else{
 
-                    showToast(
-                        "Network refreshed",
-                        "Latest shipment data loaded.",
-                        "success"
-                    );
+        initDashboardMap();
 
-                }
-
-                catch(error){
-
-                    showToast(
-                        "Refresh failed",
-                        error.message,
-                        "error"
-                    );
-
-                }
-
-            }
-        );
+    }
 
 }
 
 
-/* =========================================================
-   NOTIFICATIONS
-========================================================= */
+/* ==========================================================
+   SIMPLE ACTION HANDLER
+========================================================== */
 
-function setupNotification(){
+function setupActions(){
 
-    $("adminNotification")
-        ?.addEventListener(
+    document
+        .addEventListener(
             "click",
-            () => {
+            event => {
 
-                openModal(
-
-                    "Operational Alerts",
-
-                    `
-
-                        <div
-                            style="
-                                display:grid;
-                                gap:8px;
-                            "
-                        >
-
-                            ${infoBox(
-                                "P1",
-                                "MH15-MT-1198 service required"
-                            )}
-
-                            ${infoBox(
-                                "P2",
-                                "MH46-CT-7823 fuel watch"
-                            )}
-
-                            ${infoBox(
-                                "SLA",
-                                "3 shipments approaching threshold"
-                            )}
-
-                        </div>
-
-                    `
-
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   CSV EXPORT
-========================================================= */
-
-function setupExport(){
-
-    $("exportShipments")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                if(
-                    !state.shipments.length
-                ){
-
-                    showToast(
-                        "Nothing to export",
-                        "No shipment data available.",
-                        "error"
+                const actionElement =
+                    event.target.closest(
+                        "[data-action]"
                     );
+
+
+                if(!actionElement){
 
                     return;
 
                 }
 
 
-                const headers = [
+                const action =
+                    actionElement.dataset
+                        .action;
 
-                    "Tracking",
-                    "Origin",
-                    "Destination",
-                    "Customer",
-                    "Type",
-                    "Status",
-                    "Weight"
-
-                ];
-
-
-                const rows =
-                    state.shipments.map(
-                        item => {
-
-                            const customer =
-                                getShipmentCustomer(
-                                    item
-                                );
-
-
-                            return [
-
-                                item.trackingNumber,
-                                item.origin,
-                                item.destination,
-                                customer,
-                                item.shipmentType,
-                                item.status,
-                                item.weight
-
-                            ]
-                                .map(
-                                    value =>
-                                        `"${String(
-                                            value ?? ""
-                                        )
-                                            .replaceAll(
-                                                '"',
-                                                '""'
-                                            )}"`
-                                )
-                                .join(",");
-
-                        }
-                    );
-
-
-                const csv =
-                    [
-
-                        headers.join(","),
-
-                        ...rows
-
-                    ].join("\n");
-
-
-                const blob =
-                    new Blob(
-
-                        [csv],
-
-                        {
-                            type:
-                                "text/csv;charset=utf-8;"
-                        }
-
-                    );
-
-
-                const url =
-                    URL.createObjectURL(
-                        blob
-                    );
-
-
-                const link =
-                    document.createElement(
-                        "a"
-                    );
-
-
-                link.href =
-                    url;
-
-
-                link.download =
-                    "translogix-shipments.csv";
-
-
-                document.body.appendChild(
-                    link
-                );
-
-
-                link.click();
-
-
-                link.remove();
-
-
-                URL.revokeObjectURL(
-                    url
-                );
-
-
-                showToast(
-                    "CSV exported",
-                    "Shipment report created successfully.",
-                    "success"
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   REPORT
-========================================================= */
-
-function setupReportButton(){
-
-    $("reportShipmentBtn")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                const headers = [
-
-                    "Tracking",
-                    "Origin",
-                    "Destination",
-                    "Customer",
-                    "Status",
-                    "Weight"
-
-                ];
-
-
-                const rows =
-                    state.shipments.map(
-                        item => [
-
-                            item.trackingNumber,
-                            item.origin,
-                            item.destination,
-                            getShipmentCustomer(
-                                item
-                            ),
-                            item.status,
-                            item.weight
-
-                        ]
-                    );
-
-
-                const csv = [
-
-                    headers.join(","),
-
-                    ...rows.map(
-                        row =>
-                            row
-                                .map(
-                                    value =>
-                                        `"${String(
-                                            value ?? ""
-                                        )
-                                            .replaceAll(
-                                                '"',
-                                                '""'
-                                            )}"`
-                                )
-                                .join(",")
-                    )
-
-                ].join("\n");
-
-
-                const blob =
-                    new Blob(
-                        [csv],
-                        {
-                            type:
-                                "text/csv;charset=utf-8;"
-                        }
-                    );
-
-
-                const url =
-                    URL.createObjectURL(
-                        blob
-                    );
-
-
-                const link =
-                    document.createElement(
-                        "a"
-                    );
-
-
-                link.href =
-                    url;
-
-
-                link.download =
-                    "translogix-operational-report.csv";
-
-
-                document.body.appendChild(
-                    link
-                );
-
-
-                link.click();
-
-
-                link.remove();
-
-
-                URL.revokeObjectURL(
-                    url
-                );
-
-
-                showToast(
-                    "Report generated",
-                    "Operational shipment report downloaded.",
-                    "success"
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   QUICK ACTIONS
-========================================================= */
-
-function setupActions(){
-
-    document.addEventListener(
-        "click",
-        event => {
-
-            const button =
-                event.target.closest(
-                    "[data-action]"
-                );
-
-
-            if(!button){
-                return;
-            }
-
-
-            const action =
-                button.dataset.action;
-
-
-            const messages = {
-
-                track:[
-                    "Live tracking",
-                    "Vehicle tracking workspace opened."
-                ],
-
-                contact:[
-                    "Contact dispatcher",
-                    "Dispatcher contact workflow opened."
-                ],
-
-                reassign:[
-                    "Reassignment",
-                    "Vehicle reassignment workflow opened."
-                ],
-
-                details:[
-                    "Telemetry details",
-                    "Detailed telemetry workspace opened."
-                ],
-
-                "configure-alerts":[
-                    "Alert rules",
-                    "Alert configuration workspace opened."
-                ],
-
-                maintenance:[
-                    "Maintenance",
-                    "Maintenance schedule opened."
-                ],
-
-                "generate-report":[
-                    "Report started",
-                    "Operational report generation started."
-                ],
-
-                assignment:[
-                    "Assignment queue",
-                    "Assignment control opened."
-                ]
-
-            };
-
-
-            if(
-                action ===
-                "assignment"
-            ){
-
-                showPage(
-                    "assignments"
-                );
-
-            }
-
-
-            const result =
-                messages[action];
-
-
-            if(result){
-
-                showToast(
-                    result[0],
-                    result[1],
-                    "success"
-                );
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-function setupMobileMenu(){
-
-    $("adminMenu")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                $("adminSidebar")
-                    ?.classList.toggle(
-                        "open"
-                    );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   MODAL
-========================================================= */
-
-function openModal(
-    title,
-    content
-){
-
-    text(
-        "modalTitle",
-        title
-    );
-
-
-    const body =
-        $("modalContent");
-
-
-    if(body){
-
-        body.innerHTML =
-            content;
-
-    }
-
-
-    $("adminModal")
-        ?.classList.remove(
-            "hidden"
-        );
-
-}
-
-
-function closeModal(){
-
-    $("adminModal")
-        ?.classList.add(
-            "hidden"
-        );
-
-}
-
-
-function setupModal(){
-
-    $("adminModalClose")
-        ?.addEventListener(
-            "click",
-            closeModal
-        );
-
-
-    $("adminModal")
-        ?.addEventListener(
-            "click",
-            event => {
 
                 if(
-                    event.target ===
-                    event.currentTarget
+                    action ===
+                    "create-shipment"
                 ){
 
-                    closeModal();
+                    openCreateShipmentModal();
+
+                }
+
+
+                if(
+                    action ===
+                    "dashboard"
+                ){
+
+                    showPage(
+                        "dashboard"
+                    );
 
                 }
 
             }
         );
 
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if(
-                event.key ===
-                "Escape"
-            ){
-
-                closeModal();
-
-            }
-
-        }
-    );
-
 }
 
 
-/* =========================================================
-   LOGOUT
-========================================================= */
-
-function setupLogout(){
-
-    $("adminLogout")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                localStorage.clear();
-
-                window.location.href =
-                    "./login.html";
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   ADD VEHICLE
-========================================================= */
-
-function setupAddVehicle(){
-
-    $("addVehicleBtn")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                openModal(
-
-                    "Add Vehicle",
-
-                    `
-
-                        <div
-                            style="
-                                display:grid;
-                                gap:10px;
-                            "
-                        >
-
-                            ${infoBox(
-                                "VEHICLE TYPE",
-                                "Heavy Transit Truck"
-                            )}
-
-                            ${infoBox(
-                                "READY QUEUE",
-                                "03 vehicles"
-                            )}
-
-                            <button
-                                class="primary-btn"
-                                id="registerVehicle"
-                            >
-
-                                Open Vehicle Registration
-
-                            </button>
-
-                        </div>
-
-                    `
-
-                );
-
-
-                $("registerVehicle")
-                    ?.addEventListener(
-                        "click",
-                        () => {
-
-                            closeModal();
-
-
-                            showToast(
-                                "Vehicle registration",
-                                "Vehicle registration workspace opened.",
-                                "success"
-                            );
-
-                        }
-                    );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-function showToast(
-    title,
-    message,
-    type = "success"
-){
-
-    document
-        .querySelectorAll(
-            ".tx-admin-toast"
-        )
-        .forEach(
-            item =>
-                item.remove()
-        );
-
-
-    const toast =
-        document.createElement(
-            "div"
-        );
-
-
-    toast.className =
-        `tx-admin-toast ${type}`;
-
-
-    toast.innerHTML = `
-
-        <strong>
-            ${escapeHTML(title)}
-        </strong>
-
-        <span>
-            ${escapeHTML(message)}
-        </span>
-
-    `;
-
-
-    document.body.appendChild(
-        toast
-    );
-
-
-    setTimeout(
-        () => {
-
-            toast.remove();
-
-        },
-        3200
-    );
-
-}
-
-
-/* =========================================================
-   INITIALIZATION
-========================================================= */
+/* ==========================================================
+   INIT
+========================================================== */
 
 async function initAdmin(){
 
-    setupNavigation();
+    try{
 
-    setupShipmentTable();
+        setupNavigation();
 
-    setupShipmentFilters();
+        setupActions();
 
-    setupCreateShipment();
+        setupCreateShipment();
 
-    setupExceptions();
+        setupRefresh();
 
-    setupGlobalSearch();
+        setupShipmentFilters();
 
-    setupRefresh();
+        setupGlobalSearch();
 
-    setupNotification();
+        setupExport();
 
-    setupExport();
+        setupLogout();
 
-    setupReportButton();
+        setupMobileMenu();
 
-    setupActions();
-
-    setupMobileMenu();
-
-    setupModal();
-
-    setupLogout();
-
-    setupAddVehicle();
+        setupModal();
 
 
-    showPage(
-        "dashboard"
-    );
+        showPage(
+            "dashboard"
+        );
 
 
-    await loadShipments();
+        await loadCustomers();
+
+        await loadShipments();
 
 
-    initDashboardMap();
+        initDashboardMap();
+
+        updateControlTower();
 
 
-    console.log(
-        "TRANSLOGIX ADMIN CONTROL TOWER READY"
-    );
+        /*
+         * Copilot uses window.state.
+         */
+
+        window.state =
+            state;
+
+
+        console.log(
+            "TRANSLOGIX ADMIN CONTROL TOWER READY"
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "TRANSLOGIX ADMIN INITIALIZATION ERROR:",
+            error
+        );
+
+
+        showToast(
+            "Admin initialization failed",
+            error.message,
+            "error"
+        );
+
+    }
 
 }
 
+
+/* ==========================================================
+   START
+========================================================== */
 
 if(
     document.readyState ===
@@ -5344,3 +3249,32 @@ else{
     initAdmin();
 
 }
+
+
+/* ==========================================================
+   GLOBAL ACCESS
+========================================================== */
+
+window.state =
+    state;
+
+window.showPage =
+    showPage;
+
+window.loadShipments =
+    loadShipments;
+
+window.loadCustomers =
+    loadCustomers;
+
+window.viewShipment =
+    viewShipment;
+
+window.openCreateShipmentModal =
+    openCreateShipmentModal;
+
+window.refreshMaps =
+    refreshMaps;
+
+window.updateControlTower =
+    updateControlTower;
