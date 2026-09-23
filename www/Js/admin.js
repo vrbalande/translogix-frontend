@@ -3520,26 +3520,109 @@ else {
 
 }
 
-
 /* ==========================================================
-   GLOBAL ACCESS
-   Useful for inline HTML actions.
+   INITIALIZE ADMIN
 ========================================================== */
 
-window.showPage =
-    showPage;
+async function initAdmin() {
 
-window.viewShipment =
-    viewShipment;
+    try {
 
-window.openCreateShipmentModal =
-    openCreateShipmentModal;
+        console.log(
+            "TRANSLOGIX ADMIN INITIALIZING..."
+        );
 
-window.loadShipments =
-    loadShipments;
 
-window.loadCustomers =
-    loadCustomers;
+        /* ==============================================
+           UI SETUP
+        ============================================== */
 
-window.exportShipments =
-    exportShipments;
+        setupNavigation();
+
+        setupShipmentTable();
+
+        setupShipmentFilters();
+
+        setupCreateShipment();
+
+        setupExceptions();
+
+        setupGlobalSearch();
+
+        setupRefresh();
+
+        setupNotification();
+
+        setupExport();
+
+        setupReportButton();
+
+        setupActions();
+
+        setupMobileMenu();
+
+        setupModal();
+
+        setupLogout();
+
+        setupAddVehicle();
+
+
+        /* ==============================================
+           FORCE COMMAND CENTER
+        ============================================== */
+
+        showPage("dashboard");
+
+
+        /* ==============================================
+           LOAD BACKEND DATA
+        ============================================== */
+
+        await Promise.all([
+            loadCustomers(),
+            loadShipments()
+        ]);
+
+
+        /* ==============================================
+           DASHBOARD MAP
+        ============================================== */
+
+        setTimeout(() => {
+
+            initDashboardMap();
+
+        }, 100);
+
+
+        /* ==============================================
+           FORCE DASHBOARD AGAIN
+           Prevents another initialization/navigation
+           from leaving Shipments page open.
+        ============================================== */
+
+        showPage("dashboard");
+
+
+        console.log(
+            "TRANSLOGIX ADMIN CONTROL TOWER READY"
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Admin initialization failed:",
+            error
+        );
+
+        showToast(
+            "Admin initialization failed",
+            error.message,
+            "error"
+        );
+
+    }
+
+}

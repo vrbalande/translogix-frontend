@@ -1,888 +1,3079 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="description"
-        content="TRANSLOGIX Admin Control Tower - Enterprise Logistics Operations">
+<meta
+    name="description"
+    content="TRANSLOGIX Admin Control Tower - Enterprise logistics operations dashboard.">
 
-    <meta
-        name="theme-color"
-        content="#eef2f6">
+<meta
+    name="theme-color"
+    content="#edf2f6">
 
-    <title>TRANSLOGIX | Admin Control Tower</title>
-
-
-    <!-- =====================================================
-         LEAFLET
-    ====================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossorigin="">
+<title>
+    TRANSLOGIX | Admin Control Tower
+</title>
 
 
-    <!-- =====================================================
-         ADMIN CSS
-    ====================================================== -->
+<!-- =====================================================
+     LEAFLET
+====================================================== -->
 
-    <link
-        rel="stylesheet"
-        href="./Css/admin-dashboard.css">
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin="">
 
 
-    <!-- =====================================================
-         COPILOT CSS
-    ====================================================== -->
+<!-- =====================================================
+     ADMIN CSS
+====================================================== -->
 
-    <link
-        rel="stylesheet"
-        href="./Css/copilot.css">
+<link
+    rel="stylesheet"
+    href="./Css/admin-dashboard.css">
+
+
+<!-- =====================================================
+     COPILOT CSS
+====================================================== -->
+
+<link
+    rel="stylesheet"
+    href="./Css/copilot.css">
 
 </head>
-
 
 <body>
 
 <div class="admin-app">
 
+<!-- =====================================================
+     SIDEBAR
+====================================================== -->
 
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
-
-    <aside
-        id="adminSidebar"
-        class="admin-sidebar">
-
-        <div class="admin-brand">
-
-            <a href="./index.html">
-
-                <span class="brand-mark">
-                    TX
-                </span>
-
-                <div>
-
-                    <strong>
-                        TRANSLOGIX
-                    </strong>
-
-                    <small>
-                        ENTERPRISE LOGISTICS
-                    </small>
-
-                </div>
-
-            </a>
-
-        </div>
+<aside
+    id="adminSidebar"
+    class="admin-sidebar">
 
 
-        <!-- ACCOUNT -->
+    <!-- BRAND -->
 
-        <div class="admin-account-card">
+    <div class="admin-brand">
 
-            <div class="admin-avatar">
-                A
-            </div>
+        <a href="#">
 
-            <div class="admin-account-info">
+            <span class="brand-mark">
+                TX
+            </span>
+
+            <div>
 
                 <strong>
-                    Admin
+                    TRANSLOGIX
                 </strong>
 
                 <small>
-                    Operations Control
+                    ENTERPRISE LOGISTICS
                 </small>
 
             </div>
 
-            <i class="online-dot"></i>
+        </a>
+
+    </div>
+
+
+    <!-- ACCOUNT -->
+
+    <div class="admin-account-card">
+
+        <div class="admin-avatar">
+            A
+        </div>
+
+        <div class="admin-account-info">
+
+            <strong>
+                Admin
+            </strong>
+
+            <small>
+                Operations Control
+            </small>
+
+        </div>
+
+        <i class="online-dot"></i>
+
+    </div>
+
+
+    <!-- COMMAND -->
+
+    <div class="sidebar-label">
+        COMMAND
+    </div>
+
+
+    <nav class="admin-nav">
+
+
+        <button
+            class="admin-nav-item active"
+            data-page="dashboard"
+            type="button">
+
+            <span class="nav-icon">
+                ⌘
+            </span>
+
+            <span>
+                Command Center
+            </span>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="shipments"
+            type="button">
+
+            <span class="nav-icon">
+                ⇢
+            </span>
+
+            <span>
+                Shipments
+            </span>
+
+            <em id="sidebarShipmentCount">
+                00
+            </em>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="fleet"
+            type="button">
+
+            <span class="nav-icon">
+                ◈
+            </span>
+
+            <span>
+                Fleet
+            </span>
+
+            <b>
+                12
+            </b>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="drivers"
+            type="button">
+
+            <span class="nav-icon">
+                ◎
+            </span>
+
+            <span>
+                Drivers
+            </span>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="dispatch"
+            type="button">
+
+            <span class="nav-icon">
+                ⬢
+            </span>
+
+            <span>
+                Dispatch
+            </span>
+
+        </button>
+
+    </nav>
+
+
+    <!-- MONITOR -->
+
+    <div class="sidebar-label">
+        MONITOR
+    </div>
+
+
+    <nav class="admin-nav">
+
+
+        <button
+            class="admin-nav-item"
+            data-page="network"
+            type="button">
+
+            <span class="nav-icon">
+                ◌
+            </span>
+
+            <span>
+                Live Network
+            </span>
+
+            <i class="live-nav-dot"></i>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="exceptions"
+            type="button">
+
+            <span class="nav-icon danger">
+                !
+            </span>
+
+            <span>
+                Exception Center
+            </span>
+
+            <em class="danger-badge">
+                03
+            </em>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="alerts"
+            type="button">
+
+            <span class="nav-icon">
+                ◇
+            </span>
+
+            <span>
+                Alerts
+            </span>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="maintenance"
+            type="button">
+
+            <span class="nav-icon">
+                ◷
+            </span>
+
+            <span>
+                Maintenance
+            </span>
+
+        </button>
+
+    </nav>
+
+
+    <!-- INTELLIGENCE -->
+
+    <div class="sidebar-label">
+        INTELLIGENCE
+    </div>
+
+
+    <nav class="admin-nav">
+
+
+        <button
+            class="admin-nav-item"
+            data-page="analytics"
+            type="button">
+
+            <span class="nav-icon">
+                ↗
+            </span>
+
+            <span>
+                Analytics
+            </span>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="customers"
+            type="button">
+
+            <span class="nav-icon">
+                ◉
+            </span>
+
+            <span>
+                Customer Intelligence
+            </span>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="reports"
+            type="button">
+
+            <span class="nav-icon">
+                ▤
+            </span>
+
+            <span>
+                Reports
+            </span>
+
+        </button>
+
+    </nav>
+
+
+    <!-- CONTROL -->
+
+    <div class="sidebar-label">
+        CONTROL
+    </div>
+
+
+    <nav class="admin-nav">
+
+
+        <button
+            class="admin-nav-item"
+            data-page="assignments"
+            type="button">
+
+            <span class="nav-icon">
+                ▣
+            </span>
+
+            <span>
+                Assignments
+            </span>
+
+        </button>
+
+
+        <button
+            class="admin-nav-item"
+            data-page="settings"
+            type="button">
+
+            <span class="nav-icon">
+                ⚙
+            </span>
+
+            <span>
+                Settings
+            </span>
+
+        </button>
+
+    </nav>
+
+
+    <!-- FOOTER -->
+
+    <div class="sidebar-footer">
+
+
+        <div class="platform-status">
+
+            <div class="platform-status-head">
+
+                <div>
+
+                    <span>
+                        PLATFORM HEALTH
+                    </span>
+
+                    <strong>
+                        99.9%
+                    </strong>
+
+                </div>
+
+                <i></i>
+
+            </div>
+
+
+            <div class="platform-track">
+
+                <span></span>
+
+            </div>
+
+
+            <small>
+                All critical services operational
+            </small>
 
         </div>
 
 
-        <!-- NAVIGATION -->
+        <button
+            id="adminLogout"
+            class="signout-btn"
+            type="button">
 
-        <div class="sidebar-label">
-            COMMAND
-        </div>
+            ↪
+
+            Sign out
+
+        </button>
+
+    </div>
+
+</aside>
 
 
-        <nav class="admin-nav">
+
+<!-- =====================================================
+     MAIN
+====================================================== -->
+
+<main class="admin-main">
+
+
+    <!-- =================================================
+         TOPBAR
+    ================================================== -->
+
+    <header class="admin-topbar">
+
+
+        <div class="mobile-menu-wrap">
 
             <button
+                id="adminMenu"
+                class="mobile-menu"
                 type="button"
-                class="admin-nav-item active"
-                data-page="dashboard">
+                aria-label="Open menu">
 
-                <span class="nav-icon">
-                    ⌘
-                </span>
+                ☰
+
+            </button>
+
+        </div>
+
+
+        <div class="admin-top-title">
+
+            <span>
+                TRANSLOGIX / OPERATIONS CONTROL TOWER
+            </span>
+
+            <h1 id="adminPageTitle">
+                Command Center
+            </h1>
+
+            <p id="adminPageSubtitle">
+                Enterprise logistics control workspace
+            </p>
+
+        </div>
+
+
+        <div class="admin-top-actions">
+
+
+            <div class="top-search">
 
                 <span>
-                    Command Center
+                    ⌕
                 </span>
+
+                <input
+                    id="adminGlobalSearch"
+                    type="search"
+                    placeholder="Search tracking, route or customer..."
+                    autocomplete="off">
+
+                <kbd>
+                    Ctrl K
+                </kbd>
+
+            </div>
+
+
+            <button
+                id="adminRefresh"
+                class="top-action-btn"
+                type="button"
+                title="Refresh">
+
+                ↻
 
             </button>
 
 
             <button
+                id="adminNotification"
+                class="top-action-btn notification-button"
                 type="button"
-                class="admin-nav-item"
-                data-page="shipments">
+                title="Notifications">
 
-                <span class="nav-icon">
-                    ⇢
-                </span>
+                ◇
 
-                <span>
-                    Shipments
-                </span>
-
-                <em id="sidebarShipmentCount">
-                    00
+                <em>
+                    3
                 </em>
 
             </button>
 
 
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="fleet">
-
-                <span class="nav-icon">
-                    ◈
-                </span>
-
-                <span>
-                    Fleet
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="drivers">
-
-                <span class="nav-icon">
-                    ◉
-                </span>
-
-                <span>
-                    Drivers
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="dispatch">
-
-                <span class="nav-icon">
-                    ⇥
-                </span>
-
-                <span>
-                    Dispatch
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="network">
-
-                <span class="nav-icon">
-                    ◎
-                </span>
-
-                <span>
-                    Live Network
-                </span>
-
-            </button>
-
-        </nav>
-
-
-        <div class="sidebar-label">
-            OPERATIONS
-        </div>
-
-
-        <nav class="admin-nav">
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="exceptions">
-
-                <span>
-                    Exception Center
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="alerts">
-
-                <span>
-                    Alerts
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="maintenance">
-
-                <span>
-                    Maintenance
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="analytics">
-
-                <span>
-                    Analytics
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="customers">
-
-                <span>
-                    Customers
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="reports">
-
-                <span>
-                    Reports
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="assignments">
-
-                <span>
-                    Assignments
-                </span>
-
-            </button>
-
-        </nav>
-
-
-        <div class="sidebar-bottom">
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="settings">
-
-                <span>
-                    Settings
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                id="adminLogout"
-                class="admin-nav-item logout">
-
-                <span>
-                    Logout
-                </span>
-
-            </button>
-
-        </div>
-
-    </aside>
-
-
-
-    <!-- =====================================================
-         MAIN
-    ====================================================== -->
-
-    <main class="admin-main">
-
-
-        <!-- HEADER -->
-
-        <header class="admin-header">
-
-            <div class="admin-header-left">
-
-                <button
-                    type="button"
-                    id="adminMenu"
-                    class="admin-menu">
-
-                    ☰
-
-                </button>
-
+            <div class="top-admin-profile">
 
                 <div>
+                    A
+                </div>
 
-                    <h1 id="adminPageTitle">
-                        Command Center
-                    </h1>
+                <section>
 
-                    <p id="adminPageSubtitle">
-                        Enterprise logistics control workspace
-                    </p>
+                    <strong>
+                        admin
+                    </strong>
+
+                    <small>
+                        ADMINISTRATOR
+                    </small>
+
+                </section>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ==================================================
+         DASHBOARD
+    =================================================== -->
+
+    <section
+        id="page-dashboard"
+        class="admin-page">
+
+
+        <!-- HERO -->
+
+        <section class="control-hero">
+
+
+            <div class="control-hero-copy">
+
+
+                <div class="hero-badge">
+
+                    <span></span>
+
+                    NETWORK LIVE
+
+                </div>
+
+
+                <div class="hero-label">
+                    EXECUTIVE OPERATIONS VIEW
+                </div>
+
+
+                <h2>
+
+                    Move freight with
+
+                    <strong>
+                        clarity, speed and control.
+                    </strong>
+
+                </h2>
+
+
+                <p>
+
+                    See what is moving, identify
+                    operational risk and take action
+                    from one connected TRANSLOGIX
+                    command surface.
+
+                </p>
+
+
+                <div class="hero-actions">
+
+
+                    <button
+                        class="primary-btn"
+                        data-page-go="network"
+                        type="button">
+
+                        Open Network Command →
+
+                    </button>
+
+
+                    <button
+                        class="secondary-dark-btn"
+                        data-page-go="exceptions"
+                        type="button">
+
+                        Review Priority Queue →
+
+                    </button>
+
+
+                </div>
+
+
+                <div class="hero-signals">
+
+                    <span>
+
+                        <i></i>
+
+                        Tracking stream healthy
+
+                    </span>
+
+
+                    <span>
+
+                        <i></i>
+
+                        API gateway online
+
+                    </span>
+
+
+                    <span>
+
+                        <i></i>
+
+                        Database connected
+
+                    </span>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- HERO VISUAL -->
+
+            <div class="control-hero-visual">
+
+
+                <div class="hero-grid"></div>
+
+
+                <div class="hero-route hero-route-a"></div>
+
+                <div class="hero-route hero-route-b"></div>
+
+                <div class="hero-route hero-route-c"></div>
+
+
+                <div class="hero-point hero-pune">
+
+                    <i></i>
+
+                    <small>
+                        PUNE · 06
+                    </small>
+
+                </div>
+
+
+                <div class="hero-point hero-mumbai">
+
+                    <i></i>
+
+                    <small>
+                        MUMBAI · 04
+                    </small>
+
+                </div>
+
+
+                <div class="hero-point hero-nagpur">
+
+                    <i></i>
+
+                    <small>
+                        NAGPUR · 03
+                    </small>
+
+                </div>
+
+
+                <div class="hero-point hero-delhi">
+
+                    <i></i>
+
+                    <small>
+                        DELHI
+                    </small>
+
+                </div>
+
+
+                <div class="hero-vehicle vehicle-one">
+
+                    <span class="vehicle-silhouette"></span>
+
+                </div>
+
+
+                <div class="hero-vehicle vehicle-two">
+
+                    <span class="vehicle-silhouette"></span>
+
+                </div>
+
+
+                <div class="hero-floating-card">
+
+                    <span>
+                        NETWORK SLA
+                    </span>
+
+                    <strong>
+                        94.2%
+                    </strong>
+
+                    <small>
+                        +1.8% today
+                    </small>
+
+                    <div class="floating-progress">
+
+                        <i></i>
+
+                    </div>
 
                 </div>
 
             </div>
 
-
-            <div class="admin-header-right">
-
-                <input
-                    type="search"
-                    id="adminGlobalSearch"
-                    placeholder="Search dashboard...">
-
-
-                <button
-                    type="button"
-                    id="adminRefresh"
-                    class="secondary-btn">
-
-                    ↻ Refresh
-
-                </button>
-
-            </div>
-
-        </header>
+        </section>
 
 
 
         <!-- =================================================
-             DASHBOARD
+             KPI
         ================================================== -->
 
-        <section
-            id="page-dashboard"
-            class="admin-page">
+        <section class="command-kpis">
 
-            <div class="module-header">
 
-                <div>
+            <article class="command-kpi accent-purple">
+
+                <div class="kpi-top">
 
                     <span>
-                        OPERATIONS
+                        ACTIVE SHIPMENTS
                     </span>
 
-                    <h2>
-                        Command Center
-                    </h2>
-
-                    <p>
-                        Enterprise logistics operations overview.
-                    </p>
+                    <b>
+                        LIVE
+                    </b>
 
                 </div>
 
-            </div>
+                <strong id="kpiTotal">
+                    00
+                </strong>
+
+                <small>
+                    Live network volume
+                </small>
+
+                <div class="mini-status green">
+                    ↑ Network active
+                </div>
+
+            </article>
 
 
-            <div class="module-kpis">
+            <article class="command-kpi accent-blue">
 
-                <article>
-
-                    <span>
-                        TOTAL SHIPMENTS
-                    </span>
-
-                    <strong id="kpiTotal">
-                        0
-                    </strong>
-
-                </article>
-
-
-                <article>
+                <div class="kpi-top">
 
                     <span>
                         IN TRANSIT
                     </span>
 
-                    <strong id="kpiTransit">
-                        0
-                    </strong>
+                    <b>
+                        LIVE
+                    </b>
 
-                </article>
+                </div>
+
+                <strong id="kpiTransit">
+                    00
+                </strong>
+
+                <small>
+                    Active movement
+                </small>
+
+                <div class="mini-status">
+                    Currently moving
+                </div>
+
+            </article>
 
 
-                <article>
+            <article class="command-kpi accent-green">
+
+                <div class="kpi-top">
 
                     <span>
                         DELIVERED
                     </span>
 
-                    <strong id="kpiDelivered">
-                        0
-                    </strong>
+                    <b>
+                        LIVE
+                    </b>
 
-                </article>
+                </div>
+
+                <strong id="kpiDelivered">
+                    00
+                </strong>
+
+                <small>
+                    Completed shipments
+                </small>
+
+                <div class="mini-status green">
+                    On-time execution
+                </div>
+
+            </article>
 
 
-                <article>
+            <article class="command-kpi accent-red">
+
+                <div class="kpi-top">
 
                     <span>
                         EXCEPTIONS
                     </span>
 
-                    <strong id="kpiExceptions">
-                        0
+                    <b>
+                        P1 / P2
+                    </b>
+
+                </div>
+
+                <strong id="kpiExceptions">
+                    00
+                </strong>
+
+                <small>
+                    Requiring attention
+                </small>
+
+                <div class="mini-status red">
+                    Operational risk
+                </div>
+
+            </article>
+
+
+            <article class="command-kpi accent-orange">
+
+                <div class="kpi-top">
+
+                    <span>
+                        FLEET UTILIZATION
+                    </span>
+
+                    <b>
+                        LIVE
+                    </b>
+
+                </div>
+
+                <strong>
+                    67%
+                </strong>
+
+                <small>
+                    8 of 12 engaged
+                </small>
+
+                <div class="kpi-progress">
+
+                    <i style="width:67%"></i>
+
+                </div>
+
+            </article>
+
+
+            <article class="command-kpi accent-cyan">
+
+                <div class="kpi-top">
+
+                    <span>
+                        CUSTOMER SIGNAL
+                    </span>
+
+                    <b>
+                        EXCELLENT
+                    </b>
+
+                </div>
+
+                <strong>
+                    97
+                </strong>
+
+                <small>
+                    Service satisfaction
+                </small>
+
+                <div class="mini-status green">
+                    81% repeat rate
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             MAP + PRIORITY
+        ================================================== -->
+
+        <div class="tower-grid">
+
+
+            <!-- NETWORK MAP -->
+
+            <article class="tower-card">
+
+
+                <div class="tower-card-header">
+
+
+                    <div>
+
+                        <span>
+                            NETWORK VISIBILITY
+                        </span>
+
+                        <h3>
+                            Live operations map
+                        </h3>
+
+                        <p>
+                            Real-time movement across major logistics corridors.
+                        </p>
+
+                    </div>
+
+
+                    <div class="network-switcher">
+
+                        <button
+                            class="active"
+                            type="button">
+
+                            LIVE ROUTES
+
+                        </button>
+
+
+                        <button
+                            type="button">
+
+                            HUBS
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="networkMap"
+                    class="network-map">
+                </div>
+
+
+                <div class="map-legend">
+
+                    <div>
+
+                        <span class="legend-dot live"></span>
+
+                        Moving
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="legend-dot ready"></span>
+
+                        Ready
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="legend-dot danger"></span>
+
+                        At Risk
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="legend-dot hub"></span>
+
+                        Hub
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- PRIORITY -->
+
+            <article class="tower-card priority-card">
+
+
+                <div class="tower-card-header">
+
+
+                    <div>
+
+                        <span>
+                            DECISION LAYER
+                        </span>
+
+                        <h3>
+                            Priority queue
+                        </h3>
+
+                        <p>
+                            Ranked by operational impact.
+                        </p>
+
+                    </div>
+
+
+                    <div class="priority-count">
+                        03
+                    </div>
+
+                </div>
+
+
+                <div class="priority-stack">
+
+
+                    <div class="priority-row critical">
+
+
+                        <div class="priority-symbol">
+                            !
+                        </div>
+
+
+                        <div>
+
+                            <div class="priority-meta">
+
+                                <span>
+                                    P1 · CRITICAL
+                                </span>
+
+                                <small>
+                                    12 min
+                                </small>
+
+                            </div>
+
+
+                            <h4>
+                                Vehicle service required
+                            </h4>
+
+
+                            <p>
+                                MH15-MT-1198 · Health 64% · Fuel 41%
+                            </p>
+
+
+                            <button
+                                data-exception="MH15-MT-1198"
+                                type="button">
+
+                                Review & resolve →
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="priority-row warning">
+
+
+                        <div class="priority-symbol">
+                            ◷
+                        </div>
+
+
+                        <div>
+
+                            <div class="priority-meta">
+
+                                <span>
+                                    P2 · HIGH
+                                </span>
+
+                                <small>
+                                    18 min
+                                </small>
+
+                            </div>
+
+
+                            <h4>
+                                Fuel watch triggered
+                            </h4>
+
+
+                            <p>
+                                MH46-CT-7823 · 71% fuel · Nagpur → Delhi
+                            </p>
+
+
+                            <button
+                                data-exception="MH46-CT-7823"
+                                type="button">
+
+                                Inspect movement →
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="priority-row purple">
+
+
+                        <div class="priority-symbol">
+                            ⏱
+                        </div>
+
+
+                        <div>
+
+                            <div class="priority-meta">
+
+                                <span>
+                                    SLA WATCH
+                                </span>
+
+                                <small>
+                                    Today
+                                </small>
+
+                            </div>
+
+
+                            <h4>
+                                3 shipments nearing threshold
+                            </h4>
+
+
+                            <p>
+                                Review aging deliveries before network SLA breach.
+                            </p>
+
+
+                            <button
+                                data-page-go="shipments"
+                                type="button">
+
+                                Open shipments →
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="priority-bottom">
+
+                    <span>
+                        Open operational actions
+                    </span>
+
+                    <strong>
+                        03
                     </strong>
 
-                </article>
+                </div>
+
+            </article>
+
+        </div>
+
+
+
+        <!-- =================================================
+             TELEMETRY
+        ================================================== -->
+
+        <section class="telemetry-card">
+
+
+            <div class="telemetry-top">
+
+
+                <div>
+
+                    <span>
+                        LIVE TELEMETRY / SELECTED OPERATION
+                    </span>
+
+                    <strong>
+                        STREAMING
+                    </strong>
+
+                </div>
+
+
+                <button
+                    data-action="details"
+                    type="button">
+
+                    Open telemetry →
+
+                </button>
 
             </div>
 
 
-            <div class="dashboard-grid">
+            <div class="telemetry-grid">
 
-                <article class="dashboard-card">
 
-                    <h3>
-                        Shipment Flow
-                    </h3>
+                <div class="telemetry-main">
 
-                    <p>
-                        Active shipment operations.
-                    </p>
+                    <div class="telemetry-avatar">
+                        TX
+                    </div>
 
-                    <strong id="shipmentFlowCount">
-                        0
+                    <div>
+
+                        <strong>
+                            TRX10001
+                        </strong>
+
+                        <small>
+                            Pune → Delhi
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="telemetry-item">
+
+                    <span>
+                        VEHICLE
+                    </span>
+
+                    <strong>
+                        MH12-TR-4581
                     </strong>
 
-                </article>
+                </div>
 
 
-                <article class="dashboard-card">
+                <div class="telemetry-item">
 
-                    <h3>
-                        Priority Operations
-                    </h3>
+                    <span>
+                        DRIVER
+                    </span>
+
+                    <strong>
+                        Rahul Patil
+                    </strong>
+
+                </div>
+
+
+                <div class="telemetry-item">
+
+                    <span>
+                        LOAD
+                    </span>
+
+                    <strong>
+                        18 Ton
+                    </strong>
+
+                </div>
+
+
+                <div class="telemetry-item">
+
+                    <span>
+                        FUEL
+                    </span>
+
+                    <strong class="green-text">
+                        82%
+                    </strong>
+
+                </div>
+
+
+                <div class="telemetry-item">
+
+                    <span>
+                        HEALTH
+                    </span>
+
+                    <strong class="green-text">
+                        96%
+                    </strong>
+
+                </div>
+
+
+                <div class="telemetry-item">
+
+                    <span>
+                        SPEED
+                    </span>
+
+                    <strong>
+                        64 km/h
+                    </strong>
+
+                </div>
+
+
+                <div class="telemetry-item">
+
+                    <span>
+                        ETA
+                    </span>
+
+                    <strong>
+                        05h 42m
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="telemetry-buttons">
+
+
+                <button
+                    data-action="track"
+                    type="button">
+
+                    Track
+
+                </button>
+
+
+                <button
+                    data-action="contact"
+                    type="button">
+
+                    Contact
+
+                </button>
+
+
+                <button
+                    data-action="reassign"
+                    type="button">
+
+                    Reassign
+
+                </button>
+
+
+                <button
+                    class="solid"
+                    data-action="details"
+                    type="button">
+
+                    Details →
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             INSIGHTS
+        ================================================== -->
+
+        <section class="insight-grid">
+
+
+            <!-- HEALTH -->
+
+            <article class="insight-card">
+
+
+                <div class="insight-card-head">
+
+                    <span>
+                        NETWORK HEALTH
+                    </span>
+
+                    <strong>
+                        94%
+                    </strong>
+
+                </div>
+
+
+                <div class="health-ring">
+
+                    <div>
+
+                        <strong>
+                            94%
+                        </strong>
+
+                        <small>
+                            HEALTH
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="health-breakdown">
+
+                    <span>
+                        Fleet <b>92%</b>
+                    </span>
+
+                    <span>
+                        Shipments <b>96%</b>
+                    </span>
+
+                    <span>
+                        Drivers <b>88%</b>
+                    </span>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- FLOW -->
+
+            <article class="insight-card">
+
+
+                <div class="insight-card-head">
+
+                    <span>
+                        SHIPMENT FLOW
+                    </span>
+
+                    <strong>
+                        LIVE
+                    </strong>
+
+                </div>
+
+
+                <div class="flow-bars">
+
+
+                    <div>
+
+                        <span>
+                            Pending
+                        </span>
+
+                        <i>
+                            <b style="width:20%"></b>
+                        </i>
+
+                        <strong id="flowPending">
+                            01
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Transit
+                        </span>
+
+                        <i>
+                            <b style="width:55%"></b>
+                        </i>
+
+                        <strong id="flowTransit">
+                            03
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Delivered
+                        </span>
+
+                        <i>
+                            <b style="width:38%"></b>
+                        </i>
+
+                        <strong id="flowDelivered">
+                            02
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="insight-link"
+                    data-page-go="shipments"
+                    type="button">
+
+                    Shipment Command →
+
+                </button>
+
+            </article>
+
+
+
+            <!-- FLEET -->
+
+            <article class="insight-card">
+
+
+                <div class="insight-card-head">
+
+                    <span>
+                        FLEET READINESS
+                    </span>
+
+                    <strong>
+                        92%
+                    </strong>
+
+                </div>
+
+
+                <div class="bar-chart">
+
+                    <i style="height:48%"></i>
+
+                    <i style="height:61%"></i>
+
+                    <i style="height:52%"></i>
+
+                    <i style="height:71%"></i>
+
+                    <i style="height:68%"></i>
+
+                    <i style="height:84%"></i>
+
+                    <i style="height:92%"></i>
+
+                </div>
+
+
+                <p>
+                    8.6 km/L average · 94% route success
+                </p>
+
+            </article>
+
+
+
+            <!-- CUSTOMER -->
+
+            <article class="insight-card">
+
+
+                <div class="insight-card-head">
+
+                    <span>
+                        CUSTOMER SIGNAL
+                    </span>
+
+                    <strong>
+                        97
+                    </strong>
+
+                </div>
+
+
+                <div class="customer-score">
+
+                    <strong>
+                        Excellent
+                    </strong>
+
+                    <span>
+                        Service satisfaction
+                    </span>
+
+                    <small>
+                        81% repeat rate
+                    </small>
+
+                </div>
+
+
+                <button
+                    class="insight-link"
+                    data-page-go="customers"
+                    type="button">
+
+                    Customer Intelligence →
+
+                </button>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             EVENT + QUICK COMMAND
+        ================================================== -->
+
+        <section class="bottom-grid">
+
+
+            <!-- EVENT -->
+
+            <article class="event-card">
+
+
+                <div class="tower-card-header">
+
+                    <div>
+
+                        <span>
+                            LIVE EVENT STREAM
+                        </span>
+
+                        <h3>
+                            Operational activity
+                        </h3>
+
+                        <p>
+                            Recent events from the network.
+                        </p>
+
+                    </div>
+
+                    <span class="live-text">
+                        ● LIVE
+                    </span>
+
+                </div>
+
+
+                <div class="event-stream">
+
+
+                    <div class="event-stream-row">
+
+                        <i class="success"></i>
+
+                        <div>
+
+                            <strong>
+                                TRX10001 delivered successfully
+                            </strong>
+
+                            <small>
+                                Pune → Delhi
+                            </small>
+
+                        </div>
+
+                        <time>
+                            2 min
+                        </time>
+
+                    </div>
+
+
+                    <div class="event-stream-row">
+
+                        <i class="warning"></i>
+
+                        <div>
+
+                            <strong>
+                                MH46-CT-7823 entered fuel watch
+                            </strong>
+
+                            <small>
+                                Nagpur → Delhi
+                            </small>
+
+                        </div>
+
+                        <time>
+                            18 min
+                        </time>
+
+                    </div>
+
+
+                    <div class="event-stream-row">
+
+                        <i class="danger"></i>
+
+                        <div>
+
+                            <strong>
+                                MH15-MT-1198 service alert created
+                            </strong>
+
+                            <small>
+                                Jalgaon → Pune
+                            </small>
+
+                        </div>
+
+                        <time>
+                            24 min
+                        </time>
+
+                    </div>
+
+
+                    <div class="event-stream-row">
+
+                        <i class="success"></i>
+
+                        <div>
+
+                            <strong>
+                                Shipment assignment completed
+                            </strong>
+
+                            <small>
+                                Mumbai distribution hub
+                            </small>
+
+                        </div>
+
+                        <time>
+                            37 min
+                        </time>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- QUICK COMMAND -->
+
+            <article class="quick-command-card">
+
+
+                <span>
+                    EXECUTION
+                </span>
+
+
+                <h3>
+                    Quick command
+                </h3>
+
+
+                <button
+                    data-page-go="shipments"
+                    type="button">
+
+                    <i>
+                        ⇢
+                    </i>
+
+                    <span>
+                        Shipment Command
+                    </span>
+
+                    <b>
+                        →
+                    </b>
+
+                </button>
+
+
+                <button
+                    data-page-go="fleet"
+                    type="button">
+
+                    <i>
+                        ◈
+                    </i>
+
+                    <span>
+                        Fleet Control
+                    </span>
+
+                    <b>
+                        →
+                    </b>
+
+                </button>
+
+
+                <button
+                    data-page-go="drivers"
+                    type="button">
+
+                    <i>
+                        ◎
+                    </i>
+
+                    <span>
+                        Driver Operations
+                    </span>
+
+                    <b>
+                        →
+                    </b>
+
+                </button>
+
+
+                <button
+                    data-page-go="dispatch"
+                    type="button">
+
+                    <i>
+                        ⬢
+                    </i>
+
+                    <span>
+                        Dispatch Board
+                    </span>
+
+                    <b>
+                        →
+                    </b>
+
+                </button>
+
+
+                <button
+                    data-page-go="exceptions"
+                    type="button">
+
+                    <i class="red-icon">
+                        !
+                    </i>
+
+                    <span>
+                        Exception Center
+                    </span>
+
+                    <b>
+                        03
+                    </b>
+
+                </button>
+
+            </article>
+
+        </section>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         SHIPMENTS
+    =================================================== -->
+
+    <section
+        id="page-shipments"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+
+            <div>
+
+                <span>
+                    SHIPMENT OPERATIONS
+                </span>
+
+                <h2>
+                    Shipment Command
+                </h2>
+
+                <p>
+                    Control live shipment movement, delivery status and SLA execution.
+                </p>
+
+            </div>
+
+
+            <button
+                id="createShipmentBtn"
+                class="primary-btn"
+                type="button">
+
+                ＋ Create Shipment
+
+            </button>
+
+        </div>
+
+
+        <div class="module-kpis">
+
+
+            <article>
+
+                <span>
+                    TOTAL
+                </span>
+
+                <strong id="shipmentTotal">
+                    00
+                </strong>
+
+                <small>
+                    All shipments
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    ACTIVE
+                </span>
+
+                <strong id="shipmentActive">
+                    00
+                </strong>
+
+                <small>
+                    In operation
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    DELIVERED
+                </span>
+
+                <strong id="shipmentDelivered">
+                    00
+                </strong>
+
+                <small>
+                    Completed
+                </small>
+
+            </article>
+
+
+            <article class="module-danger">
+
+                <span>
+                    EXCEPTIONS
+                </span>
+
+                <strong id="shipmentExceptions">
+                    00
+                </strong>
+
+                <small>
+                    Action required
+                </small>
+
+            </article>
+
+        </div>
+
+
+        <div class="module-toolbar">
+
+
+            <div class="module-search">
+
+                <span>
+                    ⌕
+                </span>
+
+                <input
+                    id="shipmentSearch"
+                    type="search"
+                    placeholder="Search tracking, route, customer..."
+                    autocomplete="off">
+
+            </div>
+
+
+            <select
+                id="shipmentStatusFilter">
+
+                <option value="">
+                    All Status
+                </option>
+
+                <option value="Pending">
+                    Pending
+                </option>
+
+                <option value="In Transit">
+                    In Transit
+                </option>
+
+                <option value="Out for Delivery">
+                    Out for Delivery
+                </option>
+
+                <option value="Delivered">
+                    Delivered
+                </option>
+
+                <option value="Delayed">
+                    Delayed
+                </option>
+
+            </select>
+
+
+            <button
+                id="exportShipments"
+                class="outline-btn"
+                type="button">
+
+                ↓ Export CSV
+
+            </button>
+
+        </div>
+
+
+        <div class="data-card">
+
+
+            <table>
+
+                <thead>
+
+                <tr>
+
+                    <th>
+                        TRACKING
+                    </th>
+
+                    <th>
+                        ROUTE
+                    </th>
+
+                    <th>
+                        CUSTOMER
+                    </th>
+
+                    <th>
+                        TYPE
+                    </th>
+
+                    <th>
+                        STATUS
+                    </th>
+
+                    <th>
+                        LOAD
+                    </th>
+
+                    <th>
+                        ACTION
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="shipmentTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         FLEET
+    =================================================== -->
+
+    <section
+        id="page-fleet"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+
+            <div>
+
+                <span>
+                    FLEET INTELLIGENCE
+                </span>
+
+                <h2>
+                    Fleet Control
+                </h2>
+
+                <p>
+                    Vehicle health, readiness, assignments and route operations.
+                </p>
+
+            </div>
+
+
+            <button
+                id="addVehicleBtn"
+                class="primary-btn"
+                type="button">
+
+                ＋ Add Vehicle
+
+            </button>
+
+        </div>
+
+
+        <div class="module-kpis">
+
+
+            <article>
+
+                <span>
+                    TOTAL FLEET
+                </span>
+
+                <strong>
+                    12
+                </strong>
+
+                <small>
+                    Registered vehicles
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    ON ROAD
+                </span>
+
+                <strong>
+                    06
+                </strong>
+
+                <small>
+                    Currently moving
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    READY
+                </span>
+
+                <strong>
+                    03
+                </strong>
+
+                <small>
+                    Dispatchable
+                </small>
+
+            </article>
+
+
+            <article class="module-danger">
+
+                <span>
+                    SERVICE
+                </span>
+
+                <strong>
+                    01
+                </strong>
+
+                <small>
+                    Attention required
+                </small>
+
+            </article>
+
+        </div>
+
+
+        <div class="fleet-grid">
+
+
+            <article class="tower-card fleet-table-card">
+
+
+                <div class="module-card-heading">
+
+                    <div>
+
+                        <span>
+                            LIVE FLEET
+                        </span>
+
+                        <h3>
+                            Vehicle command
+                        </h3>
+
+                        <p>
+                            Current state and assignment details.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="fleet-columns">
+
+                    <span>
+                        VEHICLE
+                    </span>
+
+                    <span>
+                        ASSIGNMENT
+                    </span>
+
+                    <span>
+                        STATE
+                    </span>
+
+                    <span>
+                        HEALTH
+                    </span>
+
+                    <span>
+                        FUEL
+                    </span>
+
+                    <span>
+                        ACTION
+                    </span>
+
+                </div>
+
+
+                <div class="fleet-line">
+
+
+                    <div class="vehicle-name">
+
+                        <b>
+                            TR
+                        </b>
+
+                        <div>
+
+                            <strong>
+                                MH12-TR-4581
+                            </strong>
+
+                            <small>
+                                Rahul Patil
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <span>
+                        Pune → Delhi
+                    </span>
+
+
+                    <strong class="state-green">
+                        ACTIVE
+                    </strong>
+
+
+                    <span>
+                        96%
+                    </span>
+
+
+                    <span>
+                        82%
+                    </span>
+
 
                     <button
-                        type="button"
-                        data-page-go="shipments">
+                        data-action="track"
+                        type="button">
 
-                        Manage Shipments
+                        Track →
 
                     </button>
 
-                </article>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             SHIPMENTS
-        ================================================== -->
-
-        <section
-            id="page-shipments"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        SHIPMENT OPERATIONS
-                    </span>
-
-                    <h2>
-                        Shipment Command
-                    </h2>
-
-                    <p>
-                        Control live shipment movement,
-                        delivery status and SLA execution.
-                    </p>
-
                 </div>
 
 
-                <button
-                    type="button"
-                    id="createShipmentBtn"
-                    class="primary-btn">
-
-                    + Create Shipment
-
-                </button>
-
-            </div>
+                <div class="fleet-line">
 
 
+                    <div class="vehicle-name">
 
-            <!-- SHIPMENT KPIs -->
+                        <b>
+                            CT
+                        </b>
 
-            <div class="module-kpis">
+                        <div>
 
-                <article>
+                            <strong>
+                                MH46-CT-7823
+                            </strong>
+
+                            <small>
+                                Suresh More
+                            </small>
+
+                        </div>
+
+                    </div>
+
 
                     <span>
-                        TOTAL
+                        Nagpur → Delhi
                     </span>
 
-                    <strong id="shipmentTotal">
-                        0
-                    </strong>
 
-                </article>
-
-
-                <article>
-
-                    <span>
+                    <strong class="state-green">
                         ACTIVE
-                    </span>
-
-                    <strong id="shipmentActive">
-                        0
                     </strong>
 
-                </article>
-
-
-                <article>
 
                     <span>
-                        DELIVERED
+                        91%
                     </span>
 
-                    <strong id="shipmentDelivered">
-                        0
-                    </strong>
-
-                </article>
-
-
-                <article>
 
                     <span>
-                        EXCEPTIONS
+                        71%
                     </span>
 
-                    <strong id="shipmentExceptions">
-                        0
+
+                    <button
+                        data-action="track"
+                        type="button">
+
+                        Track →
+
+                    </button>
+
+                </div>
+
+
+                <div class="fleet-line">
+
+
+                    <div class="vehicle-name">
+
+                        <b>
+                            VN
+                        </b>
+
+                        <div>
+
+                            <strong>
+                                MH14-VN-2264
+                            </strong>
+
+                            <small>
+                                Amit Sharma
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <span>
+                        Mumbai → Pune
+                    </span>
+
+
+                    <strong class="state-purple">
+                        READY
                     </strong>
 
-                </article>
+
+                    <span>
+                        98%
+                    </span>
+
+
+                    <span>
+                        94%
+                    </span>
+
+
+                    <button
+                        data-action="assignment"
+                        type="button">
+
+                        Assign →
+
+                    </button>
+
+                </div>
+
+
+                <div class="fleet-line">
+
+
+                    <div class="vehicle-name">
+
+                        <b>
+                            MT
+                        </b>
+
+                        <div>
+
+                            <strong>
+                                MH15-MT-1198
+                            </strong>
+
+                            <small>
+                                Kiran Jadhav
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <span>
+                        Jalgaon → Pune
+                    </span>
+
+
+                    <strong class="state-red">
+                        SERVICE
+                    </strong>
+
+
+                    <span>
+                        64%
+                    </span>
+
+
+                    <span>
+                        41%
+                    </span>
+
+
+                    <button
+                        data-exception="MH15-MT-1198"
+                        type="button">
+
+                        Review →
+
+                    </button>
+
+                </div>
+
+            </article>
+
+
+            <article class="fleet-health-card">
+
+
+                <div>
+
+                    <span>
+                        FLEET HEALTH
+                    </span>
+
+                    <strong>
+                        92%
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        UTILIZATION
+                    </span>
+
+                    <strong>
+                        67%
+                    </strong>
+
+                    <div class="side-progress">
+
+                        <i style="width:67%"></i>
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        FUEL EFFICIENCY
+                    </span>
+
+                    <strong>
+                        8.6
+                        <small>
+                            km/L
+                        </small>
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        ROUTE SUCCESS
+                    </span>
+
+                    <strong>
+                        94%
+                    </strong>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         DRIVERS
+    =================================================== -->
+
+    <section
+        id="page-drivers"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+
+            <div>
+
+                <span>
+                    DRIVER OPERATIONS
+                </span>
+
+                <h2>
+                    Driver Command
+                </h2>
+
+                <p>
+                    Availability, assignments, readiness and performance.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="module-kpis">
+
+
+            <article>
+
+                <span>
+                    ACTIVE DRIVERS
+                </span>
+
+                <strong>
+                    18
+                </strong>
+
+                <small>
+                    Currently operating
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    AVAILABLE
+                </span>
+
+                <strong>
+                    04
+                </strong>
+
+                <small>
+                    Ready for dispatch
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    ON TRIP
+                </span>
+
+                <strong>
+                    12
+                </strong>
+
+                <small>
+                    Field operations
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    READINESS
+                </span>
+
+                <strong>
+                    88%
+                </strong>
+
+                <small>
+                    Operational score
+                </small>
+
+            </article>
+
+        </div>
+
+
+        <article class="data-card">
+
+
+            <div class="module-card-heading">
+
+                <div>
+
+                    <span>
+                        DRIVER INTELLIGENCE
+                    </span>
+
+                    <h3>
+                        Active roster
+                    </h3>
+
+                    <p>
+                        Current assignments and performance.
+                    </p>
+
+                </div>
 
             </div>
 
 
+            <div class="driver-columns">
 
-            <!-- FILTERS -->
+                <span>
+                    DRIVER
+                </span>
 
-            <div class="shipment-toolbar">
+                <span>
+                    ROUTE
+                </span>
 
-                <input
-                    type="search"
-                    id="shipmentSearch"
-                    placeholder="Search tracking number, customer, route...">
+                <span>
+                    STATE
+                </span>
+
+                <span>
+                    PERFORMANCE
+                </span>
+
+            </div>
 
 
-                <select
-                    id="shipmentStatusFilter">
+            <div class="driver-line">
 
-                    <option value="">
-                        All Status
-                    </option>
+                <div>
 
-                    <option value="Pending">
-                        Pending
-                    </option>
+                    <strong>
+                        Rahul Patil
+                    </strong>
 
-                    <option value="In Transit">
-                        In Transit
-                    </option>
+                    <small>
+                        DRV-1008
+                    </small>
 
-                    <option value="Out for Delivery">
-                        Out for Delivery
-                    </option>
+                </div>
 
-                    <option value="Delivered">
-                        Delivered
-                    </option>
+                <span>
+                    Pune → Delhi
+                </span>
 
-                    <option value="Cancelled">
-                        Cancelled
-                    </option>
+                <strong class="state-green">
+                    ON TRIP
+                </strong>
 
-                </select>
+                <strong>
+                    96%
+                </strong>
 
+            </div>
+
+
+            <div class="driver-line">
+
+                <div>
+
+                    <strong>
+                        Suresh More
+                    </strong>
+
+                    <small>
+                        DRV-1014
+                    </small>
+
+                </div>
+
+                <span>
+                    Nagpur → Delhi
+                </span>
+
+                <strong class="state-green">
+                    ON TRIP
+                </strong>
+
+                <strong>
+                    93%
+                </strong>
+
+            </div>
+
+
+            <div class="driver-line">
+
+                <div>
+
+                    <strong>
+                        Amit Sharma
+                    </strong>
+
+                    <small>
+                        DRV-1019
+                    </small>
+
+                </div>
+
+                <span>
+                    Mumbai → Pune
+                </span>
+
+                <strong class="state-purple">
+                    AVAILABLE
+                </strong>
+
+                <strong>
+                    98%
+                </strong>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         DISPATCH
+    =================================================== -->
+
+    <section
+        id="page-dispatch"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+            <div>
+
+                <span>
+                    DISPATCH CONTROL
+                </span>
+
+                <h2>
+                    Dispatch Operations
+                </h2>
+
+                <p>
+                    Release routes, allocate drivers and assign vehicles.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <section class="dispatch-panels">
+
+
+            <article>
+
+                <span>
+                    READY QUEUE
+                </span>
+
+                <strong>
+                    03
+                </strong>
+
+                <p>
+                    Vehicles ready for assignment.
+                </p>
 
                 <button
-                    type="button"
-                    id="exportShipments"
-                    class="secondary-btn">
+                    class="primary-btn"
+                    data-action="assignment"
+                    type="button">
 
-                    Export
+                    Assign Vehicles →
 
                 </button>
 
-            </div>
+            </article>
 
 
+            <article>
 
-            <!-- TABLE -->
+                <span>
+                    UNASSIGNED
+                </span>
 
-            <div class="table-wrapper">
+                <strong>
+                    02
+                </strong>
 
-                <table class="admin-table">
+                <p>
+                    Shipments awaiting dispatch.
+                </p>
 
-                    <thead>
+                <button
+                    class="primary-btn"
+                    data-page-go="shipments"
+                    type="button">
 
-                        <tr>
+                    Open Queue →
 
-                            <th>
-                                Tracking
-                            </th>
+                </button>
 
-                            <th>
-                                Sender
-                            </th>
-
-                            <th>
-                                Receiver
-                            </th>
-
-                            <th>
-                                Route
-                            </th>
-
-                            <th>
-                                Type
-                            </th>
-
-                            <th>
-                                Status
-                            </th>
-
-                            <th>
-                                Weight
-                            </th>
-
-                            <th>
-                                Customer
-                            </th>
-
-                            <th>
-                                Actions
-                            </th>
-
-                        </tr>
-
-                    </thead>
+            </article>
 
 
-                    <tbody id="shipmentTable">
+            <article>
 
-                        <tr>
+                <span>
+                    ROUTES READY
+                </span>
 
-                            <td
-                                colspan="9"
-                                style="text-align:center;">
+                <strong>
+                    05
+                </strong>
 
-                                Loading shipments...
+                <p>
+                    Corridors ready for release.
+                </p>
 
-                            </td>
+                <button
+                    class="primary-btn"
+                    data-action="assignment"
+                    type="button">
 
-                        </tr>
+                    Release Routes →
 
-                    </tbody>
+                </button>
 
-                </table>
-
-            </div>
+            </article>
 
         </section>
 
-
-
-        <!-- =================================================
-             FLEET
-        ================================================== -->
-
-        <section
-            id="page-fleet"
-            class="admin-page hidden">
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        FLEET
-                    </span>
-
-                    <h2>
-                        Fleet Management
-                    </h2>
-
-                    <p>
-                        Fleet readiness and vehicle operations.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
+    </section>
 
 
 
-        <!-- =================================================
-             DRIVERS
-        ================================================== -->
+    <!-- ==================================================
+         NETWORK
+    =================================================== -->
 
-        <section
-            id="page-drivers"
-            class="admin-page hidden">
+    <section
+        id="page-network"
+        class="admin-page hidden">
 
-            <div class="module-header">
 
-                <div>
+        <div class="module-header">
 
-                    <span>
-                        DRIVERS
-                    </span>
 
-                    <h2>
-                        Driver Operations
-                    </h2>
+            <div>
 
-                    <p>
-                        Manage driver operations.
-                    </p>
+                <span>
+                    NETWORK MONITOR
+                </span>
 
-                </div>
+                <h2>
+                    Live Network
+                </h2>
+
+                <p>
+                    Full operational view across active corridors and hubs.
+                </p>
 
             </div>
 
-        </section>
+
+            <button
+                class="outline-btn"
+                data-page-go="dashboard"
+                type="button">
+
+                ← Command Center
+
+            </button>
+
+        </div>
 
 
-
-        <!-- =================================================
-             DISPATCH
-        ================================================== -->
-
-        <section
-            id="page-dispatch"
-            class="admin-page hidden">
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        DISPATCH
-                    </span>
-
-                    <h2>
-                        Dispatch Board
-                    </h2>
-
-                    <p>
-                        Dispatch and shipment coordination.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
+        <article class="full-network-card">
 
 
+            <div class="full-network-top">
 
-        <!-- =================================================
-             NETWORK
-        ================================================== -->
-
-        <section
-            id="page-network"
-            class="admin-page hidden">
-
-            <div class="module-header">
+                <span>
+                    REAL-TIME VEHICLE NETWORK
+                </span>
 
                 <div>
 
-                    <span>
-                        LIVE NETWORK
-                    </span>
+                    <i></i>
 
-                    <h2>
-                        Network Operations
-                    </h2>
-
-                    <p>
-                        Live logistics network.
-                    </p>
+                    LIVE
 
                 </div>
 
@@ -890,454 +3081,1138 @@
 
 
             <div
-                id="networkMap"
-                style="
-                    width:100%;
-                    min-height:450px;
-                    border-radius:16px;
-                    overflow:hidden;
-                ">
+                id="fullNetworkMap"
+                class="network-map large">
             </div>
 
-        </section>
 
+            <div class="full-map-info">
 
-
-        <!-- =================================================
-             EXCEPTIONS
-        ================================================== -->
-
-        <section
-            id="page-exceptions"
-            class="admin-page hidden">
-
-            <div class="module-header">
 
                 <div>
 
                     <span>
-                        EXCEPTIONS
+                        MOVING
                     </span>
 
-                    <h2>
-                        Exception Center
-                    </h2>
+                    <strong>
+                        06
+                    </strong>
 
-                    <p>
-                        Operational exceptions and SLA issues.
-                    </p>
+                </div>
+
+
+                <div>
+
+                    <span>
+                        READY
+                    </span>
+
+                    <strong>
+                        03
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        AT RISK
+                    </span>
+
+                    <strong>
+                        01
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        ETA WATCH
+                    </span>
+
+                    <strong>
+                        02
+                    </strong>
 
                 </div>
 
             </div>
 
+        </article>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         EXCEPTIONS
+    =================================================== -->
+
+    <section
+        id="page-exceptions"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+            <div>
+
+                <span>
+                    OPERATIONAL RISK
+                </span>
+
+                <h2>
+                    Exception Center
+                </h2>
+
+                <p>
+                    Prioritized issues with context and next action.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <section class="exception-panels">
+
+
+            <article class="critical-panel">
+
+                <span>
+                    P1 · CRITICAL
+                </span>
+
+                <h3>
+                    Vehicle service required
+                </h3>
+
+                <strong>
+                    MH15-MT-1198
+                </strong>
+
+                <p>
+                    Health 64% · Fuel 41% · Jalgaon → Pune · Kiran Jadhav
+                </p>
+
+                <button
+                    data-exception="MH15-MT-1198"
+                    type="button">
+
+                    Review & resolve →
+
+                </button>
+
+            </article>
+
+
+            <article class="warning-panel">
+
+                <span>
+                    P2 · HIGH
+                </span>
+
+                <h3>
+                    Fuel watch triggered
+                </h3>
+
+                <strong>
+                    MH46-CT-7823
+                </strong>
+
+                <p>
+                    71% fuel · Nagpur → Delhi · Suresh More
+                </p>
+
+                <button
+                    data-exception="MH46-CT-7823"
+                    type="button">
+
+                    Inspect movement →
+
+                </button>
+
+            </article>
+
+
+            <article class="sla-panel">
+
+                <span>
+                    SLA WATCH
+                </span>
+
+                <h3>
+                    Shipments approaching threshold
+                </h3>
+
+                <strong>
+                    03 SHIPMENTS
+                </strong>
+
+                <p>
+                    Review aging deliveries before network SLA breach.
+                </p>
+
+                <button
+                    data-page-go="shipments"
+                    type="button">
+
+                    Open shipment command →
+
+                </button>
+
+            </article>
+
         </section>
 
+    </section>
 
 
-        <!-- =================================================
-             ALERTS
-        ================================================== -->
 
-        <section
-            id="page-alerts"
-            class="admin-page hidden">
+    <!-- ==================================================
+         ALERTS
+    =================================================== -->
 
-            <div class="module-header">
+    <section
+        id="page-alerts"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+
+            <div>
+
+                <span>
+                    ALERT MANAGEMENT
+                </span>
+
+                <h2>
+                    Alert Operations
+                </h2>
+
+                <p>
+                    Route, SLA, vehicle and network alert orchestration.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="control-grid">
+
+
+            <article class="control-card">
+
+                <span>
+                    ROUTE ALERTS
+                </span>
+
+                <h4>
+                    Route deviation rules
+                </h4>
+
+                <p>
+                    Monitor route deviations and movement anomalies.
+                </p>
+
+                <button
+                    data-action="configure-alerts"
+                    type="button">
+
+                    Configure Alert Rules →
+
+                </button>
+
+            </article>
+
+
+            <article class="control-card">
+
+                <span>
+                    SLA ALERTS
+                </span>
+
+                <h4>
+                    Delivery threshold alerts
+                </h4>
+
+                <p>
+                    Trigger alerts when delivery age approaches SLA limits.
+                </p>
+
+                <button
+                    data-action="configure-alerts"
+                    type="button">
+
+                    Configure SLA →
+
+                </button>
+
+            </article>
+
+
+            <article class="control-card">
+
+                <span>
+                    FUEL ALERTS
+                </span>
+
+                <h4>
+                    Fuel watch
+                </h4>
+
+                <p>
+                    Monitor active vehicles and low-fuel conditions.
+                </p>
+
+                <button
+                    data-action="configure-alerts"
+                    type="button">
+
+                    Configure Fuel Rules →
+
+                </button>
+
+            </article>
+
+
+            <article class="control-card">
+
+                <span>
+                    HEALTH ALERTS
+                </span>
+
+                <h4>
+                    Vehicle health
+                </h4>
+
+                <p>
+                    Create health-based maintenance and risk alerts.
+                </p>
+
+                <button
+                    data-page-go="maintenance"
+                    type="button">
+
+                    Open Maintenance →
+
+                </button>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         MAINTENANCE
+    =================================================== -->
+
+    <section
+        id="page-maintenance"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+            <div>
+
+                <span>
+                    FLEET HEALTH
+                </span>
+
+                <h2>
+                    Maintenance Control
+                </h2>
+
+                <p>
+                    Preventive maintenance, inspections and service schedules.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <section class="empty-module">
+
+
+            <span>
+                MAINTENANCE WORKSPACE
+            </span>
+
+
+            <h2>
+                Fleet service scheduling
+            </h2>
+
+
+            <p>
+                Track preventive maintenance, inspections,
+                vehicle health and upcoming service schedules.
+            </p>
+
+
+            <button
+                class="primary-btn"
+                data-action="maintenance"
+                type="button">
+
+                Open Maintenance Schedule →
+
+            </button>
+
+        </section>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         ANALYTICS
+    =================================================== -->
+
+    <section
+        id="page-analytics"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+            <div>
+
+                <span>
+                    BUSINESS INTELLIGENCE
+                </span>
+
+                <h2>
+                    Network Analytics
+                </h2>
+
+                <p>
+                    Operational trends, SLA performance and utilization.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="analytics-layout">
+
+
+            <article class="analytics-main">
+
+
+                <span>
+                    NETWORK PERFORMANCE
+                </span>
+
+
+                <h3>
+                    Weekly operating trend
+                </h3>
+
+
+                <div class="analytics-bars">
+
+                    <i style="height:63%"></i>
+
+                    <i style="height:71%"></i>
+
+                    <i style="height:65%"></i>
+
+                    <i style="height:77%"></i>
+
+                    <i style="height:74%"></i>
+
+                    <i style="height:87%"></i>
+
+                    <i style="height:94%"></i>
+
+                </div>
+
+
+                <div class="analytics-days">
+
+                    <span>
+                        Mon
+                    </span>
+
+                    <span>
+                        Tue
+                    </span>
+
+                    <span>
+                        Wed
+                    </span>
+
+                    <span>
+                        Thu
+                    </span>
+
+                    <span>
+                        Fri
+                    </span>
+
+                    <span>
+                        Sat
+                    </span>
+
+                    <span>
+                        Sun
+                    </span>
+
+                </div>
+
+            </article>
+
+
+            <article class="analytics-side">
+
 
                 <div>
 
                     <span>
-                        ALERTS
+                        NETWORK SLA
                     </span>
 
-                    <h2>
-                        Alert Management
-                    </h2>
-
-                    <p>
-                        Monitor operational alerts.
-                    </p>
+                    <strong>
+                        94.2%
+                    </strong>
 
                 </div>
 
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             MAINTENANCE
-        ================================================== -->
-
-        <section
-            id="page-maintenance"
-            class="admin-page hidden">
-
-            <div class="module-header">
 
                 <div>
 
                     <span>
-                        MAINTENANCE
+                        FLEET UTILIZATION
                     </span>
 
-                    <h2>
-                        Vehicle Maintenance
-                    </h2>
-
-                    <p>
-                        Maintenance operations.
-                    </p>
+                    <strong>
+                        67%
+                    </strong>
 
                 </div>
 
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             ANALYTICS
-        ================================================== -->
-
-        <section
-            id="page-analytics"
-            class="admin-page hidden">
-
-            <div class="module-header">
 
                 <div>
 
                     <span>
-                        ANALYTICS
+                        ON-TIME DELIVERY
                     </span>
 
-                    <h2>
-                        Operational Analytics
-                    </h2>
-
-                    <p>
-                        Logistics performance analytics.
-                    </p>
+                    <strong>
+                        94%
+                    </strong>
 
                 </div>
 
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             CUSTOMERS
-        ================================================== -->
-
-        <section
-            id="page-customers"
-            class="admin-page hidden">
-
-            <div class="module-header">
 
                 <div>
 
                     <span>
-                        CUSTOMERS
+                        SLA BREACH
                     </span>
 
-                    <h2>
-                        Customer Intelligence
-                    </h2>
-
-                    <p>
-                        Customer operations.
-                    </p>
+                    <strong class="red-text">
+                        01
+                    </strong>
 
                 </div>
 
-            </div>
+            </article>
 
-        </section>
+        </div>
 
-
-
-        <!-- =================================================
-             REPORTS
-        ================================================== -->
-
-        <section
-            id="page-reports"
-            class="admin-page hidden">
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        REPORTS
-                    </span>
-
-                    <h2>
-                        Operational Reports
-                    </h2>
-
-                    <p>
-                        Generate logistics reports.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
+    </section>
 
 
 
-        <!-- =================================================
-             ASSIGNMENTS
-        ================================================== -->
+    <!-- ==================================================
+         CUSTOMERS
+    =================================================== -->
 
-        <section
-            id="page-assignments"
-            class="admin-page hidden">
+    <section
+        id="page-customers"
+        class="admin-page hidden">
 
-            <div class="module-header">
 
-                <div>
+        <div class="module-header">
 
-                    <span>
-                        ASSIGNMENTS
-                    </span>
+            <div>
 
-                    <h2>
-                        Shipment Assignments
-                    </h2>
+                <span>
+                    CUSTOMER INTELLIGENCE
+                </span>
 
-                    <p>
-                        Assign shipments to customers.
-                    </p>
+                <h2>
+                    Customer Operations
+                </h2>
 
-                </div>
+                <p>
+                    Customer experience and account intelligence.
+                </p>
 
             </div>
 
-        </section>
+        </div>
+
+
+        <div class="module-kpis">
+
+
+            <article>
+
+                <span>
+                    ACTIVE ACCOUNTS
+                </span>
+
+                <strong>
+                    42
+                </strong>
+
+                <small>
+                    Connected accounts
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    SATISFACTION
+                </span>
+
+                <strong>
+                    97%
+                </strong>
+
+                <small>
+                    Service score
+                </small>
+
+            </article>
+
+
+            <article class="module-danger">
+
+                <span>
+                    OPEN ISSUES
+                </span>
+
+                <strong>
+                    03
+                </strong>
+
+                <small>
+                    Requiring follow-up
+                </small>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    REPEAT RATE
+                </span>
+
+                <strong>
+                    81%
+                </strong>
+
+                <small>
+                    Returning customers
+                </small>
+
+            </article>
+
+        </div>
+
+
+        <div class="control-grid">
+
+
+            <article class="control-card">
+
+                <span>
+                    EXPERIENCE INDEX
+                </span>
+
+                <h4>
+                    97 · Excellent
+                </h4>
+
+                <p>
+                    Strong service satisfaction and delivery confidence.
+                </p>
+
+            </article>
+
+
+            <article class="control-card">
+
+                <span>
+                    SUPPORT LOAD
+                </span>
+
+                <h4>
+                    03 open interactions
+                </h4>
+
+                <p>
+                    Open delivery issue · Address clarification · ETA follow-up.
+                </p>
+
+            </article>
+
+        </div>
+
+    </section>
 
 
 
-        <!-- =================================================
-             SETTINGS
-        ================================================== -->
+    <!-- ==================================================
+         REPORTS
+    =================================================== -->
 
-        <section
-            id="page-settings"
-            class="admin-page hidden">
+    <section
+        id="page-reports"
+        class="admin-page hidden">
 
-            <div class="module-header">
 
-                <div>
+        <div class="module-header">
 
-                    <span>
-                        SETTINGS
-                    </span>
 
-                    <h2>
-                        System Configuration
-                    </h2>
+            <div>
 
-                    <p>
-                        Configure TRANSLOGIX administration.
-                    </p>
+                <span>
+                    REPORTING
+                </span>
 
-                </div>
+                <h2>
+                    Operational Reports
+                </h2>
+
+                <p>
+                    Generate shipment, fleet, SLA and performance reports.
+                </p>
 
             </div>
 
+
+            <button
+                class="primary-btn"
+                data-action="generate-report"
+                type="button">
+
+                Generate Report →
+
+            </button>
+
+        </div>
+
+
+        <div class="control-grid">
+
+
+            <article class="control-card">
+
+                <span>
+                    SHIPMENTS
+                </span>
+
+                <h4>
+                    Shipment performance report
+                </h4>
+
+                <p>
+                    Shipment volume, movement and delivery execution.
+                </p>
+
+                <button
+                    id="reportShipmentBtn"
+                    type="button">
+
+                    Generate Shipment Report →
+
+                </button>
+
+            </article>
+
+
+            <article class="control-card">
+
+                <span>
+                    FLEET
+                </span>
+
+                <h4>
+                    Fleet health report
+                </h4>
+
+                <p>
+                    Vehicle utilization, fuel and maintenance intelligence.
+                </p>
+
+                <button
+                    data-action="generate-report"
+                    type="button">
+
+                    Generate Fleet Report →
+
+                </button>
+
+            </article>
+
+
+            <article class="control-card">
+
+                <span>
+                    SLA
+                </span>
+
+                <h4>
+                    SLA performance report
+                </h4>
+
+                <p>
+                    SLA compliance, aging shipments and breach analysis.
+                </p>
+
+                <button
+                    data-action="generate-report"
+                    type="button">
+
+                    Generate SLA Report →
+
+                </button>
+
+            </article>
+
+
+            <article class="control-card">
+
+                <span>
+                    CUSTOM
+                </span>
+
+                <h4>
+                    Custom operations report
+                </h4>
+
+                <p>
+                    Combine shipment, fleet and driver metrics.
+                </p>
+
+                <button
+                    data-action="generate-report"
+                    type="button">
+
+                    Build Custom Report →
+
+                </button>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         ASSIGNMENTS
+    =================================================== -->
+
+    <section
+        id="page-assignments"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+
+            <div>
+
+                <span>
+                    CONTROL
+                </span>
+
+                <h2>
+                    Assignment Control
+                </h2>
+
+                <p>
+                    Coordinate shipment, driver and vehicle allocation.
+                </p>
+
+            </div>
+
+
+            <button
+                class="primary-btn"
+                data-action="assignment"
+                type="button">
+
+                Open Assignment Queue →
+
+            </button>
+
+        </div>
+
+
+        <section class="empty-module">
+
+
+            <span>
+                ASSIGNMENT WORKSPACE
+            </span>
+
+
+            <h2>
+                Allocation command
+            </h2>
+
+
+            <p>
+                Coordinate available vehicles, drivers and shipment
+                requirements from one dispatch-ready workspace.
+            </p>
+
+
+            <button
+                class="primary-btn"
+                data-action="assignment"
+                type="button">
+
+                Open Assignment Queue →
+
+            </button>
+
         </section>
 
-    </main>
+    </section>
+
+
+
+    <!-- ==================================================
+         SETTINGS
+    =================================================== -->
+
+    <section
+        id="page-settings"
+        class="admin-page hidden">
+
+
+        <div class="module-header">
+
+
+            <div>
+
+                <span>
+                    PLATFORM CONTROL
+                </span>
+
+                <h2>
+                    Settings
+                </h2>
+
+                <p>
+                    Platform configuration and operations controls.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="settings-grid">
+
+
+            <article>
+
+                <span>
+                    USER ACCESS
+                </span>
+
+                <h3>
+                    Role management
+                </h3>
+
+                <p>
+                    Configure administrator and operations access.
+                </p>
+
+
+                <button
+                    class="primary-btn"
+                    data-action="assignment"
+                    type="button">
+
+                    Manage Roles →
+
+                </button>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    PLATFORM
+                </span>
+
+                <h3>
+                    Integration controls
+                </h3>
+
+                <p>
+                    API, database, notifications and operational integrations.
+                </p>
+
+
+                <button
+                    class="primary-btn"
+                    data-action="details"
+                    type="button">
+
+                    Open Integrations →
+
+                </button>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    OPERATIONS
+                </span>
+
+                <h3>
+                    Thresholds
+                </h3>
+
+                <p>
+                    Configure SLA, fuel, health and exception thresholds.
+                </p>
+
+
+                <button
+                    class="primary-btn"
+                    data-action="configure-alerts"
+                    type="button">
+
+                    Configure Thresholds →
+
+                </button>
+
+            </article>
+
+        </div>
+
+    </section>
+
+</main>
 
 </div>
 
-
-
 <!-- =========================================================
      ADMIN MODAL
-========================================================== -->
+========================================================= -->
 
 <div
     id="adminModal"
     class="admin-modal hidden">
 
-    <div class="admin-modal-overlay"></div>
-
-    <div class="admin-modal-box">
-
-        <button
-            type="button"
-            id="adminModalClose"
-            class="admin-modal-close">
-
-            ×
-
-        </button>
+<div class="modal-box">
 
 
-        <div class="admin-modal-header">
+    <button
+        id="adminModalClose"
+        class="modal-close"
+        type="button"
+        aria-label="Close">
 
-            <h2 id="modalTitle">
-                Shipment
-            </h2>
+        ×
 
-        </div>
+    </button>
 
 
-        <div
-            id="modalContent"
-            class="admin-modal-content">
+    <span>
+        TRANSLOGIX OPERATION
+    </span>
 
-        </div>
 
-    </div>
+    <h2 id="modalTitle">
+        Operation
+    </h2>
+
+
+    <div id="modalContent"></div>
 
 </div>
 
-
+</div>
 
 <!-- =========================================================
-     COPILOT
-========================================================== -->
+     COPILOT OPEN BUTTON
+========================================================= -->
 
 <button
-    type="button"
-    id="txCopilotOpen"
-    class="tx-copilot-open-btn">
+ id="txCopilotOpen"
+ class="tx-copilot-floating"
+ type="button"
+ aria-label="Open TRANSLOGIX Copilot">
 
+<span>
     ✦
-    <span>Copilot</span>
+</span>
+
+<strong>
+    Copilot
+</strong>
 
 </button>
 
-
-<section
-    id="txCopilotPanel"
-    class="tx-copilot-panel hidden">
-
-    <header class="tx-copilot-header">
-
-        <div class="tx-copilot-brand">
-
-            <div class="tx-copilot-logo">
-                ✦
-            </div>
-
-            <div class="tx-copilot-title">
-
-                <strong>
-                    Translogix Copilot
-                </strong>
-
-                <small>
-                    Operations Assistant
-                </small>
-
-            </div>
-
-        </div>
-
-
-        <button
-            type="button"
-            id="txCopilotClose"
-            class="tx-copilot-close">
-
-            ×
-
-        </button>
-
-    </header>
-
-
-    <div class="tx-copilot-status">
-
-        <i></i>
-
-        <span>
-            System online
-        </span>
-
-    </div>
-
-
-    <div
-        id="txCopilotMessages"
-        class="tx-copilot-messages">
-
-    </div>
-
-
-    <div class="tx-copilot-input">
-
-        <form
-            id="txCopilotForm"
-            style="
-                width:100%;
-                display:flex;
-                gap:8px;
-            ">
-
-            <input
-                type="text"
-                id="txCopilotInput"
-                placeholder="Ask about shipments...">
-
-            <button
-                type="submit"
-                class="tx-copilot-send">
-
-                ↑
-
-            </button>
-
-        </form>
-
-    </div>
-
-</section>
-
-
-
 <!-- =========================================================
-     LEAFLET JS
-========================================================== -->
+     LEAFLET
+========================================================= -->
 
 <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     crossorigin="">
 </script>
 
-
 <!-- =========================================================
-     ADMIN JS
-========================================================== -->
+     ADMIN JAVASCRIPT
+========================================================= -->
 
 <script
     src="./Js/admin.js"
     defer>
 </script>
 
-
 <!-- =========================================================
-     COPILOT JS
-========================================================== -->
+     COPILOT JAVASCRIPT
+========================================================= -->
 
 <script
     src="./Js/copilot.js"
     defer>
 </script>
-
 
 </body>
 
