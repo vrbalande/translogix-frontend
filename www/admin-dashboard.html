@@ -1,5154 +1,3177 @@
-<!DOCTYPE html>
-<html lang="en">
+/* ==========================================================
+   TRANSLOGIX ADMIN CONTROL TOWER
+   Production Version
+========================================================== */
 
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
-    <meta
-        name="description"
-        content="TRANSLOGIX Admin Control Tower - Enterprise Logistics Operations">
-
-    <meta
-        name="theme-color"
-        content="#eef2f6">
-
-    <title>
-        TRANSLOGIX | Admin Control Tower
-    </title>
+"use strict";
 
 
-    <!-- =====================================================
-         LEAFLET
-    ====================================================== -->
+/* ==========================================================
+   API CONFIG
+========================================================== */
 
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossorigin="">
+const ADMIN_API =
+    "https://translogix-backend-1.onrender.com";
 
 
-    <!-- =====================================================
-         ADMIN CSS
-    ====================================================== -->
+/* ==========================================================
+   STATE
+========================================================== */
 
-    <link
-        rel="stylesheet"
-        href="./Css/admin-dashboard.css">
+const state = {
+
+    shipments: [],
+
+    customers: [],
+
+    currentPage: "dashboard",
+
+    demoMode: false,
+
+    maps: {},
+
+    selectedVehicle: null
+
+};
 
 
-    <!-- =====================================================
-         COPILOT CSS
-    ====================================================== -->
+/* ==========================================================
+   AUTH TOKEN
+========================================================== */
 
-    <link
-        rel="stylesheet"
-        href="./Css/copilot.css">
+function getToken(){
+
+    return (
+        localStorage.getItem("token") ||
+        localStorage.getItem("jwt") ||
+        localStorage.getItem("accessToken") ||
+        ""
+    );
+
+}
 
 
-    <!-- =====================================================
-         EXTRA ADMIN UI
-    ====================================================== -->
+/* ==========================================================
+   API HELPER
+========================================================== */
 
-    <style>
+async function api(
+    endpoint,
+    options = {}
+){
 
-        /* =================================================
-           COPILOT OPEN BUTTON
-        ================================================= */
+    const token = getToken();
 
-        .tx-copilot-open-btn{
+    const config = {
 
-            position:fixed;
+        ...options,
 
-            right:24px;
+        headers: {
 
-            bottom:24px;
+            "Content-Type":
+                "application/json",
 
-            z-index:6000;
+            ...(options.headers || {}),
 
-            min-width:58px;
+            ...(token
+                ? {
+                    "Authorization":
+                        `Bearer ${token}`
+                }
+                : {})
 
-            height:58px;
+        }
 
-            display:flex;
+    };
 
-            align-items:center;
 
-            justify-content:center;
+    try{
 
-            gap:8px;
+        const response =
+            await fetch(
+                `${ADMIN_API}${endpoint}`,
+                config
+            );
 
-            padding:0 17px;
 
-            border:1px solid #cdbfea;
+        const text =
+            await response.text();
 
-            border-radius:999px;
 
-            color:#fff;
+        let data = null;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #8b69db,
-                    #6245a2
-                );
 
-            box-shadow:
-                0 14px 32px
-                rgba(85,61,145,.25);
+        try{
 
-            font-size:11px;
+            data =
+                text
+                    ? JSON.parse(text)
+                    : null;
 
-            font-weight:900;
+        }
+        catch{
 
-            cursor:pointer;
-
-            transition:
-                transform .2s ease,
-                box-shadow .2s ease;
+            data = text;
 
         }
 
 
-        .tx-copilot-open-btn:hover{
+        /* ==================================================
+           UNAUTHORIZED
+        ================================================== */
 
-            transform:
-                translateY(-3px);
+        if(response.status === 401){
 
-            box-shadow:
-                0 18px 38px
-                rgba(85,61,145,.32);
+            localStorage.removeItem("token");
+            localStorage.removeItem("jwt");
+            localStorage.removeItem("accessToken");
 
-        }
+            showToast(
+                "Session expired",
+                "Please login again.",
+                "error"
+            );
 
+            setTimeout(() => {
 
-        .tx-copilot-open-btn .copilot-star{
+                window.location.href =
+                    "./login.html";
 
-            width:28px;
+            }, 1200);
 
-            height:28px;
-
-            display:grid;
-
-            place-items:center;
-
-            border-radius:50%;
-
-            background:
-                rgba(255,255,255,.16);
-
-            font-size:14px;
+            throw new Error(
+                "Unauthorized"
+            );
 
         }
 
 
-        /* =================================================
-           COPILOT PANEL FALLBACK
-        ================================================= */
+        /* ==================================================
+           FORBIDDEN
+        ================================================== */
 
-        .tx-copilot-panel{
+        if(response.status === 403){
 
-            position:fixed;
-
-            right:24px;
-
-            bottom:94px;
-
-            z-index:6500;
-
-            width:
-                min(
-                    420px,
-                    calc(100vw - 30px)
-                );
-
-            height:
-                min(
-                    650px,
-                    calc(100vh - 125px)
-                );
-
-            display:flex;
-
-            flex-direction:column;
-
-            overflow:hidden;
-
-            border:
-                1px solid
-                #dce3eb;
-
-            border-radius:20px;
-
-            background:#fff;
-
-            box-shadow:
-                0 35px 90px
-                rgba(24,38,58,.20);
-
-            transform-origin:
-                bottom right;
-
-            animation:
-                txCopilotIn
-                .22s
-                ease;
+            throw new Error(
+                "Administrator permission required."
+            );
 
         }
 
 
-        .tx-copilot-panel.hidden{
+        /* ==================================================
+           OTHER ERRORS
+        ================================================== */
 
-            display:none !important;
+        if(!response.ok){
 
-        }
+            let message =
+                "Request failed.";
 
+            if(typeof data === "string" && data){
 
-        @keyframes txCopilotIn{
+                message = data;
 
-            from{
+            }
+            else if(data?.message){
 
-                opacity:0;
+                message = data.message;
 
-                transform:
-                    translateY(14px)
-                    scale(.97);
+            }
+            else if(data?.error){
+
+                message = data.error;
 
             }
 
-            to{
-
-                opacity:1;
-
-                transform:
-                    translateY(0)
-                    scale(1);
-
-            }
+            throw new Error(message);
 
         }
 
 
-        /* HEADER */
+        return data;
 
-        .tx-copilot-header{
+    }
+    catch(error){
 
-            min-height:74px;
+        console.error(
+            "API Error:",
+            endpoint,
+            error
+        );
 
-            display:flex;
+        throw error;
 
-            align-items:center;
+    }
 
-            justify-content:space-between;
+}
 
-            gap:12px;
 
-            padding:
-                13px 15px;
+/* ==========================================================
+   TOAST
+========================================================== */
 
-            color:#fff;
+function showToast(
+    title,
+    message = "",
+    type = "success"
+){
 
-            background:
+    if(
+        typeof window.showToast ===
+        "function"
+    ){
 
-                linear-gradient(
-                    135deg,
-                    #121b2a,
-                    #1d2840
+        window.showToast(
+            title,
+            message,
+            type
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        `[${type}] ${title}`,
+        message
+    );
+
+}
+
+
+/* ==========================================================
+   LOAD CUSTOMERS
+========================================================== */
+
+async function loadCustomers(){
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/users"
+            );
+
+
+        state.customers =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        console.log(
+            "CUSTOMERS LOADED:",
+            state.customers
+        );
+
+
+        return state.customers;
+
+    }
+    catch(error){
+
+        console.error(
+            "Customer loading failed:",
+            error
+        );
+
+
+        state.customers = [];
+
+
+        showToast(
+            "Customer loading failed",
+            error.message,
+            "error"
+        );
+
+
+        return [];
+
+    }
+
+}
+
+
+/* ==========================================================
+   LOAD ALL ADMIN SHIPMENTS
+========================================================== */
+
+async function loadShipments(){
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/shipments"
+            );
+
+
+        if(Array.isArray(data)){
+
+            state.shipments =
+                data;
+
+        }
+        else if(
+            Array.isArray(data?.content)
+        ){
+
+            state.shipments =
+                data.content;
+
+        }
+        else{
+
+            state.shipments = [];
+
+        }
+
+
+        state.demoMode = false;
+
+
+        console.log(
+            "ADMIN SHIPMENTS LOADED:",
+            state.shipments
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Admin shipment loading failed:",
+            error
+        );
+
+
+        state.shipments = [];
+
+
+        state.demoMode = true;
+
+
+        showToast(
+            "Shipment loading failed",
+            error.message,
+            "error"
+        );
+
+    }
+
+
+    updateStats();
+
+
+    renderShipmentTable(
+        state.shipments
+    );
+
+}
+
+
+/* ==========================================================
+   CUSTOMER DROPDOWN OPTIONS
+========================================================== */
+
+function customerOptions(){
+
+    if(
+        !Array.isArray(
+            state.customers
+        ) ||
+        state.customers.length === 0
+    ){
+
+        return `
+            <option value="">
+                No customers available
+            </option>
+        `;
+
+    }
+
+
+    const customers =
+        state.customers.filter(
+            customer =>
+                customer &&
+                customer.username
+        );
+
+
+    if(customers.length === 0){
+
+        return `
+            <option value="">
+                No customers available
+            </option>
+        `;
+
+    }
+
+
+    return customers
+        .map(customer => {
+
+            const username =
+                escapeHtml(
+                    customer.username
                 );
 
-        }
 
+            return `
+                <option value="${username}">
+                    ${username}
+                </option>
+            `;
 
-        .tx-copilot-brand{
+        })
+        .join("");
 
-            display:flex;
+}
 
-            align-items:center;
 
-            gap:10px;
+/* ==========================================================
+   ESCAPE HTML
+========================================================== */
 
-        }
+function escapeHtml(value){
 
+    if(value === null ||
+       value === undefined){
 
-        .tx-copilot-logo{
+        return "";
 
-            width:40px;
+    }
 
-            height:40px;
 
-            display:grid;
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 
-            place-items:center;
+}
 
-            border-radius:12px;
 
-            color:#fff;
+/* ==========================================================
+   OPEN CREATE SHIPMENT MODAL
+========================================================== */
 
-            background:
+async function openCreateShipmentModal(){
 
-                linear-gradient(
-                    135deg,
-                    #a183e6,
-                    #6547a5
-                );
+    await loadCustomers();
 
-            box-shadow:
-                0 8px 20px
-                rgba(79,56,137,.30);
 
-            font-size:17px;
+    const customerOptionsHtml =
+        customerOptions();
 
-        }
 
+    const modal =
+        document.createElement("div");
 
-        .tx-copilot-title strong{
 
-            display:block;
+    modal.id =
+        "createShipmentModal";
 
-            font-size:11px;
 
-        }
+    modal.className =
+        "modal-overlay";
 
 
-        .tx-copilot-title small{
+    modal.innerHTML = `
 
-            display:block;
+        <div class="modal-content">
 
-            margin-top:3px;
-
-            color:#acb7c8;
-
-            font-size:7px;
-
-        }
-
-
-        .tx-copilot-close{
-
-            width:36px;
-
-            height:36px;
-
-            display:grid;
-
-            place-items:center;
-
-            border:
-                1px solid
-                rgba(255,255,255,.13);
-
-            border-radius:9px;
-
-            color:#ced6e0;
-
-            background:
-                rgba(255,255,255,.06);
-
-            font-size:20px;
-
-            cursor:pointer;
-
-        }
-
-
-        .tx-copilot-close:hover{
-
-            color:#fff;
-
-            background:
-                rgba(255,255,255,.12);
-
-        }
-
-
-        /* STATUS */
-
-        .tx-copilot-status{
-
-            min-height:36px;
-
-            display:flex;
-
-            align-items:center;
-
-            gap:7px;
-
-            padding:
-                0 15px;
-
-            border-bottom:
-                1px solid
-                #e7ecf1;
-
-            color:#738095;
-
-            background:#fafbfd;
-
-            font-size:7px;
-
-            font-weight:800;
-
-        }
-
-
-        .tx-copilot-status i{
-
-            width:7px;
-
-            height:7px;
-
-            border-radius:50%;
-
-            background:#15966a;
-
-            box-shadow:
-                0 0 0 4px
-                rgba(21,150,106,.09);
-
-        }
-
-
-        /* MESSAGES */
-
-        .tx-copilot-messages{
-
-            flex:1;
-
-            overflow-y:auto;
-
-            padding:16px;
-
-            background:
-                linear-gradient(
-                    180deg,
-                    #fafbfd,
-                    #f5f8fb
-                );
-
-            scrollbar-width:thin;
-
-        }
-
-
-        .tx-copilot-message{
-
-            width:max-content;
-
-            max-width:87%;
-
-            margin-bottom:10px;
-
-            padding:
-                10px 12px;
-
-            border-radius:
-                12px 12px 12px 4px;
-
-            color:#344156;
-
-            background:#fff;
-
-            border:
-                1px solid
-                #e0e7ee;
-
-            box-shadow:
-                0 5px 16px
-                rgba(30,45,65,.04);
-
-            white-space:pre-line;
-
-            font-size:9px;
-
-            line-height:1.65;
-
-        }
-
-
-        .tx-copilot-message.user{
-
-            margin-left:auto;
-
-            border-radius:
-                12px 12px 4px 12px;
-
-            color:#fff;
-
-            background:
-
-                linear-gradient(
-                    135deg,
-                    #8867d5,
-                    #6346a4
-                );
-
-            border-color:
-                transparent;
-
-        }
-
-
-        /* TYPING */
-
-        .tx-copilot-typing{
-
-            display:flex;
-
-            align-items:center;
-
-            gap:4px;
-
-            width:max-content;
-
-            margin-bottom:10px;
-
-            padding:
-                10px 12px;
-
-            border:
-                1px solid
-                #e0e7ee;
-
-            border-radius:
-                12px 12px 12px 4px;
-
-            background:#fff;
-
-        }
-
-
-        .tx-copilot-typing i{
-
-            width:5px;
-
-            height:5px;
-
-            border-radius:50%;
-
-            background:#8a70c9;
-
-            animation:
-                txTyping
-                1.2s
-                infinite;
-
-        }
-
-
-        .tx-copilot-typing i:nth-child(2){
-
-            animation-delay:
-                .15s;
-
-        }
-
-
-        .tx-copilot-typing i:nth-child(3){
-
-            animation-delay:
-                .30s;
-
-        }
-
-
-        @keyframes txTyping{
-
-            50%{
-
-                transform:
-                    translateY(-3px);
-
-                opacity:.4;
-
-            }
-
-        }
-
-
-        /* SUGGESTIONS */
-
-        .tx-copilot-suggestions{
-
-            display:flex;
-
-            flex-wrap:wrap;
-
-            gap:6px;
-
-            padding:
-                9px 12px;
-
-            border-top:
-                1px solid
-                #e5ebf0;
-
-            background:#fff;
-
-        }
-
-
-        .tx-copilot-suggestions button{
-
-            min-height:29px;
-
-            padding:
-                0 9px;
-
-            border:
-                1px solid
-                #d9e1e9;
-
-            border-radius:999px;
-
-            color:#637186;
-
-            background:#f8fafc;
-
-            font-size:7px;
-
-            font-weight:800;
-
-            cursor:pointer;
-
-            transition:.18s ease;
-
-        }
-
-
-        .tx-copilot-suggestions button:hover{
-
-            color:#6246a0;
-
-            border-color:#cdbfe8;
-
-            background:#f6f2fd;
-
-        }
-
-
-        /* INPUT */
-
-        .tx-copilot-input{
-
-            min-height:66px;
-
-            display:flex;
-
-            align-items:center;
-
-            gap:8px;
-
-            padding:
-                10px 12px;
-
-            border-top:
-                1px solid
-                #dfe6ed;
-
-            background:#fff;
-
-        }
-
-
-        .tx-copilot-input input{
-
-            flex:1;
-
-            min-width:0;
-
-            height:43px;
-
-            padding:
-                0 12px;
-
-            border:
-                1px solid
-                #d8e0e8;
-
-            border-radius:10px;
-
-            outline:0;
-
-            color:#263448;
-
-            background:#f8fafc;
-
-            font-size:9px;
-
-        }
-
-
-        .tx-copilot-input input:focus{
-
-            border-color:#bcaee0;
-
-            box-shadow:
-                0 0 0 3px
-                rgba(118,87,199,.08);
-
-        }
-
-
-        .tx-copilot-send{
-
-            width:43px;
-
-            height:43px;
-
-            flex-shrink:0;
-
-            display:grid;
-
-            place-items:center;
-
-            border:0;
-
-            border-radius:10px;
-
-            color:#fff;
-
-            background:
-
-                linear-gradient(
-                    135deg,
-                    #8b69db,
-                    #6547a7
-                );
-
-            font-size:17px;
-
-            cursor:pointer;
-
-        }
-
-
-        .tx-copilot-send:hover{
-
-            filter:brightness(1.06);
-
-        }
-
-
-        /* =================================================
-           MOBILE
-        ================================================= */
-
-        @media(max-width:600px){
-
-            .tx-copilot-open-btn{
-
-                right:15px;
-
-                bottom:15px;
-
-            }
-
-
-            .tx-copilot-panel{
-
-                right:10px;
-
-                bottom:82px;
-
-                width:
-                    calc(100vw - 20px);
-
-                height:
-                    calc(100vh - 105px);
-
-                border-radius:16px;
-
-            }
-
-        }
-
-
-        /* =================================================
-           EXTRA ACTION BUTTONS
-        ================================================= */
-
-        .shipment-action-group{
-
-            display:flex;
-
-            align-items:center;
-
-            gap:5px;
-
-            flex-wrap:wrap;
-
-        }
-
-
-        .shipment-action-btn{
-
-            min-height:34px;
-
-            padding:
-                0 10px;
-
-            border:
-                1px solid
-                #d9e1e9;
-
-            border-radius:8px;
-
-            color:#5f6d80;
-
-            background:#fff;
-
-            font-size:7px;
-
-            font-weight:900;
-
-            transition:.18s ease;
-
-        }
-
-
-        .shipment-action-btn:hover{
-
-            transform:
-                translateY(-1px);
-
-        }
-
-
-        .shipment-action-btn.edit{
-
-            color:#6548a8;
-
-            border-color:#cfc3e8;
-
-            background:#f7f3fd;
-
-        }
-
-
-        .shipment-action-btn.delete{
-
-            color:#d65161;
-
-            border-color:#efc6cc;
-
-            background:#fff6f7;
-
-        }
-
-
-        .shipment-action-btn.status{
-
-            color:#17845f;
-
-            border-color:#bfe3d4;
-
-            background:#f2fbf7;
-
-        }
-
-
-        /* MOBILE ACTION */
-
-        @media(max-width:650px){
-
-            .shipment-action-group{
-
-                flex-direction:column;
-
-                align-items:stretch;
-
-            }
-
-            .shipment-action-btn{
-
-                width:100%;
-
-            }
-
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-<div class="admin-app">
-
-
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
-
-    <aside
-        id="adminSidebar"
-        class="admin-sidebar">
-
-
-        <div class="admin-brand">
-
-            <a href="./index.html">
-
-                <span class="brand-mark">
-                    TX
-                </span>
-
-                <div>
-
-                    <strong>
-                        TRANSLOGIX
-                    </strong>
-
-                    <small>
-                        ENTERPRISE LOGISTICS
-                    </small>
-
-                </div>
-
-            </a>
-
-        </div>
-
-
-        <!-- ACCOUNT -->
-
-        <div class="admin-account-card">
-
-            <div class="admin-avatar">
-                A
-            </div>
-
-            <div class="admin-account-info">
-
-                <strong>
-                    Admin
-                </strong>
-
-                <small>
-                    Operations Control
-                </small>
-
-            </div>
-
-            <i class="online-dot"></i>
-
-        </div>
-
-
-        <!-- COMMAND -->
-
-        <div class="sidebar-label">
-            COMMAND
-        </div>
-
-
-        <nav class="admin-nav">
-
-            <button
-                type="button"
-                class="admin-nav-item active"
-                data-page="dashboard">
-
-                <span class="nav-icon">
-                    ⌘
-                </span>
-
-                <span>
-                    Command Center
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="shipments">
-
-                <span class="nav-icon">
-                    ⇢
-                </span>
-
-                <span>
-                    Shipments
-                </span>
-
-                <em id="sidebarShipmentCount">
-                    00
-                </em>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="fleet">
-
-                <span class="nav-icon">
-                    ◈
-                </span>
-
-                <span>
-                    Fleet
-                </span>
-
-                <b>
-                    12
-                </b>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="drivers">
-
-                <span class="nav-icon">
-                    ◎
-                </span>
-
-                <span>
-                    Drivers
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="dispatch">
-
-                <span class="nav-icon">
-                    ⬢
-                </span>
-
-                <span>
-                    Dispatch
-                </span>
-
-            </button>
-
-        </nav>
-
-
-        <!-- MONITOR -->
-
-        <div class="sidebar-label">
-            MONITOR
-        </div>
-
-
-        <nav class="admin-nav">
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="network">
-
-                <span class="nav-icon">
-                    ◌
-                </span>
-
-                <span>
-                    Live Network
-                </span>
-
-                <i class="live-nav-dot"></i>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="exceptions">
-
-                <span class="nav-icon danger">
-                    !
-                </span>
-
-                <span>
-                    Exception Center
-                </span>
-
-                <em class="danger-badge">
-                    03
-                </em>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="alerts">
-
-                <span class="nav-icon">
-                    ◇
-                </span>
-
-                <span>
-                    Alerts
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="maintenance">
-
-                <span class="nav-icon">
-                    ◷
-                </span>
-
-                <span>
-                    Maintenance
-                </span>
-
-            </button>
-
-        </nav>
-
-
-        <!-- INTELLIGENCE -->
-
-        <div class="sidebar-label">
-            INTELLIGENCE
-        </div>
-
-
-        <nav class="admin-nav">
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="analytics">
-
-                <span class="nav-icon">
-                    ↗
-                </span>
-
-                <span>
-                    Analytics
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="customers">
-
-                <span class="nav-icon">
-                    ◉
-                </span>
-
-                <span>
-                    Customer Intelligence
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="reports">
-
-                <span class="nav-icon">
-                    ▤
-                </span>
-
-                <span>
-                    Reports
-                </span>
-
-            </button>
-
-        </nav>
-
-
-        <!-- CONTROL -->
-
-        <div class="sidebar-label">
-            CONTROL
-        </div>
-
-
-        <nav class="admin-nav">
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="assignments">
-
-                <span class="nav-icon">
-                    ▣
-                </span>
-
-                <span>
-                    Assignments
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="admin-nav-item"
-                data-page="settings">
-
-                <span class="nav-icon">
-                    ⚙
-                </span>
-
-                <span>
-                    Settings
-                </span>
-
-            </button>
-
-        </nav>
-
-
-        <!-- SIDEBAR FOOTER -->
-
-        <div class="sidebar-footer">
-
-
-            <div class="platform-status">
-
-                <div class="platform-status-head">
-
-                    <div>
-
-                        <span>
-                            PLATFORM HEALTH
-                        </span>
-
-                        <strong>
-                            99.9%
-                        </strong>
-
-                    </div>
-
-                    <i></i>
-
-                </div>
-
-
-                <div class="platform-track">
-
-                    <span></span>
-
-                </div>
-
-
-                <small>
-                    All critical services operational
-                </small>
-
-            </div>
-
-
-            <button
-                type="button"
-                id="adminLogout"
-                class="signout-btn">
-
-                ↪
-
-                Sign out
-
-            </button>
-
-        </div>
-
-    </aside>
-
-
-
-    <!-- =====================================================
-         MAIN
-    ====================================================== -->
-
-    <main class="admin-main">
-
-
-        <!-- =================================================
-             TOPBAR
-        ================================================== -->
-
-        <header class="admin-topbar">
-
-
-            <div class="mobile-menu-wrap">
-
-                <button
-                    type="button"
-                    id="adminMenu"
-                    class="mobile-menu">
-
-                    ☰
-
-                </button>
-
-            </div>
-
-
-            <div class="admin-top-title">
-
-                <span>
-                    TRANSLOGIX / OPERATIONS CONTROL TOWER
-                </span>
-
-                <h1 id="adminPageTitle">
-                    Command Center
-                </h1>
-
-                <p id="adminPageSubtitle">
-                    Enterprise logistics control workspace
-                </p>
-
-            </div>
-
-
-            <div class="admin-top-actions">
-
-
-                <div class="top-search">
-
-                    <span>
-                        ⌕
-                    </span>
-
-                    <input
-                        id="adminGlobalSearch"
-                        type="search"
-                        autocomplete="off"
-                        placeholder="Search tracking, route or customer...">
-
-                    <kbd>
-                        Ctrl K
-                    </kbd>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    id="adminRefresh"
-                    class="top-action-btn"
-                    aria-label="Refresh">
-
-                    ↻
-
-                </button>
-
-
-                <button
-                    type="button"
-                    id="adminNotification"
-                    class="top-action-btn notification-button"
-                    aria-label="Notifications">
-
-                    ◇
-
-                    <em>
-                        3
-                    </em>
-
-                </button>
-
-
-                <div class="top-admin-profile">
-
-                    <div>
-                        A
-                    </div>
-
-                    <section>
-
-                        <strong>
-                            admin
-                        </strong>
-
-                        <small>
-                            ADMINISTRATOR
-                        </small>
-
-                    </section>
-
-                </div>
-
-            </div>
-
-        </header>
-
-
-
-        <!-- =================================================
-             DASHBOARD
-        ================================================== -->
-
-        <section
-            id="page-dashboard"
-            class="admin-page">
-
-
-            <!-- HERO -->
-
-            <section class="control-hero">
-
-
-                <div class="control-hero-copy">
-
-
-                    <div class="hero-badge">
-
-                        <span></span>
-
-                        NETWORK LIVE
-
-                    </div>
-
-
-                    <div class="hero-label">
-                        EXECUTIVE OPERATIONS VIEW
-                    </div>
-
-
-                    <h2>
-
-                        Move freight with
-
-                        <strong>
-                            clarity, speed and control.
-                        </strong>
-
-                    </h2>
-
-
-                    <p>
-
-                        See what is moving, identify
-                        operational risk and take action
-                        from one connected TRANSLOGIX
-                        command surface.
-
-                    </p>
-
-
-                    <div class="hero-actions">
-
-
-                        <button
-                            type="button"
-                            class="primary-btn"
-                            data-page-go="network">
-
-                            Open Network Command →
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="secondary-dark-btn"
-                            data-page-go="exceptions">
-
-                            Review Priority Queue →
-
-                        </button>
-
-                    </div>
-
-
-                    <div class="hero-signals">
-
-
-                        <span>
-
-                            <i></i>
-
-                            Tracking stream healthy
-
-                        </span>
-
-
-                        <span>
-
-                            <i></i>
-
-                            API gateway online
-
-                        </span>
-
-
-                        <span>
-
-                            <i></i>
-
-                            Database connected
-
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-
-                <!-- HERO VISUAL -->
-
-                <div class="control-hero-visual">
-
-
-                    <div class="hero-grid"></div>
-
-
-                    <div class="hero-route hero-route-a"></div>
-
-                    <div class="hero-route hero-route-b"></div>
-
-                    <div class="hero-route hero-route-c"></div>
-
-
-                    <div class="hero-point hero-pune">
-
-                        <i></i>
-
-                        <small>
-                            PUNE · 06
-                        </small>
-
-                    </div>
-
-
-                    <div class="hero-point hero-mumbai">
-
-                        <i></i>
-
-                        <small>
-                            MUMBAI · 04
-                        </small>
-
-                    </div>
-
-
-                    <div class="hero-point hero-nagpur">
-
-                        <i></i>
-
-                        <small>
-                            NAGPUR · 03
-                        </small>
-
-                    </div>
-
-
-                    <div class="hero-point hero-delhi">
-
-                        <i></i>
-
-                        <small>
-                            DELHI
-                        </small>
-
-                    </div>
-
-
-                    <div class="hero-vehicle vehicle-one">
-
-                        <span class="vehicle-silhouette"></span>
-
-                    </div>
-
-
-                    <div class="hero-vehicle vehicle-two">
-
-                        <span class="vehicle-silhouette"></span>
-
-                    </div>
-
-
-                    <div class="hero-floating-card">
-
-                        <span>
-                            NETWORK SLA
-                        </span>
-
-                        <strong>
-                            94.2%
-                        </strong>
-
-                        <small>
-                            +1.8% today
-                        </small>
-
-                        <div class="floating-progress">
-
-                            <i></i>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-
-            <!-- KPI -->
-
-            <section class="command-kpis">
-
-
-                <article class="command-kpi accent-purple">
-
-                    <div class="kpi-top">
-
-                        <span>
-                            ACTIVE SHIPMENTS
-                        </span>
-
-                        <b>
-                            LIVE
-                        </b>
-
-                    </div>
-
-                    <strong id="kpiTotal">
-                        00
-                    </strong>
-
-                    <small>
-                        Live network volume
-                    </small>
-
-                    <div class="mini-status green">
-                        ↑ Network active
-                    </div>
-
-                </article>
-
-
-                <article class="command-kpi accent-blue">
-
-                    <div class="kpi-top">
-
-                        <span>
-                            IN TRANSIT
-                        </span>
-
-                        <b>
-                            LIVE
-                        </b>
-
-                    </div>
-
-                    <strong id="kpiTransit">
-                        00
-                    </strong>
-
-                    <small>
-                        Active movement
-                    </small>
-
-                    <div class="mini-status">
-                        Currently moving
-                    </div>
-
-                </article>
-
-
-                <article class="command-kpi accent-green">
-
-                    <div class="kpi-top">
-
-                        <span>
-                            DELIVERED
-                        </span>
-
-                        <b>
-                            TODAY
-                        </b>
-
-                    </div>
-
-                    <strong id="kpiDelivered">
-                        00
-                    </strong>
-
-                    <small>
-                        Completed shipments
-                    </small>
-
-                    <div class="mini-status green">
-                        On-time execution
-                    </div>
-
-                </article>
-
-
-                <article class="command-kpi accent-red">
-
-                    <div class="kpi-top">
-
-                        <span>
-                            EXCEPTIONS
-                        </span>
-
-                        <b>
-                            P1 / P2
-                        </b>
-
-                    </div>
-
-                    <strong id="kpiExceptions">
-                        00
-                    </strong>
-
-                    <small>
-                        Requiring attention
-                    </small>
-
-                    <div class="mini-status red">
-                        Operational risk
-                    </div>
-
-                </article>
-
-
-                <article class="command-kpi accent-orange">
-
-                    <div class="kpi-top">
-
-                        <span>
-                            FLEET UTILIZATION
-                        </span>
-
-                        <b>
-                            +4.8%
-                        </b>
-
-                    </div>
-
-                    <strong>
-                        67%
-                    </strong>
-
-                    <small>
-                        8 of 12 engaged
-                    </small>
-
-                    <div class="kpi-progress">
-
-                        <i style="width:67%"></i>
-
-                    </div>
-
-                </article>
-
-
-                <article class="command-kpi accent-cyan">
-
-                    <div class="kpi-top">
-
-                        <span>
-                            CUSTOMER SIGNAL
-                        </span>
-
-                        <b>
-                            EXCELLENT
-                        </b>
-
-                    </div>
-
-                    <strong>
-                        97
-                    </strong>
-
-                    <small>
-                        Service satisfaction
-                    </small>
-
-                    <div class="mini-status green">
-                        81% repeat rate
-                    </div>
-
-                </article>
-
-            </section>
-
-
-
-            <!-- MAP + PRIORITY -->
-
-            <div class="tower-grid">
-
-
-                <article class="tower-card">
-
-
-                    <div class="tower-card-header">
-
-                        <div>
-
-                            <span>
-                                NETWORK VISIBILITY
-                            </span>
-
-                            <h3>
-                                Live operations map
-                            </h3>
-
-                            <p>
-                                Real-time movement across major logistics corridors.
-                            </p>
-
-                        </div>
-
-
-                        <div class="network-switcher">
-
-                            <button
-                                type="button"
-                                class="active">
-
-                                LIVE ROUTES
-
-                            </button>
-
-
-                            <button
-                                type="button">
-
-                                HUBS
-
-                            </button>
-
-                        </div>
-
-                    </div>
-
-
-                    <div
-                        id="networkMap"
-                        class="network-map">
-
-                    </div>
-
-
-                    <div class="map-legend">
-
-                        <div>
-                            <span class="legend-dot live"></span>
-                            Moving
-                        </div>
-
-                        <div>
-                            <span class="legend-dot ready"></span>
-                            Ready
-                        </div>
-
-                        <div>
-                            <span class="legend-dot danger"></span>
-                            At Risk
-                        </div>
-
-                        <div>
-                            <span class="legend-dot hub"></span>
-                            Hub
-                        </div>
-
-                    </div>
-
-                </article>
-
-
-
-                <!-- PRIORITY -->
-
-                <article class="tower-card priority-card">
-
-
-                    <div class="tower-card-header">
-
-                        <div>
-
-                            <span>
-                                DECISION LAYER
-                            </span>
-
-                            <h3>
-                                Priority queue
-                            </h3>
-
-                            <p>
-                                Ranked by operational impact.
-                            </p>
-
-                        </div>
-
-
-                        <div class="priority-count">
-                            03
-                        </div>
-
-                    </div>
-
-
-                    <div class="priority-stack">
-
-
-                        <div class="priority-row critical">
-
-
-                            <div class="priority-symbol">
-                                !
-                            </div>
-
-
-                            <div>
-
-                                <div class="priority-meta">
-
-                                    <span>
-                                        P1 · CRITICAL
-                                    </span>
-
-                                    <small>
-                                        12 min
-                                    </small>
-
-                                </div>
-
-
-                                <h4>
-                                    Vehicle service required
-                                </h4>
-
-
-                                <p>
-                                    MH15-MT-1198 · Health 64% · Fuel 41%
-                                </p>
-
-
-                                <button
-                                    type="button"
-                                    data-exception="MH15-MT-1198">
-
-                                    Review & resolve →
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="priority-row warning">
-
-
-                            <div class="priority-symbol">
-                                ◷
-                            </div>
-
-
-                            <div>
-
-                                <div class="priority-meta">
-
-                                    <span>
-                                        P2 · HIGH
-                                    </span>
-
-                                    <small>
-                                        18 min
-                                    </small>
-
-                                </div>
-
-
-                                <h4>
-                                    Fuel watch triggered
-                                </h4>
-
-
-                                <p>
-                                    MH46-CT-7823 · 71% fuel · Nagpur → Delhi
-                                </p>
-
-
-                                <button
-                                    type="button"
-                                    data-exception="MH46-CT-7823">
-
-                                    Inspect movement →
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="priority-row purple">
-
-
-                            <div class="priority-symbol">
-                                ⏱
-                            </div>
-
-
-                            <div>
-
-                                <div class="priority-meta">
-
-                                    <span>
-                                        SLA WATCH
-                                    </span>
-
-                                    <small>
-                                        Today
-                                    </small>
-
-                                </div>
-
-
-                                <h4>
-                                    3 shipments nearing threshold
-                                </h4>
-
-
-                                <p>
-                                    Review aging deliveries before network SLA breach.
-                                </p>
-
-
-                                <button
-                                    type="button"
-                                    data-page-go="shipments">
-
-                                    Open shipments →
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="priority-bottom">
-
-                        <span>
-                            Open operational actions
-                        </span>
-
-                        <strong>
-                            03
-                        </strong>
-
-                    </div>
-
-                </article>
-
-            </div>
-
-
-
-            <!-- TELEMETRY -->
-
-            <section class="telemetry-card">
-
-
-                <div class="telemetry-top">
-
-                    <div>
-
-                        <span>
-                            LIVE TELEMETRY / SELECTED OPERATION
-                        </span>
-
-                        <strong>
-                            STREAMING
-                        </strong>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        data-action="details">
-
-                        Open telemetry →
-
-                    </button>
-
-                </div>
-
-
-                <div class="telemetry-grid">
-
-
-                    <div class="telemetry-main">
-
-                        <div class="telemetry-avatar">
-                            TX
-                        </div>
-
-                        <div>
-
-                            <strong>
-                                TRX10001
-                            </strong>
-
-                            <small>
-                                Pune → Delhi
-                            </small>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="telemetry-item">
-
-                        <span>
-                            VEHICLE
-                        </span>
-
-                        <strong>
-                            MH12-TR-4581
-                        </strong>
-
-                    </div>
-
-
-                    <div class="telemetry-item">
-
-                        <span>
-                            DRIVER
-                        </span>
-
-                        <strong>
-                            Rahul Patil
-                        </strong>
-
-                    </div>
-
-
-                    <div class="telemetry-item">
-
-                        <span>
-                            LOAD
-                        </span>
-
-                        <strong>
-                            18 Ton
-                        </strong>
-
-                    </div>
-
-
-                    <div class="telemetry-item">
-
-                        <span>
-                            FUEL
-                        </span>
-
-                        <strong class="green-text">
-                            82%
-                        </strong>
-
-                    </div>
-
-
-                    <div class="telemetry-item">
-
-                        <span>
-                            HEALTH
-                        </span>
-
-                        <strong class="green-text">
-                            96%
-                        </strong>
-
-                    </div>
-
-
-                    <div class="telemetry-item">
-
-                        <span>
-                            SPEED
-                        </span>
-
-                        <strong>
-                            64 km/h
-                        </strong>
-
-                    </div>
-
-
-                    <div class="telemetry-item">
-
-                        <span>
-                            ETA
-                        </span>
-
-                        <strong>
-                            05h 42m
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                <div class="telemetry-buttons">
-
-
-                    <button
-                        type="button"
-                        data-action="track">
-
-                        Track
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        data-action="contact">
-
-                        Contact
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        data-action="reassign">
-
-                        Reassign
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="solid"
-                        data-action="details">
-
-                        Details →
-
-                    </button>
-
-                </div>
-
-            </section>
-
-
-
-            <!-- INSIGHTS -->
-
-            <section class="insight-grid">
-
-
-                <article class="insight-card">
-
-
-                    <div class="insight-card-head">
-
-                        <span>
-                            NETWORK HEALTH
-                        </span>
-
-                        <strong>
-                            94%
-                        </strong>
-
-                    </div>
-
-
-                    <div class="health-ring">
-
-                        <div>
-
-                            <strong>
-                                94%
-                            </strong>
-
-                            <small>
-                                HEALTH
-                            </small>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="health-breakdown">
-
-                        <span>
-                            Fleet <b>92%</b>
-                        </span>
-
-                        <span>
-                            Shipments <b>96%</b>
-                        </span>
-
-                        <span>
-                            Drivers <b>88%</b>
-                        </span>
-
-                    </div>
-
-                </article>
-
-
-
-                <article class="insight-card">
-
-
-                    <div class="insight-card-head">
-
-                        <span>
-                            SHIPMENT FLOW
-                        </span>
-
-                        <strong id="shipmentFlowCount">
-                            06
-                        </strong>
-
-                    </div>
-
-
-                    <div class="flow-bars">
-
-
-                        <div>
-
-                            <span>
-                                Pending
-                            </span>
-
-                            <i>
-
-                                <b style="width:20%"></b>
-
-                            </i>
-
-                            <strong>
-                                01
-                            </strong>
-
-                        </div>
-
-
-                        <div>
-
-                            <span>
-                                Transit
-                            </span>
-
-                            <i>
-
-                                <b style="width:55%"></b>
-
-                            </i>
-
-                            <strong>
-                                03
-                            </strong>
-
-                        </div>
-
-
-                        <div>
-
-                            <span>
-                                Delivered
-                            </span>
-
-                            <i>
-
-                                <b style="width:38%"></b>
-
-                            </i>
-
-                            <strong>
-                                02
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="insight-link"
-                        data-page-go="shipments">
-
-                        Shipment Command →
-
-                    </button>
-
-                </article>
-
-
-
-                <article class="insight-card">
-
-
-                    <div class="insight-card-head">
-
-                        <span>
-                            FLEET READINESS
-                        </span>
-
-                        <strong>
-                            92%
-                        </strong>
-
-                    </div>
-
-
-                    <div class="bar-chart">
-
-                        <i style="height:48%"></i>
-                        <i style="height:61%"></i>
-                        <i style="height:52%"></i>
-                        <i style="height:71%"></i>
-                        <i style="height:68%"></i>
-                        <i style="height:84%"></i>
-                        <i style="height:92%"></i>
-
-                    </div>
-
-
-                    <p>
-                        8.6 km/L average · 94% route success
-                    </p>
-
-                </article>
-
-
-
-                <article class="insight-card">
-
-
-                    <div class="insight-card-head">
-
-                        <span>
-                            CUSTOMER SIGNAL
-                        </span>
-
-                        <strong>
-                            97
-                        </strong>
-
-                    </div>
-
-
-                    <div class="customer-score">
-
-                        <strong>
-                            Excellent
-                        </strong>
-
-                        <span>
-                            Service satisfaction
-                        </span>
-
-                        <small>
-                            81% repeat rate
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="insight-link"
-                        data-page-go="customers">
-
-                        Customer Intelligence →
-
-                    </button>
-
-                </article>
-
-            </section>
-
-
-
-            <!-- EVENT STREAM -->
-
-            <section class="bottom-grid">
-
-
-                <article class="event-card">
-
-
-                    <div class="tower-card-header">
-
-                        <div>
-
-                            <span>
-                                LIVE EVENT STREAM
-                            </span>
-
-                            <h3>
-                                Operational activity
-                            </h3>
-
-                            <p>
-                                Recent events from the network.
-                            </p>
-
-                        </div>
-
-
-                        <span class="live-text">
-                            ● LIVE
-                        </span>
-
-                    </div>
-
-
-                    <div class="event-stream">
-
-
-                        <div class="event-stream-row">
-
-                            <i class="success"></i>
-
-                            <div>
-
-                                <strong>
-                                    TRX10001 delivered successfully
-                                </strong>
-
-                                <small>
-                                    Pune → Delhi
-                                </small>
-
-                            </div>
-
-                            <time>
-                                2 min
-                            </time>
-
-                        </div>
-
-
-                        <div class="event-stream-row">
-
-                            <i class="warning"></i>
-
-                            <div>
-
-                                <strong>
-                                    MH46-CT-7823 entered fuel watch
-                                </strong>
-
-                                <small>
-                                    Nagpur → Delhi
-                                </small>
-
-                            </div>
-
-                            <time>
-                                18 min
-                            </time>
-
-                        </div>
-
-
-                        <div class="event-stream-row">
-
-                            <i class="danger"></i>
-
-                            <div>
-
-                                <strong>
-                                    MH15-MT-1198 service alert created
-                                </strong>
-
-                                <small>
-                                    Jalgaon → Pune
-                                </small>
-
-                            </div>
-
-                            <time>
-                                24 min
-                            </time>
-
-                        </div>
-
-
-                        <div class="event-stream-row">
-
-                            <i class="success"></i>
-
-                            <div>
-
-                                <strong>
-                                    Shipment assignment completed
-                                </strong>
-
-                                <small>
-                                    Mumbai distribution hub
-                                </small>
-
-                            </div>
-
-                            <time>
-                                37 min
-                            </time>
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-
-
-                <article class="quick-command-card">
-
-
-                    <span>
-                        EXECUTION
-                    </span>
-
-
-                    <h3>
-                        Quick command
-                    </h3>
-
-
-                    <button
-                        type="button"
-                        data-page-go="shipments">
-
-                        <i>
-                            ⇢
-                        </i>
-
-                        <span>
-                            Shipment Command
-                        </span>
-
-                        <b>
-                            →
-                        </b>
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        data-page-go="fleet">
-
-                        <i>
-                            ◈
-                        </i>
-
-                        <span>
-                            Fleet Control
-                        </span>
-
-                        <b>
-                            →
-                        </b>
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        data-page-go="drivers">
-
-                        <i>
-                            ◎
-                        </i>
-
-                        <span>
-                            Driver Operations
-                        </span>
-
-                        <b>
-                            →
-                        </b>
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        data-page-go="dispatch">
-
-                        <i>
-                            ⬢
-                        </i>
-
-                        <span>
-                            Dispatch Board
-                        </span>
-
-                        <b>
-                            →
-                        </b>
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        data-page-go="exceptions">
-
-                        <i class="red-icon">
-                            !
-                        </i>
-
-                        <span>
-                            Exception Center
-                        </span>
-
-                        <b>
-                            03
-                        </b>
-
-                    </button>
-
-                </article>
-
-            </section>
-
-        </section>
-
-
-
-        <!-- =================================================
-             SHIPMENTS
-        ================================================== -->
-
-        <section
-            id="page-shipments"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-
-                <div>
-
-                    <span>
-                        SHIPMENT OPERATIONS
-                    </span>
-
-                    <h2>
-                        Shipment Command
-                    </h2>
-
-                    <p>
-                        Control live shipment movement, delivery status and SLA execution.
-                    </p>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    id="createShipmentBtn"
-                    class="primary-btn">
-
-                    ＋ Create Shipment
-
-                </button>
-
-            </div>
-
-
-            <div class="module-kpis">
-
-
-                <article>
-
-                    <span>
-                        TOTAL
-                    </span>
-
-                    <strong id="shipmentTotal">
-                        00
-                    </strong>
-
-                    <small>
-                        All shipments
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        ACTIVE
-                    </span>
-
-                    <strong id="shipmentActive">
-                        00
-                    </strong>
-
-                    <small>
-                        In operation
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        DELIVERED
-                    </span>
-
-                    <strong id="shipmentDelivered">
-                        00
-                    </strong>
-
-                    <small>
-                        Completed
-                    </small>
-
-                </article>
-
-
-                <article class="module-danger">
-
-                    <span>
-                        EXCEPTIONS
-                    </span>
-
-                    <strong id="shipmentExceptions">
-                        00
-                    </strong>
-
-                    <small>
-                        Action required
-                    </small>
-
-                </article>
-
-            </div>
-
-
-            <div class="module-toolbar">
-
-
-                <div class="module-search">
-
-                    <span>
-                        ⌕
-                    </span>
-
-                    <input
-                        id="shipmentSearch"
-                        type="search"
-                        placeholder="Search tracking, route, customer...">
-
-                </div>
-
-
-                <select id="shipmentStatusFilter">
-
-                    <option value="">
-                        All Status
-                    </option>
-
-                    <option value="Pending">
-                        Pending
-                    </option>
-
-                    <option value="In Transit">
-                        In Transit
-                    </option>
-
-                    <option value="Out for Delivery">
-                        Out for Delivery
-                    </option>
-
-                    <option value="Delivered">
-                        Delivered
-                    </option>
-
-                </select>
-
-
-                <button
-                    type="button"
-                    id="exportShipments"
-                    class="outline-btn">
-
-                    ↓ Export CSV
-
-                </button>
-
-            </div>
-
-
-            <div class="data-card">
-
-
-                <table>
-
-                    <thead>
-
-                    <tr>
-
-                        <th>
-                            TRACKING
-                        </th>
-
-                        <th>
-                            ROUTE
-                        </th>
-
-                        <th>
-                            CUSTOMER
-                        </th>
-
-                        <th>
-                            TYPE
-                        </th>
-
-                        <th>
-                            STATUS
-                        </th>
-
-                        <th>
-                            LOAD
-                        </th>
-
-                        <th>
-                            ACTION
-                        </th>
-
-                    </tr>
-
-                    </thead>
-
-
-                    <tbody id="shipmentTable">
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             FLEET
-        ================================================== -->
-
-        <section
-            id="page-fleet"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-
-                <div>
-
-                    <span>
-                        FLEET INTELLIGENCE
-                    </span>
-
-                    <h2>
-                        Fleet Control
-                    </h2>
-
-                    <p>
-                        Vehicle health, readiness, assignments and route operations.
-                    </p>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    id="addVehicleBtn"
-                    class="primary-btn">
-
-                    ＋ Add Vehicle
-
-                </button>
-
-            </div>
-
-
-            <div class="module-kpis">
-
-
-                <article>
-
-                    <span>
-                        TOTAL FLEET
-                    </span>
-
-                    <strong>
-                        12
-                    </strong>
-
-                    <small>
-                        Registered vehicles
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        ON ROAD
-                    </span>
-
-                    <strong>
-                        06
-                    </strong>
-
-                    <small>
-                        Currently moving
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        READY
-                    </span>
-
-                    <strong>
-                        03
-                    </strong>
-
-                    <small>
-                        Dispatchable
-                    </small>
-
-                </article>
-
-
-                <article class="module-danger">
-
-                    <span>
-                        SERVICE
-                    </span>
-
-                    <strong>
-                        01
-                    </strong>
-
-                    <small>
-                        Attention required
-                    </small>
-
-                </article>
-
-            </div>
-
-
-            <div class="fleet-grid">
-
-
-                <article class="tower-card fleet-table-card">
-
-
-                    <div class="module-card-heading">
-
-                        <div>
-
-                            <span>
-                                LIVE FLEET
-                            </span>
-
-                            <h3>
-                                Vehicle command
-                            </h3>
-
-                            <p>
-                                Current state and assignment details.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="fleet-columns">
-
-                        <span>
-                            VEHICLE
-                        </span>
-
-                        <span>
-                            ASSIGNMENT
-                        </span>
-
-                        <span>
-                            STATE
-                        </span>
-
-                        <span>
-                            HEALTH
-                        </span>
-
-                        <span>
-                            FUEL
-                        </span>
-
-                        <span>
-                            ACTION
-                        </span>
-
-                    </div>
-
-
-                    <div class="fleet-line">
-
-
-                        <div class="vehicle-name">
-
-                            <b>
-                                TR
-                            </b>
-
-                            <div>
-
-                                <strong>
-                                    MH12-TR-4581
-                                </strong>
-
-                                <small>
-                                    Rahul Patil
-                                </small>
-
-                            </div>
-
-                        </div>
-
-
-                        <span>
-                            Pune → Delhi
-                        </span>
-
-
-                        <strong class="state-green">
-                            ACTIVE
-                        </strong>
-
-
-                        <span>
-                            96%
-                        </span>
-
-
-                        <span>
-                            82%
-                        </span>
-
-
-                        <button
-                            type="button"
-                            data-action="track">
-
-                            Track →
-
-                        </button>
-
-                    </div>
-
-
-                    <div class="fleet-line">
-
-
-                        <div class="vehicle-name">
-
-                            <b>
-                                CT
-                            </b>
-
-                            <div>
-
-                                <strong>
-                                    MH46-CT-7823
-                                </strong>
-
-                                <small>
-                                    Suresh More
-                                </small>
-
-                            </div>
-
-                        </div>
-
-
-                        <span>
-                            Nagpur → Delhi
-                        </span>
-
-
-                        <strong class="state-green">
-                            ACTIVE
-                        </strong>
-
-
-                        <span>
-                            91%
-                        </span>
-
-
-                        <span>
-                            71%
-                        </span>
-
-
-                        <button
-                            type="button"
-                            data-action="track">
-
-                            Track →
-
-                        </button>
-
-                    </div>
-
-
-                    <div class="fleet-line">
-
-
-                        <div class="vehicle-name">
-
-                            <b>
-                                VN
-                            </b>
-
-                            <div>
-
-                                <strong>
-                                    MH14-VN-2264
-                                </strong>
-
-                                <small>
-                                    Amit Sharma
-                                </small>
-
-                            </div>
-
-                        </div>
-
-
-                        <span>
-                            Mumbai → Pune
-                        </span>
-
-
-                        <strong class="state-purple">
-                            READY
-                        </strong>
-
-
-                        <span>
-                            98%
-                        </span>
-
-
-                        <span>
-                            94%
-                        </span>
-
-
-                        <button
-                            type="button"
-                            data-action="assignment">
-
-                            Assign →
-
-                        </button>
-
-                    </div>
-
-
-                    <div class="fleet-line">
-
-
-                        <div class="vehicle-name">
-
-                            <b>
-                                MT
-                            </b>
-
-                            <div>
-
-                                <strong>
-                                    MH15-MT-1198
-                                </strong>
-
-                                <small>
-                                    Kiran Jadhav
-                                </small>
-
-                            </div>
-
-                        </div>
-
-
-                        <span>
-                            Jalgaon → Pune
-                        </span>
-
-
-                        <strong class="state-red">
-                            SERVICE
-                        </strong>
-
-
-                        <span>
-                            64%
-                        </span>
-
-
-                        <span>
-                            41%
-                        </span>
-
-
-                        <button
-                            type="button"
-                            data-exception="MH15-MT-1198">
-
-                            Review →
-
-                        </button>
-
-                    </div>
-
-                </article>
-
-
-                <article class="fleet-health-card">
-
-
-                    <div>
-
-                        <span>
-                            FLEET HEALTH
-                        </span>
-
-                        <strong>
-                            92%
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            UTILIZATION
-                        </span>
-
-                        <strong>
-                            67%
-                        </strong>
-
-                        <div class="side-progress">
-
-                            <i style="width:67%"></i>
-
-                        </div>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            FUEL EFFICIENCY
-                        </span>
-
-                        <strong>
-
-                            8.6
-
-                            <small>
-                                km/L
-                            </small>
-
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            ROUTE SUCCESS
-                        </span>
-
-                        <strong>
-                            94%
-                        </strong>
-
-                    </div>
-
-                </article>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             DRIVERS
-        ================================================== -->
-
-        <section
-            id="page-drivers"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        DRIVER OPERATIONS
-                    </span>
-
-                    <h2>
-                        Driver Command
-                    </h2>
-
-                    <p>
-                        Availability, assignments, readiness and performance.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="module-kpis">
-
-
-                <article>
-
-                    <span>
-                        ACTIVE DRIVERS
-                    </span>
-
-                    <strong>
-                        18
-                    </strong>
-
-                    <small>
-                        Currently operating
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        AVAILABLE
-                    </span>
-
-                    <strong>
-                        04
-                    </strong>
-
-                    <small>
-                        Ready for dispatch
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        ON TRIP
-                    </span>
-
-                    <strong>
-                        12
-                    </strong>
-
-                    <small>
-                        Field operations
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        READINESS
-                    </span>
-
-                    <strong>
-                        88%
-                    </strong>
-
-                    <small>
-                        Operational score
-                    </small>
-
-                </article>
-
-            </div>
-
-
-            <article class="data-card">
-
-
-                <div class="module-card-heading">
-
-                    <div>
-
-                        <span>
-                            DRIVER INTELLIGENCE
-                        </span>
-
-                        <h3>
-                            Active roster
-                        </h3>
-
-                        <p>
-                            Current assignments and performance.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="driver-columns">
-
-                    <span>
-                        DRIVER
-                    </span>
-
-                    <span>
-                        ROUTE
-                    </span>
-
-                    <span>
-                        STATE
-                    </span>
-
-                    <span>
-                        PERFORMANCE
-                    </span>
-
-                </div>
-
-
-                <div class="driver-line">
-
-                    <div>
-
-                        <strong>
-                            Rahul Patil
-                        </strong>
-
-                        <small>
-                            DRV-1008
-                        </small>
-
-                    </div>
-
-                    <span>
-                        Pune → Delhi
-                    </span>
-
-                    <strong class="state-green">
-                        ON TRIP
-                    </strong>
-
-                    <strong>
-                        96%
-                    </strong>
-
-                </div>
-
-
-                <div class="driver-line">
-
-                    <div>
-
-                        <strong>
-                            Suresh More
-                        </strong>
-
-                        <small>
-                            DRV-1014
-                        </small>
-
-                    </div>
-
-                    <span>
-                        Nagpur → Delhi
-                    </span>
-
-                    <strong class="state-green">
-                        ON TRIP
-                    </strong>
-
-                    <strong>
-                        93%
-                    </strong>
-
-                </div>
-
-
-                <div class="driver-line">
-
-                    <div>
-
-                        <strong>
-                            Amit Sharma
-                        </strong>
-
-                        <small>
-                            DRV-1019
-                        </small>
-
-                    </div>
-
-                    <span>
-                        Mumbai → Pune
-                    </span>
-
-                    <strong class="state-purple">
-                        AVAILABLE
-                    </strong>
-
-                    <strong>
-                        98%
-                    </strong>
-
-                </div>
-
-            </article>
-
-        </section>
-
-
-
-        <!-- =================================================
-             DISPATCH
-        ================================================== -->
-
-        <section
-            id="page-dispatch"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        DISPATCH CONTROL
-                    </span>
-
-                    <h2>
-                        Dispatch Operations
-                    </h2>
-
-                    <p>
-                        Release routes, allocate drivers and assign vehicles.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <section class="dispatch-panels">
-
-
-                <article>
-
-                    <span>
-                        READY QUEUE
-                    </span>
-
-                    <strong>
-                        03
-                    </strong>
-
-                    <p>
-                        Vehicles ready for assignment.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="primary-btn"
-                        data-action="assignment">
-
-                        Assign Vehicles →
-
-                    </button>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        UNASSIGNED
-                    </span>
-
-                    <strong>
-                        02
-                    </strong>
-
-                    <p>
-                        Shipments awaiting dispatch.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="primary-btn"
-                        data-page-go="shipments">
-
-                        Open Queue →
-
-                    </button>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        ROUTES READY
-                    </span>
-
-                    <strong>
-                        05
-                    </strong>
-
-                    <p>
-                        Corridors ready for release.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="primary-btn"
-                        data-action="assignment">
-
-                        Release Routes →
-
-                    </button>
-
-                </article>
-
-            </section>
-
-        </section>
-
-
-
-        <!-- =================================================
-             NETWORK
-        ================================================== -->
-
-        <section
-            id="page-network"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-
-                <div>
-
-                    <span>
-                        NETWORK MONITOR
-                    </span>
-
-                    <h2>
-                        Live Network
-                    </h2>
-
-                    <p>
-                        Full operational view across active corridors and hubs.
-                    </p>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    class="outline-btn"
-                    data-page-go="dashboard">
-
-                    ← Command Center
-
-                </button>
-
-            </div>
-
-
-            <article class="full-network-card">
-
-
-                <div class="full-network-top">
-
-                    <span>
-                        REAL-TIME VEHICLE NETWORK
-                    </span>
-
-                    <div>
-
-                        <i></i>
-
-                        LIVE
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="fullNetworkMap"
-                    class="network-map large">
-
-                </div>
-
-
-                <div class="full-map-info">
-
-
-                    <div>
-
-                        <span>
-                            MOVING
-                        </span>
-
-                        <strong>
-                            06
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            READY
-                        </span>
-
-                        <strong>
-                            03
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            AT RISK
-                        </span>
-
-                        <strong>
-                            01
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            ETA WATCH
-                        </span>
-
-                        <strong>
-                            02
-                        </strong>
-
-                    </div>
-
-                </div>
-
-            </article>
-
-        </section>
-
-
-
-        <!-- =================================================
-             EXCEPTIONS
-        ================================================== -->
-
-        <section
-            id="page-exceptions"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-
-                <div>
-
-                    <span>
-                        OPERATIONAL RISK
-                    </span>
-
-                    <h2>
-                        Exception Center
-                    </h2>
-
-                    <p>
-                        Prioritized issues with context and next action.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <section class="exception-panels">
-
-
-                <article class="critical-panel">
-
-                    <span>
-                        P1 · CRITICAL
-                    </span>
-
-                    <h3>
-                        Vehicle service required
-                    </h3>
-
-                    <strong>
-                        MH15-MT-1198
-                    </strong>
-
-                    <p>
-                        Health 64% · Fuel 41% · Jalgaon → Pune · Kiran Jadhav
-                    </p>
-
-                    <button
-                        type="button"
-                        data-exception="MH15-MT-1198">
-
-                        Review & resolve →
-
-                    </button>
-
-                </article>
-
-
-                <article class="warning-panel">
-
-                    <span>
-                        P2 · HIGH
-                    </span>
-
-                    <h3>
-                        Fuel watch triggered
-                    </h3>
-
-                    <strong>
-                        MH46-CT-7823
-                    </strong>
-
-                    <p>
-                        71% fuel · Nagpur → Delhi · Suresh More
-                    </p>
-
-                    <button
-                        type="button"
-                        data-exception="MH46-CT-7823">
-
-                        Inspect movement →
-
-                    </button>
-
-                </article>
-
-
-                <article class="sla-panel">
-
-                    <span>
-                        SLA WATCH
-                    </span>
-
-                    <h3>
-                        Shipments approaching threshold
-                    </h3>
-
-                    <strong>
-                        03 SHIPMENTS
-                    </strong>
-
-                    <p>
-                        Review aging deliveries before network SLA breach.
-                    </p>
-
-                    <button
-                        type="button"
-                        data-page-go="shipments">
-
-                        Open shipment command →
-
-                    </button>
-
-                </article>
-
-            </section>
-
-        </section>
-
-
-
-        <!-- =================================================
-             ALERTS
-        ================================================== -->
-
-        <section
-            id="page-alerts"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        ALERT MANAGEMENT
-                    </span>
-
-                    <h2>
-                        Alert Operations
-                    </h2>
-
-                    <p>
-                        Route, SLA, vehicle and network alert orchestration.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="control-grid">
-
-
-                <article class="control-card">
-
-                    <span>
-                        ROUTE ALERTS
-                    </span>
-
-                    <h4>
-                        Route deviation rules
-                    </h4>
-
-                    <p>
-                        Monitor route deviations and movement anomalies.
-                    </p>
-
-                    <button
-                        type="button"
-                        data-action="configure-alerts">
-
-                        Configure Alert Rules →
-
-                    </button>
-
-                </article>
-
-
-                <article class="control-card">
-
-                    <span>
-                        SLA ALERTS
-                    </span>
-
-                    <h4>
-                        Delivery threshold alerts
-                    </h4>
-
-                    <p>
-                        Trigger alerts when delivery age approaches SLA limits.
-                    </p>
-
-                    <button
-                        type="button"
-                        data-action="configure-alerts">
-
-                        Configure SLA →
-
-                    </button>
-
-                </article>
-
-
-                <article class="control-card">
-
-                    <span>
-                        FUEL ALERTS
-                    </span>
-
-                    <h4>
-                        Fuel watch
-                    </h4>
-
-                    <p>
-                        Monitor active vehicles and low-fuel conditions.
-                    </p>
-
-                    <button
-                        type="button"
-                        data-action="configure-alerts">
-
-                        Configure Fuel Rules →
-
-                    </button>
-
-                </article>
-
-
-                <article class="control-card">
-
-                    <span>
-                        HEALTH ALERTS
-                    </span>
-
-                    <h4>
-                        Vehicle health
-                    </h4>
-
-                    <p>
-                        Create health-based maintenance and risk alerts.
-                    </p>
-
-                    <button
-                        type="button"
-                        data-page-go="maintenance">
-
-                        Open Maintenance →
-
-                    </button>
-
-                </article>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             MAINTENANCE
-        ================================================== -->
-
-        <section
-            id="page-maintenance"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        FLEET HEALTH
-                    </span>
-
-                    <h2>
-                        Maintenance Control
-                    </h2>
-
-                    <p>
-                        Preventive maintenance, inspections and service schedules.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <section class="empty-module">
-
-                <span>
-                    MAINTENANCE WORKSPACE
-                </span>
+            <div class="modal-header">
 
                 <h2>
-                    Fleet service scheduling
+                    Create Shipment
                 </h2>
 
-                <p>
-                    Track preventive maintenance, inspections,
-                    vehicle health and upcoming service schedules.
-                </p>
-
-
                 <button
                     type="button"
-                    class="primary-btn"
-                    data-action="maintenance">
-
-                    Open Maintenance Schedule →
-
-                </button>
-
-            </section>
-
-        </section>
-
-
-
-        <!-- =================================================
-             ANALYTICS
-        ================================================== -->
-
-        <section
-            id="page-analytics"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        BUSINESS INTELLIGENCE
-                    </span>
-
-                    <h2>
-                        Network Analytics
-                    </h2>
-
-                    <p>
-                        Operational trends, SLA performance and utilization.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="analytics-layout">
-
-
-                <article class="analytics-main">
-
-                    <span>
-                        NETWORK PERFORMANCE
-                    </span>
-
-                    <h3>
-                        Weekly operating trend
-                    </h3>
-
-
-                    <div class="analytics-bars">
-
-                        <i style="height:63%"></i>
-                        <i style="height:71%"></i>
-                        <i style="height:65%"></i>
-                        <i style="height:77%"></i>
-                        <i style="height:74%"></i>
-                        <i style="height:87%"></i>
-                        <i style="height:94%"></i>
-
-                    </div>
-
-
-                    <div class="analytics-days">
-
-                        <span>
-                            Mon
-                        </span>
-
-                        <span>
-                            Tue
-                        </span>
-
-                        <span>
-                            Wed
-                        </span>
-
-                        <span>
-                            Thu
-                        </span>
-
-                        <span>
-                            Fri
-                        </span>
-
-                        <span>
-                            Sat
-                        </span>
-
-                        <span>
-                            Sun
-                        </span>
-
-                    </div>
-
-                </article>
-
-
-                <article class="analytics-side">
-
-
-                    <div>
-
-                        <span>
-                            NETWORK SLA
-                        </span>
-
-                        <strong>
-                            94.2%
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            FLEET UTILIZATION
-                        </span>
-
-                        <strong>
-                            67%
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            ON-TIME DELIVERY
-                        </span>
-
-                        <strong>
-                            94%
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            SLA BREACH
-                        </span>
-
-                        <strong class="red-text">
-                            01
-                        </strong>
-
-                    </div>
-
-                </article>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             CUSTOMERS
-        ================================================== -->
-
-        <section
-            id="page-customers"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        CUSTOMER INTELLIGENCE
-                    </span>
-
-                    <h2>
-                        Customer Operations
-                    </h2>
-
-                    <p>
-                        Customer experience and account intelligence.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="module-kpis">
-
-
-                <article>
-
-                    <span>
-                        ACTIVE ACCOUNTS
-                    </span>
-
-                    <strong>
-                        42
-                    </strong>
-
-                    <small>
-                        Connected accounts
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        SATISFACTION
-                    </span>
-
-                    <strong>
-                        97%
-                    </strong>
-
-                    <small>
-                        Service score
-                    </small>
-
-                </article>
-
-
-                <article class="module-danger">
-
-                    <span>
-                        OPEN ISSUES
-                    </span>
-
-                    <strong>
-                        03
-                    </strong>
-
-                    <small>
-                        Requiring follow-up
-                    </small>
-
-                </article>
-
-
-                <article>
-
-                    <span>
-                        REPEAT RATE
-                    </span>
-
-                    <strong>
-                        81%
-                    </strong>
-
-                    <small>
-                        Returning customers
-                    </small>
-
-                </article>
-
-            </div>
-
-
-            <div class="control-grid">
-
-
-                <article class="control-card">
-
-                    <span>
-                        EXPERIENCE INDEX
-                    </span>
-
-                    <h4>
-                        97 · Excellent
-                    </h4>
-
-                    <p>
-                        Strong service satisfaction and delivery confidence.
-                    </p>
-
-                </article>
-
-
-                <article class="control-card">
-
-                    <span>
-                        SUPPORT LOAD
-                    </span>
-
-                    <h4>
-                        03 open interactions
-                    </h4>
-
-                    <p>
-                        Open delivery issue · Address clarification · ETA follow-up.
-                    </p>
-
-                </article>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             REPORTS
-        ================================================== -->
-
-        <section
-            id="page-reports"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        REPORTING
-                    </span>
-
-                    <h2>
-                        Operational Reports
-                    </h2>
-
-                    <p>
-                        Generate shipment, fleet, SLA and performance reports.
-                    </p>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    class="primary-btn"
-                    data-action="generate-report">
-
-                    Generate Report →
-
+                    class="modal-close"
+                    id="closeCreateShipment"
+                >
+                    &times;
                 </button>
 
             </div>
 
 
-            <div class="control-grid">
+            <form
+                id="createShipmentForm"
+                class="shipment-form"
+            >
 
+                <div class="form-group">
 
-                <article class="control-card">
+                    <label>
+                        Tracking Number
+                    </label>
 
-                    <span>
-                        SHIPMENTS
-                    </span>
-
-                    <h4>
-                        Shipment performance report
-                    </h4>
-
-                    <p>
-                        Shipment volume, movement and delivery execution.
-                    </p>
-
-                    <button
-                        type="button"
-                        id="reportShipmentBtn">
-
-                        Generate Shipment Report →
-
-                    </button>
-
-                </article>
-
-
-                <article class="control-card">
-
-                    <span>
-                        FLEET
-                    </span>
-
-                    <h4>
-                        Fleet health report
-                    </h4>
-
-                    <p>
-                        Vehicle utilization, fuel and maintenance intelligence.
-                    </p>
-
-                    <button
-                        type="button"
-                        data-action="generate-report">
-
-                        Generate Fleet Report →
-
-                    </button>
-
-                </article>
-
-
-                <article class="control-card">
-
-                    <span>
-                        SLA
-                    </span>
-
-                    <h4>
-                        SLA performance report
-                    </h4>
-
-                    <p>
-                        SLA compliance, aging shipments and breach analysis.
-                    </p>
-
-                    <button
-                        type="button"
-                        data-action="generate-report">
-
-                        Generate SLA Report →
-
-                    </button>
-
-                </article>
-
-
-                <article class="control-card">
-
-                    <span>
-                        CUSTOM
-                    </span>
-
-                    <h4>
-                        Custom operations report
-                    </h4>
-
-                    <p>
-                        Combine shipment, fleet and driver metrics.
-                    </p>
-
-                    <button
-                        type="button"
-                        data-action="generate-report">
-
-                        Build Custom Report →
-
-                    </button>
-
-                </article>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             ASSIGNMENTS
-        ================================================== -->
-
-        <section
-            id="page-assignments"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        CONTROL
-                    </span>
-
-                    <h2>
-                        Assignment Control
-                    </h2>
-
-                    <p>
-                        Coordinate shipment, driver and vehicle allocation.
-                    </p>
+                    <input
+                        type="text"
+                        name="trackingNumber"
+                        required
+                        placeholder="TRX10007"
+                    >
 
                 </div>
 
 
-                <button
-                    type="button"
-                    class="primary-btn"
-                    data-action="assignment">
+                <div class="form-group">
 
-                    Open Assignment Queue →
+                    <label>
+                        Sender Name
+                    </label>
 
-                </button>
-
-            </div>
-
-
-            <section class="empty-module">
-
-
-                <span>
-                    ASSIGNMENT WORKSPACE
-                </span>
-
-
-                <h2>
-                    Allocation command
-                </h2>
-
-
-                <p>
-                    Coordinate available vehicles, drivers and shipment
-                    requirements from one dispatch-ready workspace.
-                </p>
-
-
-                <button
-                    type="button"
-                    class="primary-btn"
-                    data-action="assignment">
-
-                    Open Assignment Queue →
-
-                </button>
-
-            </section>
-
-        </section>
-
-
-
-        <!-- =================================================
-             SETTINGS
-        ================================================== -->
-
-        <section
-            id="page-settings"
-            class="admin-page hidden">
-
-
-            <div class="module-header">
-
-                <div>
-
-                    <span>
-                        PLATFORM CONTROL
-                    </span>
-
-                    <h2>
-                        Settings
-                    </h2>
-
-                    <p>
-                        Platform configuration and operations controls.
-                    </p>
+                    <input
+                        type="text"
+                        name="senderName"
+                        required
+                        placeholder="Sender name"
+                    >
 
                 </div>
 
-            </div>
+
+                <div class="form-group">
+
+                    <label>
+                        Receiver Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="receiverName"
+                        required
+                        placeholder="Receiver name"
+                    >
+
+                </div>
 
 
-            <div class="settings-grid">
+                <div class="form-group">
+
+                    <label>
+                        Origin
+                    </label>
+
+                    <input
+                        type="text"
+                        name="origin"
+                        required
+                        placeholder="Pune"
+                    >
+
+                </div>
 
 
-                <article>
+                <div class="form-group">
 
-                    <span>
-                        USER ACCESS
-                    </span>
+                    <label>
+                        Destination
+                    </label>
 
-                    <h3>
-                        Role management
-                    </h3>
+                    <input
+                        type="text"
+                        name="destination"
+                        required
+                        placeholder="Mumbai"
+                    >
 
-                    <p>
-                        Configure administrator and operations access.
-                    </p>
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Customer
+                    </label>
+
+                    <select
+                        name="username"
+                        id="customerUsername"
+                        class="form-control"
+                        required
+                    >
+
+                        <option value="">
+                            Select Customer
+                        </option>
+
+                        ${customerOptionsHtml}
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Shipment Type
+                    </label>
+
+                    <select
+                        name="shipmentType"
+                        required
+                    >
+
+                        <option value="">
+                            Select Type
+                        </option>
+
+                        <option value="Express">
+                            Express
+                        </option>
+
+                        <option value="Standard">
+                            Standard
+                        </option>
+
+                        <option value="Freight">
+                            Freight
+                        </option>
+
+                        <option value="Courier">
+                            Courier
+                        </option>
+
+                        <option value="Cold Chain">
+                            Cold Chain
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Status
+                    </label>
+
+                    <select
+                        name="status"
+                        required
+                    >
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                        <option value="In Transit">
+                            In Transit
+                        </option>
+
+                        <option value="Out for Delivery">
+                            Out for Delivery
+                        </option>
+
+                        <option value="Delivered">
+                            Delivered
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Weight (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        name="weight"
+                        min="0.01"
+                        step="0.01"
+                        required
+                        placeholder="5"
+                    >
+
+                </div>
+
+
+                <div class="modal-actions">
 
                     <button
                         type="button"
-                        class="primary-btn"
-                        data-action="assignment">
-
-                        Manage Roles →
-
+                        class="btn btn-secondary"
+                        id="cancelCreateShipment"
+                    >
+                        Cancel
                     </button>
 
-                </article>
-
-
-                <article>
-
-                    <span>
-                        PLATFORM
-                    </span>
-
-                    <h3>
-                        Integration controls
-                    </h3>
-
-                    <p>
-                        API, database, notifications and operational integrations.
-                    </p>
 
                     <button
-                        type="button"
-                        class="primary-btn"
-                        data-action="details">
-
-                        Open Integrations →
-
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Create Shipment
                     </button>
 
-                </article>
+                </div>
 
-
-                <article>
-
-                    <span>
-                        OPERATIONS
-                    </span>
-
-                    <h3>
-                        Thresholds
-                    </h3>
-
-                    <p>
-                        Configure SLA, fuel, health and exception thresholds.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="primary-btn"
-                        data-action="configure-alerts">
-
-                        Configure Thresholds →
-
-                    </button>
-
-                </article>
-
-            </div>
-
-        </section>
-
-    </main>
-
-</div>
-
-
-
-<!-- =========================================================
-     COPILOT OPEN BUTTON
-========================================================= -->
-
-<button
-    id="txCopilotOpen"
-    class="tx-copilot-open-btn"
-    type="button"
-    aria-label="Open TRANSLOGIX Copilot">
-
-    <span class="copilot-star">
-        ✦
-    </span>
-
-    Copilot
-
-</button>
-
-
-
-<!-- =========================================================
-     COPILOT PANEL
-========================================================= -->
-
-<aside
-    id="txCopilotPanel"
-    class="tx-copilot-panel hidden"
-    aria-hidden="true">
-
-
-    <div class="tx-copilot-header">
-
-
-        <div class="tx-copilot-brand">
-
-
-            <div class="tx-copilot-logo">
-                ✦
-            </div>
-
-
-            <div class="tx-copilot-title">
-
-                <strong>
-                    TRANSLOGIX Copilot
-                </strong>
-
-                <small>
-                    Logistics Intelligence Assistant
-                </small>
-
-            </div>
+            </form>
 
         </div>
 
+    `;
 
-        <button
-            id="txCopilotClose"
-            class="tx-copilot-close"
-            type="button"
-            aria-label="Close Copilot">
 
-            ×
+    document.body.appendChild(modal);
 
-        </button>
 
-    </div>
+    document
+        .getElementById(
+            "closeCreateShipment"
+        )
+        ?.addEventListener(
+            "click",
+            () => modal.remove()
+        );
 
 
+    document
+        .getElementById(
+            "cancelCreateShipment"
+        )
+        ?.addEventListener(
+            "click",
+            () => modal.remove()
+        );
 
-    <div class="tx-copilot-status">
 
-        <i></i>
+    document
+        .getElementById(
+            "createShipmentForm"
+        )
+        ?.addEventListener(
+            "submit",
+            submitShipment
+        );
 
-        <span>
-            Connected to TRANSLOGIX Operations
-        </span>
+}
 
-    </div>
 
+/* ==========================================================
+   SUBMIT CREATE SHIPMENT
+========================================================== */
 
+async function submitShipment(event){
 
-    <div
-        id="txCopilotMessages"
-        class="tx-copilot-messages">
+    event.preventDefault();
 
-    </div>
 
+    const form =
+        event.target;
 
 
-    <div class="tx-copilot-suggestions">
+    const formData =
+        new FormData(form);
 
 
-        <button
-            type="button"
-            data-copilot-question="Show shipment summary">
+    const trackingNumber =
+        String(
+            formData.get(
+                "trackingNumber"
+            ) || ""
+        ).trim();
 
-            Shipment Summary
 
-        </button>
+    const senderName =
+        String(
+            formData.get(
+                "senderName"
+            ) || ""
+        ).trim();
 
 
-        <button
-            type="button"
-            data-copilot-question="How many shipments are in transit?">
+    const receiverName =
+        String(
+            formData.get(
+                "receiverName"
+            ) || ""
+        ).trim();
 
-            In Transit
 
-        </button>
+    const origin =
+        String(
+            formData.get(
+                "origin"
+            ) || ""
+        ).trim();
 
 
-        <button
-            type="button"
-            data-copilot-question="Show delivered shipments">
+    const destination =
+        String(
+            formData.get(
+                "destination"
+            ) || ""
+        ).trim();
 
-            Delivered
 
-        </button>
+    const username =
+        String(
+            formData.get(
+                "username"
+            ) || ""
+        ).trim();
 
 
-        <button
-            type="button"
-            data-copilot-question="Show pending shipments">
+    const shipmentType =
+        String(
+            formData.get(
+                "shipmentType"
+            ) || ""
+        ).trim();
 
-            Pending
 
-        </button>
+    const status =
+        String(
+            formData.get(
+                "status"
+            ) || "Pending"
+        ).trim();
 
 
-        <button
-            type="button"
-            data-copilot-question="Show current routes">
+    const weight =
+        Number(
+            formData.get(
+                "weight"
+            )
+        );
 
-            Routes
 
-        </button>
+    /* ======================================================
+       VALIDATION
+    ====================================================== */
 
+    if(!trackingNumber){
 
-        <button
-            type="button"
-            data-copilot-question="Show operational exceptions">
+        showToast(
+            "Validation error",
+            "Tracking number is required.",
+            "error"
+        );
 
-            Exceptions
+        return;
 
-        </button>
+    }
 
 
-        <button
-            type="button"
-            data-copilot-question="Show fleet information">
+    if(!senderName){
 
-            Fleet
+        showToast(
+            "Validation error",
+            "Sender name is required.",
+            "error"
+        );
 
-        </button>
+        return;
 
-    </div>
+    }
 
 
+    if(!receiverName){
 
-    <form
-        id="txCopilotForm"
-        class="tx-copilot-input">
+        showToast(
+            "Validation error",
+            "Receiver name is required.",
+            "error"
+        );
 
+        return;
 
-        <input
-            id="txCopilotInput"
-            type="text"
-            autocomplete="off"
-            placeholder="Ask Copilot about logistics...">
+    }
 
 
-        <button
-            type="submit"
-            class="tx-copilot-send"
-            aria-label="Send">
+    if(!origin){
 
-            ↑
+        showToast(
+            "Validation error",
+            "Origin is required.",
+            "error"
+        );
 
-        </button>
+        return;
 
-    </form>
+    }
 
-</aside>
 
+    if(!destination){
 
+        showToast(
+            "Validation error",
+            "Destination is required.",
+            "error"
+        );
 
-<!-- =========================================================
-     ADMIN MODAL
-========================================================= -->
+        return;
 
-<div
-    id="adminModal"
-    class="admin-modal hidden">
+    }
 
 
-    <div class="modal-box">
+    if(!username){
 
+        showToast(
+            "Validation error",
+            "Please select a customer.",
+            "error"
+        );
 
-        <button
-            type="button"
-            id="adminModalClose"
-            class="modal-close">
+        return;
 
-            ×
+    }
 
-        </button>
 
+    if(!shipmentType){
 
-        <span>
-            TRANSLOGIX OPERATION
-        </span>
+        showToast(
+            "Validation error",
+            "Shipment type is required.",
+            "error"
+        );
 
+        return;
 
-        <h2 id="modalTitle">
-            Operation
-        </h2>
+    }
 
 
-        <div id="modalContent">
+    if(
+        !Number.isFinite(weight) ||
+        weight <= 0
+    ){
 
-        </div>
+        showToast(
+            "Validation error",
+            "Weight must be greater than 0.",
+            "error"
+        );
 
-    </div>
+        return;
 
-</div>
+    }
 
 
+    /* ======================================================
+       REQUEST PAYLOAD
+    ====================================================== */
 
-<!-- =========================================================
-     LEAFLET JS
-========================================================= -->
+    const payload = {
 
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin="">
-</script>
+        trackingNumber:
+            trackingNumber,
 
+        senderName:
+            senderName,
 
+        receiverName:
+            receiverName,
 
-<!-- =========================================================
-     ADMIN JS
-========================================================= -->
+        origin:
+            origin,
 
-<script
-    src="./Js/admin.js"
-    defer>
-</script>
+        destination:
+            destination,
 
+        shipmentType:
+            shipmentType,
 
+        status:
+            status,
 
-<!-- =========================================================
-     COPILOT JS
-========================================================= -->
+        weight:
+            weight,
 
-<script
-    src="./Js/copilot.js"
-    defer>
-</script>
+        username:
+            username
 
+    };
 
-</body>
-</html>
+
+    console.log(
+        "CREATE SHIPMENT PAYLOAD:",
+        payload
+    );
+
+
+    try{
+
+        /* ==================================================
+           DEMO MODE
+        ================================================== */
+
+        if(state.demoMode){
+
+            const demoShipment = {
+
+                id:
+                    Date.now(),
+
+                trackingNumber:
+                    trackingNumber,
+
+                senderName:
+                    senderName,
+
+                receiverName:
+                    receiverName,
+
+                origin:
+                    origin,
+
+                destination:
+                    destination,
+
+                shipmentType:
+                    shipmentType,
+
+                status:
+                    status,
+
+                weight:
+                    weight,
+
+                username:
+                    username
+
+            };
+
+
+            state.shipments.unshift(
+                demoShipment
+            );
+
+
+            renderShipmentTable(
+                state.shipments
+            );
+
+
+            updateStats();
+
+
+            document
+                .getElementById(
+                    "createShipmentModal"
+                )
+                ?.remove();
+
+
+            showToast(
+                "Demo shipment created",
+                `${trackingNumber} assigned to ${username}`,
+                "success"
+            );
+
+
+            return;
+
+        }
+
+
+        /* ==================================================
+           REAL BACKEND REQUEST
+        ================================================== */
+
+        const createdShipment =
+            await api(
+                "/api/admin/shipments",
+                {
+
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
+
+                }
+            );
+
+
+        console.log(
+            "SHIPMENT CREATED:",
+            createdShipment
+        );
+
+
+        document
+            .getElementById(
+                "createShipmentModal"
+            )
+            ?.remove();
+
+
+        await loadShipments();
+
+
+        showToast(
+            "Shipment created",
+            `${trackingNumber} assigned to ${username}`,
+            "success"
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Shipment creation failed:",
+            error
+        );
+
+
+        showToast(
+            "Shipment creation failed",
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   UPDATE STATS
+========================================================== */
+
+function updateStats(){
+
+    const shipments =
+        Array.isArray(
+            state.shipments
+        )
+            ? state.shipments
+            : [];
+
+
+    const total =
+        shipments.length;
+
+
+    const pending =
+        shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "pending"
+        ).length;
+
+
+    const inTransit =
+        shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "in transit"
+        ).length;
+
+
+    const outForDelivery =
+        shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "out for delivery"
+        ).length;
+
+
+    const delivered =
+        shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "delivered"
+        ).length;
+
+
+    setText(
+        "totalShipments",
+        total
+    );
+
+
+    setText(
+        "pendingShipments",
+        pending
+    );
+
+
+    setText(
+        "inTransitShipments",
+        inTransit
+    );
+
+
+    setText(
+        "outForDeliveryShipments",
+        outForDelivery
+    );
+
+
+    setText(
+        "deliveredShipments",
+        delivered
+    );
+
+}
+
+
+/* ==========================================================
+   SAFE TEXT SETTER
+========================================================== */
+
+function setText(
+    id,
+    value
+){
+
+    const element =
+        document.getElementById(id);
+
+
+    if(element){
+
+        element.textContent =
+            value;
+
+    }
+
+}
+
+
+/* ==========================================================
+   RENDER SHIPMENT TABLE
+========================================================== */
+
+function renderShipmentTable(
+    shipments = []
+){
+
+    const tableBody =
+        document.querySelector(
+            "#shipmentTableBody"
+        );
+
+
+    if(!tableBody){
+
+        console.warn(
+            "Shipment table body not found."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !Array.isArray(shipments) ||
+        shipments.length === 0
+    ){
+
+        tableBody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="10"
+                    style="text-align:center;"
+                >
+                    No shipments found.
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    tableBody.innerHTML =
+        shipments
+            .map(
+                shipment => {
+
+                    const tracking =
+                        escapeHtml(
+                            shipment.trackingNumber
+                            || "-"
+                        );
+
+
+                    const sender =
+                        escapeHtml(
+                            shipment.senderName
+                            || "-"
+                        );
+
+
+                    const receiver =
+                        escapeHtml(
+                            shipment.receiverName
+                            || "-"
+                        );
+
+
+                    const origin =
+                        escapeHtml(
+                            shipment.origin
+                            || "-"
+                        );
+
+
+                    const destination =
+                        escapeHtml(
+                            shipment.destination
+                            || "-"
+                        );
+
+
+                    const type =
+                        escapeHtml(
+                            shipment.shipmentType
+                            || "-"
+                        );
+
+
+                    const status =
+                        escapeHtml(
+                            shipment.status
+                            || "Pending"
+                        );
+
+
+                    const weight =
+                        shipment.weight ??
+                        "-";
+
+
+                    const username =
+                        escapeHtml(
+                            shipment.username ||
+                            shipment.user?.username ||
+                            "-"
+                        );
+
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                ${tracking}
+                            </td>
+
+                            <td>
+                                ${sender}
+                            </td>
+
+                            <td>
+                                ${receiver}
+                            </td>
+
+                            <td>
+                                ${origin}
+                            </td>
+
+                            <td>
+                                ${destination}
+                            </td>
+
+                            <td>
+                                ${type}
+                            </td>
+
+                            <td>
+                                ${weight} kg
+                            </td>
+
+                            <td>
+                                ${status}
+                            </td>
+
+                            <td>
+                                ${username}
+                            </td>
+
+                            <td>
+
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    onclick="viewShipment('${tracking}')"
+                                >
+                                    View
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* ==========================================================
+   VIEW SHIPMENT
+========================================================== */
+
+async function viewShipment(
+    trackingNumber
+){
+
+    try{
+
+        const shipment =
+            await api(
+                `/api/shipments/tracking/${encodeURIComponent(
+                    trackingNumber
+                )}`
+            );
+
+
+        console.log(
+            "SHIPMENT DETAILS:",
+            shipment
+        );
+
+
+        showToast(
+            "Shipment found",
+            `${shipment.trackingNumber || trackingNumber}`,
+            "success"
+        );
+
+    }
+    catch(error){
+
+        showToast(
+            "Shipment not found",
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   CREATE SHIPMENT BUTTON
+========================================================== */
+
+function setupCreateShipment(){
+
+    const buttons =
+        document.querySelectorAll(
+            "[data-action='create-shipment'], #createShipmentBtn, #addShipmentBtn"
+        );
+
+
+    buttons.forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                openCreateShipmentModal
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
+   REFRESH
+========================================================== */
+
+function setupRefresh(){
+
+    const button =
+        document.getElementById(
+            "refreshBtn"
+        );
+
+
+    if(!button){
+
+        return;
+
+    }
+
+
+    button.addEventListener(
+        "click",
+        async () => {
+
+            await loadCustomers();
+
+            await loadShipments();
+
+            showToast(
+                "Dashboard refreshed",
+                "Latest data loaded.",
+                "success"
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
+   ADMIN PAGE NAVIGATION
+========================================================== */
+
+const adminPageMap = {
+
+    dashboard: {
+        section: "page-dashboard",
+        title: "Command Center",
+        subtitle: "Enterprise logistics control workspace"
+    },
+
+    shipments: {
+        section: "page-shipments",
+        title: "Shipments",
+        subtitle: "Shipment operations and tracking"
+    },
+
+    fleet: {
+        section: "page-fleet",
+        title: "Fleet",
+        subtitle: "Fleet management and readiness"
+    },
+
+    drivers: {
+        section: "page-drivers",
+        title: "Drivers",
+        subtitle: "Driver operations"
+    },
+
+    dispatch: {
+        section: "page-dispatch",
+        title: "Dispatch",
+        subtitle: "Dispatch board and operations"
+    },
+
+    network: {
+        section: "page-network",
+        title: "Live Network",
+        subtitle: "Network operations"
+    },
+
+    exceptions: {
+        section: "page-exceptions",
+        title: "Exception Center",
+        subtitle: "Operational exceptions"
+    },
+
+    alerts: {
+        section: "page-alerts",
+        title: "Alerts",
+        subtitle: "Alert management"
+    },
+
+    maintenance: {
+        section: "page-maintenance",
+        title: "Maintenance",
+        subtitle: "Vehicle maintenance"
+    },
+
+    analytics: {
+        section: "page-analytics",
+        title: "Analytics",
+        subtitle: "Operational analytics"
+    },
+
+    customers: {
+        section: "page-customers",
+        title: "Customer Intelligence",
+        subtitle: "Customer operations"
+    },
+
+    reports: {
+        section: "page-reports",
+        title: "Reports",
+        subtitle: "Operational reports"
+    },
+
+    assignments: {
+        section: "page-assignments",
+        title: "Assignments",
+        subtitle: "Shipment assignments"
+    },
+
+    settings: {
+        section: "page-settings",
+        title: "Settings",
+        subtitle: "System configuration"
+    }
+
+};
+
+
+/* ==========================================================
+   SHOW PAGE
+========================================================== */
+
+function showPage(page){
+
+    console.log(
+        "ADMIN NAVIGATION:",
+        page
+    );
+
+
+    const config =
+        adminPageMap[page] ||
+        adminPageMap.dashboard;
+
+
+    document
+        .querySelectorAll(
+            ".admin-page"
+        )
+        .forEach(section => {
+
+            section.classList.add(
+                "hidden"
+            );
+
+        });
+
+
+    const selectedPage =
+        document.getElementById(
+            config.section
+        );
+
+
+    if(!selectedPage){
+
+        console.error(
+            "Admin page section not found:",
+            config.section
+        );
+
+        return;
+
+    }
+
+
+    selectedPage.classList.remove(
+        "hidden"
+    );
+
+
+    document
+        .querySelectorAll(
+            ".admin-nav-item[data-page]"
+        )
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.page ===
+                page
+            );
+
+        });
+
+
+    setText(
+        "pageTitle",
+        config.title
+    );
+
+
+    setText(
+        "pageSubtitle",
+        config.subtitle
+    );
+
+
+    setText(
+        "adminPageTitle",
+        config.title
+    );
+
+
+    setText(
+        "adminPageSubtitle",
+        config.subtitle
+    );
+
+
+    state.currentPage =
+        page;
+
+
+    if(
+        page === "shipments"
+    ){
+
+        renderShipmentTable(
+            state.shipments
+        );
+
+    }
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+/* ==========================================================
+   SETUP NAVIGATION
+========================================================== */
+
+function setupNavigation(){
+
+    console.log(
+        "ADMIN NAVIGATION INITIALIZED"
+    );
+
+
+    const navButtons =
+        document.querySelectorAll(
+            ".admin-nav-item[data-page]"
+        );
+
+
+    console.log(
+        "NAV BUTTONS:",
+        navButtons.length
+    );
+
+
+    navButtons.forEach(
+        button => {
+
+            if(
+                button.dataset.navBound ===
+                "true"
+            ){
+
+                return;
+
+            }
+
+
+            button.dataset.navBound =
+                "true";
+
+
+            button.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    const page =
+                        button.dataset.page;
+
+
+                    console.log(
+                        "NAV CLICK:",
+                        page
+                    );
+
+
+                    showPage(
+                        page
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    const pageGoButtons =
+        document.querySelectorAll(
+            "[data-page-go]"
+        );
+
+
+    pageGoButtons.forEach(
+        button => {
+
+            if(
+                button.dataset.pageGoBound ===
+                "true"
+            ){
+
+                return;
+
+            }
+
+
+            button.dataset.pageGoBound =
+                "true";
+
+
+            button.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    const page =
+                        button.dataset.pageGo;
+
+
+                    console.log(
+                        "PAGE GO:",
+                        page
+                    );
+
+
+                    showPage(
+                        page
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
+   ADMIN INITIALIZATION
+========================================================== */
+
+async function initAdmin(){
+
+    try{
+
+        setupNavigation();
+
+
+        if(
+            typeof setupShipmentTable ===
+            "function"
+        ){
+
+            setupShipmentTable();
+
+        }
+
+
+        if(
+            typeof setupShipmentFilters ===
+            "function"
+        ){
+
+            setupShipmentFilters();
+
+        }
+
+
+        setupCreateShipment();
+
+
+        if(
+            typeof setupExceptions ===
+            "function"
+        ){
+
+            setupExceptions();
+
+        }
+
+
+        if(
+            typeof setupGlobalSearch ===
+            "function"
+        ){
+
+            setupGlobalSearch();
+
+        }
+
+
+        setupRefresh();
+
+
+        if(
+            typeof setupNotification ===
+            "function"
+        ){
+
+            setupNotification();
+
+        }
+
+
+        if(
+            typeof setupExport ===
+            "function"
+        ){
+
+            setupExport();
+
+        }
+
+
+        if(
+            typeof setupReportButton ===
+            "function"
+        ){
+
+            setupReportButton();
+
+        }
+
+
+        if(
+            typeof setupActions ===
+            "function"
+        ){
+
+            setupActions();
+
+        }
+
+
+        if(
+            typeof setupMobileMenu ===
+            "function"
+        ){
+
+            setupMobileMenu();
+
+        }
+
+
+        if(
+            typeof setupModal ===
+            "function"
+        ){
+
+            setupModal();
+
+        }
+
+
+        if(
+            typeof setupLogout ===
+            "function"
+        ){
+
+            setupLogout();
+
+        }
+
+
+        if(
+            typeof setupAddVehicle ===
+            "function"
+        ){
+
+            setupAddVehicle();
+
+        }
+
+
+        showPage(
+            "dashboard"
+        );
+
+
+        await loadCustomers();
+
+
+        await loadShipments();
+
+
+        if(
+            typeof initDashboardMap ===
+            "function"
+        ){
+
+            initDashboardMap();
+
+        }
+
+
+        console.log(
+            "TRANSLOGIX ADMIN CONTROL TOWER READY"
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Admin initialization failed:",
+            error
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   START ADMIN
+========================================================== */
+
+if(
+    document.readyState ===
+    "loading"
+){
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initAdmin
+    );
+
+}
+else{
+
+    initAdmin();
+
+}
+
+        receiverName:
+            receiverName,
+
+        origin:
+            origin,
+
+        destination:
+            destination,
+
+        shipmentType:
+            shipmentType,
+
+        status:
+            status,
+
+        weight:
+            weight,
+
+        username:
+            username
+
+    };
+
+
+    console.log(
+        "CREATE SHIPMENT PAYLOAD:",
+        payload
+    );
+
+
+    try{
+
+        /* ==================================================
+           DEMO MODE
+        ================================================== */
+
+        if(state.demoMode){
+
+            const demoShipment = {
+
+                id:
+                    Date.now(),
+
+                trackingNumber:
+                    trackingNumber,
+
+                senderName:
+                    senderName,
+
+                receiverName:
+                    receiverName,
+
+                origin:
+                    origin,
+
+                destination:
+                    destination,
+
+                shipmentType:
+                    shipmentType,
+
+                status:
+                    status,
+
+                weight:
+                    weight,
+
+                username:
+                    username
+
+            };
+
+
+            state.shipments.unshift(
+                demoShipment
+            );
+
+
+            renderShipmentTable(
+                state.shipments
+            );
+
+
+            updateStats();
+
+
+            document
+                .getElementById(
+                    "createShipmentModal"
+                )
+                ?.remove();
+
+
+            showToast(
+                "Demo shipment created",
+                `${trackingNumber} assigned to ${username}`,
+                "success"
+            );
+
+
+            return;
+
+        }
+
+
+        /* ==================================================
+           REAL BACKEND REQUEST
+        ================================================== */
+
+        const createdShipment =
+            await api(
+                "/api/admin/shipments",
+                {
+
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
+
+                }
+            );
+
+
+        console.log(
+            "SHIPMENT CREATED:",
+            createdShipment
+        );
+
+
+        document
+            .getElementById(
+                "createShipmentModal"
+            )
+            ?.remove();
+
+
+        await loadShipments();
+
+
+        showToast(
+            "Shipment created",
+            `${trackingNumber} assigned to ${username}`,
+            "success"
+        );
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Shipment creation failed:",
+            error
+        );
+
+
+        showToast(
+            "Shipment creation failed",
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   UPDATE STATS
+========================================================== */
+
+function updateStats(){
+
+    const shipments =
+        Array.isArray(
+            state.shipments
+        )
+            ? state.shipments
+            : [];
+
+
+    const total =
+        shipments.length;
+
+
+    const pending =
+        shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "pending"
+        ).length;
+
+
+    const inTransit =
+        shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "in transit"
+        ).length;
+
+
+    const outForDelivery =
+        shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "out for delivery"
+        ).length;
+
+
+    const delivered =
+        shipments.filter(
+            shipment =>
+                String(
+                    shipment.status || ""
+                ).toLowerCase()
+                === "delivered"
+        ).length;
+
+
+    setText(
+        "totalShipments",
+        total
+    );
+
+
+    setText(
+        "pendingShipments",
+        pending
+    );
+
+
+    setText(
+        "inTransitShipments",
+        inTransit
+    );
+
+
+    setText(
+        "outForDeliveryShipments",
+        outForDelivery
+    );
+
+
+    setText(
+        "deliveredShipments",
+        delivered
+    );
+
+}
+
+
+/* ==========================================================
+   SAFE TEXT SETTER
+========================================================== */
+
+function setText(
+    id,
+    value
+){
+
+    const element =
+        document.getElementById(id);
+
+
+    if(element){
+
+        element.textContent =
+            value;
+
+    }
+
+}
+
+
+/* ==========================================================
+   RENDER SHIPMENT TABLE
+========================================================== */
+
+function renderShipmentTable(
+    shipments = []
+){
+
+    const tableBody =
+        document.querySelector(
+            "#shipmentTableBody"
+        );
+
+
+    if(!tableBody){
+
+        console.warn(
+            "Shipment table body not found."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !Array.isArray(shipments) ||
+        shipments.length === 0
+    ){
+
+        tableBody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="10"
+                    style="text-align:center;"
+                >
+                    No shipments found.
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    tableBody.innerHTML =
+        shipments
+            .map(
+                shipment => {
+
+                    const tracking =
+                        escapeHtml(
+                            shipment.trackingNumber
+                            || "-"
+                        );
+
+
+                    const sender =
+                        escapeHtml(
+                            shipment.senderName
+                            || "-"
+                        );
+
+
+                    const receiver =
+                        escapeHtml(
+                            shipment.receiverName
+                            || "-"
+                        );
+
+
+                    const origin =
+                        escapeHtml(
+                            shipment.origin
+                            || "-"
+                        );
+
+
+                    const destination =
+                        escapeHtml(
+                            shipment.destination
+                            || "-"
+                        );
+
+
+                    const type =
+                        escapeHtml(
+                            shipment.shipmentType
+                            || "-"
+                        );
+
+
+                    const status =
+                        escapeHtml(
+                            shipment.status
+                            || "Pending"
+                        );
+
+
+                    const weight =
+                        shipment.weight ??
+                        "-";
+
+
+                    const username =
+                        escapeHtml(
+                            shipment.username ||
+                            shipment.user?.username ||
+                            "-"
+                        );
+
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                ${tracking}
+                            </td>
+
+                            <td>
+                                ${sender}
+                            </td>
+
+                            <td>
+                                ${receiver}
+                            </td>
+
+                            <td>
+                                ${origin}
+                            </td>
+
+                            <td>
+                                ${destination}
+                            </td>
+
+                            <td>
+                                ${type}
+                            </td>
+
+                            <td>
+                                ${weight} kg
+                            </td>
+
+                            <td>
+                                ${status}
+                            </td>
+
+                            <td>
+                                ${username}
+                            </td>
+
+                            <td>
+
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    onclick="viewShipment('${tracking}')"
+                                >
+                                    View
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* ==========================================================
+   VIEW SHIPMENT
+========================================================== */
+
+async function viewShipment(
+    trackingNumber
+){
+
+    try{
+
+        const shipment =
+            await api(
+                `/api/shipments/tracking/${encodeURIComponent(
+                    trackingNumber
+                )}`
+            );
+
+
+        console.log(
+            "SHIPMENT DETAILS:",
+            shipment
+        );
+
+
+        showToast(
+            "Shipment found",
+            `${shipment.trackingNumber || trackingNumber}`,
+            "success"
+        );
+
+    }
+    catch(error){
+
+        showToast(
+            "Shipment not found",
+            error.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   CREATE SHIPMENT BUTTON
+========================================================== */
+
+function setupCreateShipment(){
+
+    const buttons =
+        document.querySelectorAll(
+            "[data-action='create-shipment'], #createShipmentBtn, #addShipmentBtn"
+        );
+
+
+    buttons.forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                openCreateShipmentModal
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
+   REFRESH
+========================================================== */
+
+function setupRefresh(){
+
+    const button =
+        document.getElementById(
+            "refreshBtn"
+        );
+
+
+    if(!button){
+
+        return;
+
+    }
+
+
+    button.addEventListener(
+        "click",
+        async () => {
+
+            await loadCustomers();
+
+            await loadShipments();
+
+            showToast(
+                "Dashboard refreshed",
+                "Latest data loaded.",
+                "success"
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
+   ADMIN PAGE NAVIGATION
+========================================================== */
+
+const adminPageMap = {
+
+    dashboard: {
+        section: "page-dashboard",
+        title: "Command Center",
+        subtitle: "Enterprise logistics control workspace"
+    },
+
+    shipments: {
+        section: "page-shipments",
+        title: "Shipments",
+        subtitle: "Shipment operations and tracking"
+    },
+
+    fleet: {
+        section: "page-fleet",
+        title: "Fleet",
+        subtitle: "Fleet management and readiness"
+    },
+
+    drivers: {
+        section: "page-drivers",
+        title: "Drivers",
+        subtitle: "Driver operations"
+    },
+
+    dispatch: {
+        section: "page-dispatch",
+        title: "Dispatch",
+        subtitle: "Dispatch board and operations"
+    },
+
+    network: {
+        section: "page-network",
+        title: "Live Network",
+        subtitle: "Network operations"
+    },
+
+    exceptions: {
+        section: "page-exceptions",
+        title: "Exception Center",
+        subtitle: "Operational exceptions"
+    },
+
+    alerts: {
+        section: "page-alerts",
+        title: "Alerts",
+        subtitle: "Alert management"
+    },
+
+    maintenance: {
+        section: "page-maintenance",
+        title: "Maintenance",
+        subtitle: "Vehicle maintenance"
+    },
+
+    analytics: {
+        section: "page-analytics",
+        title: "Analytics",
+        subtitle: "Operational analytics"
+    },
+
+    customers: {
+        section: "page-customers",
+        title: "Customer Intelligence",
+        subtitle: "Customer operations"
+    },
+
+    reports: {
+        section: "page-reports",
+        title: "Reports",
+        subtitle: "Operational reports"
+    },
+
+    assignments: {
+        section: "page-assignments",
+        title: "Assignments",
+        subtitle: "Shipment assignments"
+    },
+
+    settings: {
+        section: "page-settings",
+        title: "Settings",
+        subtitle: "System configuration"
+    }
+
+};
+
+
+/* ==========================================================
+   SHOW PAGE
+========================================================== */
+
+function showPage(page){
+
+    console.log(
+        "ADMIN NAVIGATION:",
+        page
+    );
+
+
+    const config =
+        adminPageMap[page] ||
+        adminPageMap.dashboard;
+
+
+    document
+        .querySelectorAll(
+            ".admin-page"
+        )
+        .forEach(section => {
+
+            section.classList.add(
+                "hidden"
+            );
+
+        });
+
+
+    const selectedPage =
+        document.getElementById(
+            config.section
+        );
+
+
+    if(!selectedPage){
+
+        console.error(
+            "Admin page section not found:",
+            config.section
+        );
+
+        return;
+
+    }
+
+
+    selectedPage.classList.remove(
+        "hidden"
+    );
+
+
+    document
+        .querySelectorAll(
+            ".admin-nav-item[data-page]"
+        )
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.page ===
+                page
+            );
+
+        });
+
+
+    setText(
+        "pageTitle",
+        config.title
+    );
+
+
+    setText(
+        "pageSubtitle",
+        config.subtitle
+    );
+
+
+    setText(
+        "adminPageTitle",
+        config.title
+    );
+
+
+    setText(
+        "adminPageSubtitle",
+        config.subtitle
+    );
+
+
+    state.currentPage =
+        page;
+
+
+    if(
+        page === "shipments"
+    ){
+
+        renderShipmentTable(
+            state.shipments
+        );
+
+    }
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+/* ==========================================================
+   SETUP NAVIGATION
+========================================================== */
+
+function setupNavigation(){
+
+    console.log(
+        "ADMIN NAVIGATION INITIALIZED"
+    );
+
+
+    const navButtons =
+        document.querySelectorAll(
+            ".admin-nav-item[data-page]"
+        );
+
+
+    console.log(
+        "NAV BUTTONS:",
+        navButtons.length
+    );
+
+
+    navButtons.forEach(
+        button => {
+
+            if(
+                button.dataset.navBound ===
+                "true"
+            ){
+
+                return;
+
+            }
+
+
+            button.dataset.navBound =
+                "true";
+
+
+            button.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    const page =
+                        button.dataset.page;
+
+
+                    console.log(
+                        "NAV CLICK:",
+                        page
+                    );
+
+
+                    showPage(
+                        page
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    const pageGoButtons =
+        document.querySelectorAll(
+            "[data-page-go]"
+        );
+
+
+    pageGoButtons.forEach(
+        button => {
+
+            if(
+                button.dataset.pageGoBound ===
+                "true"
+            ){
+
+                return;
+
+            }
+
+
+            button.dataset.pageGoBound =
+                "true";
+
+
+            button.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    const page =
+                        button.dataset.pageGo;
+
+
+                    console.log(
+                        "PAGE GO:",
+                        page
+                    );
+
+
+                    showPage(
+                        page
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+/* ==========================================================
+   ADMIN INITIALIZATION
+========================================================== */
+
+async function initAdmin(){
+
+    try{
+
+        setupNavigation();
+
+
+        if(
+            typeof setupShipmentTable ===
+            "function"
+        ){
+
+            setupShipmentTable();
+
+        }
+
+
+        if(
+            typeof setupShipmentFilters ===
+            "function"
+        ){
+
+            setupShipmentFilters();
+
+        }
+
+
+        setupCreateShipment();
+
+
+        if(
+            typeof setupExceptions ===
+            "function"
+        ){
+
+            setupExceptions();
+
+        }
+
+
+        if(
+            typeof setupGlobalSearch ===
+            "function"
+        ){
+
+            setupGlobalSearch();
+
+        }
+
+
+        setupRefresh();
+
+
+        if(
+            typeof setupNotification ===
+            "function"
+        ){
+
+            setupNotification();
+
+        }
+
+
+        if(
+            typeof setupExport ===
+            "function"
+        ){
+
+            setupExport();
+
+        }
+
+
+        if(
+            typeof setupReportButton ===
+            "function"
+        ){
+
+            setupReportButton();
+
+        }
+
+
+        if(
+            typeof setupActions ===
+            "function"
+        ){
+
+            setupActions();
+
+        }
+
+
+        if(
+            typeof setupMobileMenu ===
+            "function"
+        ){
+
+            setupMobileMenu();
+
+        }
+
+
+        if(
+            typeof setupModal ===
+            "function"
+        ){
+
+            setupModal();
+
+        }
+
+
+        if(
+            typeof setupLogout ===
+            "function"
+        ){
+
+            setupLogout();
+
+        }
+
+
+        if(
+            typeof setupAddVehicle ===
+            "function"
+        ){
+
+            setupAddVehicle();
+
+        }
+
+
+        showPage(
+            "dashboard"
+        );
+
+
+        await loadCustomers();
+
+
+        await loadShipments();
+
+
+        if(
+            typeof initDashboardMap ===
+            "function"
+        ){
+
+            initDashboardMap();
+
+        }
+
+
+        console.log(
+            "TRANSLOGIX ADMIN CONTROL TOWER READY"
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Admin initialization failed:",
+            error
+        );
+
+    }
+
+}
+
+
+/* ==========================================================
+   START ADMIN
+========================================================== */
+
+if(
+    document.readyState ===
+    "loading"
+){
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initAdmin
+    );
+
+}
+else{
+
+    initAdmin();
+
+}
